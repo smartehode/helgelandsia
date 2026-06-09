@@ -1,0 +1,22 @@
+# Avhengigheter
+node_modules/
+
+# Next.js byggefiler
+.next/
+out/
+build/
+next-env.d.ts
+
+# Miljøvariabler og hemmeligheter (skal ALDRI til GitHub)
+.env
+.env.local
+.env*.local
+
+# Opplastede bilder (lagres på server/S3, ikke i repo)
+/media/
+
+# Logger og diverse
+*.log
+npm-debug.log*
+.DS_Store
+*.tsbuildinfo

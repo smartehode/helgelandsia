@@ -1,0 +1,61 @@
+# docker-compose.yml – kjører app, database og HTTPS-proxy sammen.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: helgeland
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Appen snakker med databasen internt på tjenestenavnet "db"
+      DATABASE_URI: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/helgeland
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      NEXT_PUBLIC_SERVER_URL: https://${DOMAIN}
+      # Valgfritt: Hetzner Object Storage (S3) for bilder – la stå tomt for å droppe
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+    expose:
+      - "3000"
+    # Hvis du IKKE bruker S3, kan du lagre bilder på disk i stedet ved å
+    # fjerne kommentaren under (og sette staticDir i Media-collection):
+    # volumes:
+    #   - media:/app/media
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
+  # media:

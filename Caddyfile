@@ -1,0 +1,4 @@
+# Caddy henter og fornyer SSL-sertifikat automatisk via Let's Encrypt.
+{$DOMAIN} {
+    reverse_proxy app:3000
+}
