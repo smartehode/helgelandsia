@@ -36,8 +36,8 @@ services:
       - "3000"
     # Hvis du IKKE bruker S3, kan du lagre bilder på disk i stedet ved å
     # fjerne kommentaren under (og sette staticDir i Media-collection):
-    # volumes:
-    #   - media:/app/media
+    volumes:
+      - media:/app/media
 
   caddy:
     image: caddy:2
@@ -58,4 +58,4 @@ volumes:
   db-data:
   caddy-data:
   caddy-config:
-  # media:
+  media:

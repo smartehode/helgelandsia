@@ -35,3 +35,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...events,
   ]
 }
+export const dynamic = 'force-dynamic'

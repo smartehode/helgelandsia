@@ -2,7 +2,7 @@ import { Card } from '@/components/Card'
 import { getPayloadClient } from '@/lib/getPayload'
 import type { Metadata } from 'next'
 
-export const revalidate = 300
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'Bedrifter',
   description: 'Næringsliv og bedrifter på Helgeland.',

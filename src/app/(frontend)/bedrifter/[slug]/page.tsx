@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { RichText } from '@/components/RichText'
 import { getPayloadClient } from '@/lib/getPayload'
 
-export const revalidate = 300
+export const dynamic = 'force-dynamic'
 
 const mediaUrl = (m: any, size?: string) =>
   m && typeof m === 'object' ? (size && m.sizes?.[size]?.url) || m.url : null

@@ -8,13 +8,13 @@ import { Card } from '@/components/Card'
 import { getPostBySlug } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/getPayload'
 
-export const revalidate = 300
+export const dynamic = 'force-dynamic'
 
 const mediaUrl = (m: any, size?: string) =>
   m && typeof m === 'object' ? (size && m.sizes?.[size]?.url) || m.url : null
 
 // Forhåndsgenerer sider for publiserte artikler (SSG + ISR).
-export async function generateStaticParams() {
+async function generateStaticParams() {
   const payload = await getPayloadClient()
   const { docs } = await payload.find({
     collection: 'posts',

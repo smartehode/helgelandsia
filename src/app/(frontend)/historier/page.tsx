@@ -3,7 +3,7 @@ import { Card } from '@/components/Card'
 import { getLatestPosts } from '@/lib/queries'
 import type { Metadata } from 'next'
 
-export const revalidate = 300
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Historier',

@@ -8,13 +8,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 # --- Avhengigheter ---
 FROM base AS deps
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install
 
 # --- Bygg ---
 FROM base AS builder
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npx payload generate:importmap
 RUN npm run build
 
 # --- Kjøretid ---

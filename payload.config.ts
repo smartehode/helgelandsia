@@ -4,6 +4,8 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { s3Storage } from '@payloadcms/storage-s3'
 import sharp from 'sharp'
+import { nb } from '@payloadcms/translations/languages/nb'
+import { en } from '@payloadcms/translations/languages/en'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -21,10 +23,15 @@ import { Pages } from './src/collections/Pages'
 // Globals
 import { SiteSettings } from './src/globals/SiteSettings'
 import { Header, Footer } from './src/globals/Navigation'
+import { Hero } from './src/globals/Hero'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default buildConfig({
+  i18n: {
+    supportedLanguages: { en, nb },
+    fallbackLanguage: 'nb',
+  },
   // ---- Adminpanel ----
   admin: {
     user: Users.slug,
@@ -48,11 +55,12 @@ export default buildConfig({
     Ads,
     Pages,
   ],
-  globals: [SiteSettings, Header, Footer],
+  globals: [SiteSettings, Hero, Header, Footer],
 
   // ---- Database ----
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URI },
+    push: true,
   }),
 
   // ---- Bildeprosessering ----
@@ -74,6 +82,7 @@ export default buildConfig({
     seoPlugin({
       collections: ['posts', 'pages', 'businesses', 'events'],
       uploadsCollection: 'media',
+      tabbedUI: true,
       generateTitle: ({ doc }) => `${doc?.title ?? ''} · Helgeland-portalen`,
       generateDescription: ({ doc }) => doc?.excerpt ?? doc?.tagline ?? '',
     }),

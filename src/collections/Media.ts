@@ -11,6 +11,7 @@ export const Media: CollectionConfig = {
     delete: isEditor,
   },
   upload: {
+    staticDir: '/app/media',
     // Automatiske størrelser for responsiv levering
     imageSizes: [
       { name: 'thumbnail', width: 400, height: 300, position: 'centre' },
@@ -18,7 +19,7 @@ export const Media: CollectionConfig = {
       { name: 'hero', width: 1920, height: 1080, position: 'centre' },
     ],
     focalPoint: true,
-    mimeTypes: ['image/*'],
+    mimeTypes: ['image/*', 'video/mp4'],
   },
   fields: [
     {

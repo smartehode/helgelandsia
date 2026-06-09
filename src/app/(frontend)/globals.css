@@ -3,10 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-serif: 'Lora', Georgia, serif;
+  --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
 }
 
-body {
-  @apply bg-sand text-slate-800 antialiased;
+html { scroll-behavior: smooth; }
+body { @apply bg-fog text-ink antialiased; }
+::selection { background: #DDA13A; color: #0C2733; }
+*:focus-visible { @apply outline-2 outline-offset-2 outline-sea; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }

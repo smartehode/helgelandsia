@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import type { Metadata } from 'next'
 
-export const revalidate = 120
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'Arrangementer',
   description: 'Kommende arrangementer på Helgeland.',

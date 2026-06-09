@@ -6,7 +6,7 @@ import { nb } from 'date-fns/locale'
 import { RichText } from '@/components/RichText'
 import { getPayloadClient } from '@/lib/getPayload'
 
-export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 const mediaUrl = (m: any, size?: string) =>
   m && typeof m === 'object' ? (size && m.sizes?.[size]?.url) || m.url : null
