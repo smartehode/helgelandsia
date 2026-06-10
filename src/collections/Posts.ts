@@ -33,6 +33,7 @@ export const Posts: CollectionConfig = {
     delete: isEditor,
   },
   fields: [
+    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
     {
       type: 'tabs',
       tabs: [

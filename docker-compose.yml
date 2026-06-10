@@ -16,6 +16,7 @@ services:
       retries: 5
 
   app:
+    command: sh -c "npx payload migrate && npm run start"
     env_file: [.env]
     build: .
     restart: unless-stopped
