@@ -2,10 +2,12 @@
 import { useState } from 'react'
 import { EventForm } from '@/components/EventForm'
 import { ArticleForm } from '@/components/ArticleForm'
+import { JobForm } from '@/components/JobForm'
 
 const tabs = [
   { id: 'artikkel', label: 'Artikkel' },
   { id: 'arrangement', label: 'Arrangement' },
+  { id: 'stilling', label: 'Stilling' },
 ] as const
 
 export function SubmissionTabs() {
@@ -20,7 +22,7 @@ export function SubmissionTabs() {
           </button>
         ))}
       </div>
-      {active === 'artikkel' ? <ArticleForm /> : <EventForm />}
+      {active === 'artikkel' ? <ArticleForm /> : active === 'arrangement' ? <EventForm /> : <JobForm />}
     </div>
   )
 }

@@ -17,6 +17,7 @@ import { Places } from './src/collections/Places'
 import { Posts } from './src/collections/Posts'
 import { Businesses } from './src/collections/Businesses'
 import { Events } from './src/collections/Events'
+import { Jobs } from './src/collections/Jobs'
 import { Ads } from './src/collections/Ads'
 import { Pages } from './src/collections/Pages'
 import { Members } from './src/collections/Members'
@@ -55,6 +56,7 @@ export default buildConfig({
     Posts,
     Businesses,
     Events,
+    Jobs,
     Ads,
     Pages,
   ],
