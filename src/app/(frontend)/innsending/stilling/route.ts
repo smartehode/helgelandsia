@@ -39,8 +39,8 @@ export async function POST(req: Request) {
       data: {
         title,
         employer,
-        description: desc ? toLexical(desc) : undefined,
-        jobType: String(fd.get('jobType') || '') || undefined,
+        description: desc ? toLexical(desc) as any : undefined,
+        jobType: (String(fd.get('jobType') || '') || undefined) as 'full-time' | 'part-time' | 'temp' | 'contract' | 'seasonal' | 'apprentice' | undefined,
         deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : undefined,
         locationName: String(fd.get('locationName') || '') || undefined,
         applicationUrl: String(fd.get('applicationUrl') || '') || undefined,
