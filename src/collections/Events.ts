@@ -19,6 +19,7 @@ export const Events: CollectionConfig = {
     delete: isEditor,
   },
   fields: [
+    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
     { name: 'title', type: 'text', required: true, label: 'Tittel' },
     { name: 'image', type: 'upload', relationTo: 'media', label: 'Bilde' },
     {

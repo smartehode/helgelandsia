@@ -19,6 +19,8 @@ import { Businesses } from './src/collections/Businesses'
 import { Events } from './src/collections/Events'
 import { Ads } from './src/collections/Ads'
 import { Pages } from './src/collections/Pages'
+import { Members } from './src/collections/Members'
+import { googleOAuth } from './src/oauth/google'
 
 // Globals
 import { SiteSettings } from './src/globals/SiteSettings'
@@ -46,6 +48,7 @@ export default buildConfig({
   // ---- Datamodell ----
   collections: [
     Users,
+    Members,
     Media,
     Categories,
     Places,
@@ -78,6 +81,7 @@ export default buildConfig({
 
   // ---- Plugins ----
   plugins: [
+    googleOAuth,
     // SEO-felt (meta-tittel, beskrivelse, OG-bilde) på utvalgte collections
     seoPlugin({
       collections: ['posts', 'pages', 'businesses', 'events'],
