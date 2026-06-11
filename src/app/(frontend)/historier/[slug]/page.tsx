@@ -5,8 +5,10 @@ import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import { RichText } from '@/components/RichText'
 import { Card } from '@/components/Card'
+import { ShareButtons } from '@/components/ShareButtons'
 import { getPostBySlug } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/getPayload'
+import { SITE, abs } from '@/lib/og'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,17 +38,21 @@ export async function generateMetadata({
   if (!post) return {}
 
   const meta = (post as any).meta ?? {}
-  const ogImage = mediaUrl(meta.image ?? (post as any).heroImage, 'hero')
+  const ogImage = abs(mediaUrl(meta.image ?? (post as any).heroImage, 'hero'))
+  const title = meta.title ?? post.title
+  const description = meta.description ?? (post as any).excerpt
 
   return {
-    title: meta.title ?? post.title,
-    description: meta.description ?? (post as any).excerpt,
+    title,
+    description,
     openGraph: {
-      title: meta.title ?? post.title,
-      description: meta.description ?? (post as any).excerpt,
+      title,
+      description,
+      url: `${SITE}/historier/${slug}`,
       images: ogImage ? [{ url: ogImage }] : undefined,
       type: 'article',
     },
+    twitter: { card: ogImage ? 'summary_large_image' : 'summary' },
   }
 }
 
@@ -77,6 +83,7 @@ export default async function StoryPage({
           </span>
         )}
         <h1 className="mt-2 font-serif text-4xl font-bold text-sea">{p.title}</h1>
+        <ShareButtons title={p.title} />
 
         <div className="mt-3 flex items-center gap-3 text-sm text-slate-500">
           {p.author?.name && <span>Av {p.author.name}</span>}

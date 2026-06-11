@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import type { Metadata } from 'next'
 import { RichText } from '@/components/RichText'
+import { ShareButtons } from '@/components/ShareButtons'
 import { getPayloadClient } from '@/lib/getPayload'
+import { SITE, abs } from '@/lib/og'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +26,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const b: any = await getBusiness(slug)
   if (!b) return {}
-  return { title: b.name, description: b.tagline }
+  const meta = b.meta ?? {}
+  const img = abs(mediaUrl(meta.image ?? b.logo, 'hero') ?? mediaUrl(meta.image ?? b.logo))
+  const title = meta.title ?? b.name
+  const description = meta.description ?? b.tagline
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${SITE}/bedrifter/${slug}`,
+      images: img ? [{ url: img }] : undefined,
+      type: 'website',
+    },
+    twitter: { card: img ? 'summary_large_image' : 'summary' },
+  }
 }
 
 const DAYS: Record<string, string> = {
@@ -45,6 +62,7 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
         <div>
           <h1 className="font-serif text-3xl font-bold text-sea">{b.name}</h1>
           {b.tagline && <p className="text-slate-600">{b.tagline}</p>}
+          <ShareButtons title={b.name} />
         </div>
       </div>
 

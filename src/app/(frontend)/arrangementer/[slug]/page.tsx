@@ -4,7 +4,9 @@ import type { Metadata } from 'next'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import { RichText } from '@/components/RichText'
+import { ShareButtons } from '@/components/ShareButtons'
 import { getPayloadClient } from '@/lib/getPayload'
+import { SITE, abs } from '@/lib/og'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +28,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const e: any = await getEvent(slug)
   if (!e) return {}
-  return { title: e.title }
+  const meta = e.meta ?? {}
+  const img = abs(mediaUrl(meta.image ?? e.image, 'hero') ?? mediaUrl(meta.image ?? e.image))
+  const title = meta.title ?? e.title
+  const description = meta.description
+    ?? (e.startDate ? `${format(new Date(e.startDate), "d. MMMM yyyy 'kl.' HH:mm", { locale: nb })}${e.locationName ? ` · ${e.locationName}` : ''}` : undefined)
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${SITE}/arrangementer/${slug}`,
+      images: img ? [{ url: img }] : undefined,
+      type: 'article',
+    },
+    twitter: { card: img ? 'summary_large_image' : 'summary' },
+  }
 }
 
 export default async function EventPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -44,6 +62,7 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </div>
       )}
       <h1 className="font-serif text-3xl font-bold text-sea">{e.title}</h1>
+      <ShareButtons title={e.title} />
       <div className="mt-3 space-y-1 text-slate-600">
         {e.startDate && (
           <p>🗓️ {format(new Date(e.startDate), "EEEE d. MMMM yyyy 'kl.' HH:mm", { locale: nb })}</p>

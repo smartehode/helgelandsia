@@ -4,7 +4,9 @@ import type { Metadata } from 'next'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import { RichText } from '@/components/RichText'
+import { ShareButtons } from '@/components/ShareButtons'
 import { getPayloadClient } from '@/lib/getPayload'
+import { SITE, abs } from '@/lib/og'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,7 +28,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const p: any = await getPressRelease(slug)
   if (!p) return {}
-  return { title: p.title, description: p.excerpt }
+  const img = abs(mediaUrl(p.image, 'hero') ?? mediaUrl(p.image))
+  return {
+    title: p.title,
+    description: p.excerpt,
+    openGraph: {
+      title: p.title,
+      description: p.excerpt,
+      url: `${SITE}/pressemeldinger/${slug}`,
+      images: img ? [{ url: img }] : undefined,
+      type: 'article',
+    },
+    twitter: { card: img ? 'summary_large_image' : 'summary' },
+  }
 }
 
 export default async function PressReleasePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -48,6 +62,7 @@ export default async function PressReleasePage({ params }: { params: Promise<{ s
         {format(new Date(p.createdAt), 'd. MMMM yyyy', { locale: nb })}
       </p>
       <h1 className="font-serif text-3xl font-bold text-sea">{p.title}</h1>
+      <ShareButtons title={p.title} />
       {p.excerpt && <p className="mt-3 text-lg text-ink/70">{p.excerpt}</p>}
 
       <div className="mt-8 prose prose-slate max-w-none">

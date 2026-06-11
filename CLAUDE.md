@@ -46,6 +46,20 @@ i admin før publisering.
    hope seg opp uncommittet.
 7. Hver økt avsluttes med å oppdatere Logg-seksjonen nederst i denne filen.
 
+## Drift — nødkommandoer
+
+**Gjenopprette database fra dump:**
+```bash
+gunzip -c /root/backups/db-DATO.sql.gz | docker compose -f /root/helgelandsia/docker-compose.yml exec -T db psql -U postgres helgeland
+```
+Bytt ut `db-DATO.sql.gz` med faktisk filnavn (list med `ls /root/backups/`).
+Etter gjenoppretting: `docker compose up -d --build` for å starte appen på nytt.
+
+**Sjekke ferske logger i prod:**
+```bash
+docker compose logs --tail=50 app
+```
+
 ## Arbeidsflyt
 - All utvikling skjer LOKALT. ALDRI rediger filer på serveren.
 - Lokal kjøring: Docker Desktop → `docker start helgelandsia-db` → `npm run dev`

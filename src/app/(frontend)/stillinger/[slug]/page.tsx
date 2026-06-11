@@ -3,7 +3,9 @@ import type { Metadata } from 'next'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import { RichText } from '@/components/RichText'
+import { ShareButtons } from '@/components/ShareButtons'
 import { getPayloadClient } from '@/lib/getPayload'
+import { SITE } from '@/lib/og'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +33,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const j: any = await getJob(slug)
   if (!j) return {}
-  return { title: `${j.title} — ${j.employer}` }
+  const title = `${j.title} — ${j.employer}`
+  const description = [j.employer, j.locationName, j.jobType ? JOB_TYPE[j.jobType] : undefined].filter(Boolean).join(' · ')
+  return {
+    title,
+    description,
+    openGraph: { title, description, url: `${SITE}/stillinger/${slug}`, type: 'article' },
+    twitter: { card: 'summary' },
+  }
 }
 
 export default async function StillingPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -44,6 +53,7 @@ export default async function StillingPage({ params }: { params: Promise<{ slug:
       <div className="mb-6">
         <h1 className="font-serif text-3xl font-bold text-sea">{j.title}</h1>
         <p className="mt-1 text-lg text-muted">{j.employer}</p>
+        <ShareButtons title={`${j.title} — ${j.employer}`} />
       </div>
 
       <div className="mb-8 flex flex-wrap gap-2">
