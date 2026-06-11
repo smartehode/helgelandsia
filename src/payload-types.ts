@@ -77,6 +77,8 @@ export interface Config {
     businesses: Business;
     events: Event;
     jobs: Job;
+    'press-releases': PressRelease;
+    newsletters: Newsletter;
     ads: Ad;
     pages: Page;
     'payload-kv': PayloadKv;
@@ -95,6 +97,8 @@ export interface Config {
     businesses: BusinessesSelect<false> | BusinessesSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     jobs: JobsSelect<false> | JobsSelect<true>;
+    'press-releases': PressReleasesSelect<false> | PressReleasesSelect<true>;
+    newsletters: NewslettersSelect<false> | NewslettersSelect<true>;
     ads: AdsSelect<false> | AdsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -413,7 +417,16 @@ export interface Business {
   email?: string | null;
   website?: string | null;
   address?: string | null;
+  city?: string | null;
+  county?: string | null;
+  country?: string | null;
+  /**
+   * Fylles ut automatisk fra By/Fylke/Land
+   */
   lat?: number | null;
+  /**
+   * Fylles ut automatisk fra By/Fylke/Land
+   */
   lng?: number | null;
   openingHours?:
     | {
@@ -439,6 +452,7 @@ export interface Business {
    * URL-vennlig identifikator. Genereres automatisk hvis tom.
    */
   slug?: string | null;
+  submittedBy?: (number | null) | Member;
   category?: (number | null) | Category;
   place?: (number | null) | Place;
   featured?: boolean | null;
@@ -534,6 +548,76 @@ export interface Job {
   place?: (number | null) | Place;
   category?: (number | null) | Category;
   featured?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "press-releases".
+ */
+export interface PressRelease {
+  id: number;
+  title: string;
+  organization?: string | null;
+  excerpt?: string | null;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  image?: (number | null) | Media;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  /**
+   * URL-vennlig identifikator. Genereres automatisk hvis tom.
+   */
+  slug?: string | null;
+  submittedBy?: (number | null) | Member;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletters".
+ */
+export interface Newsletter {
+  id: number;
+  title: string;
+  organization?: string | null;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  image?: (number | null) | Media;
+  /**
+   * URL-vennlig identifikator. Genereres automatisk hvis tom.
+   */
+  slug?: string | null;
+  submittedBy?: (number | null) | Member;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -707,6 +791,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'jobs';
         value: number | Job;
+      } | null)
+    | ({
+        relationTo: 'press-releases';
+        value: number | PressRelease;
+      } | null)
+    | ({
+        relationTo: 'newsletters';
+        value: number | Newsletter;
       } | null)
     | ({
         relationTo: 'ads';
@@ -949,6 +1041,9 @@ export interface BusinessesSelect<T extends boolean = true> {
   email?: T;
   website?: T;
   address?: T;
+  city?: T;
+  county?: T;
+  country?: T;
   lat?: T;
   lng?: T;
   openingHours?:
@@ -973,6 +1068,7 @@ export interface BusinessesSelect<T extends boolean = true> {
         image?: T;
       };
   slug?: T;
+  submittedBy?: T;
   category?: T;
   place?: T;
   featured?: T;
@@ -1031,6 +1127,40 @@ export interface JobsSelect<T extends boolean = true> {
   place?: T;
   category?: T;
   featured?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "press-releases_select".
+ */
+export interface PressReleasesSelect<T extends boolean = true> {
+  title?: T;
+  organization?: T;
+  excerpt?: T;
+  content?: T;
+  image?: T;
+  contactName?: T;
+  contactEmail?: T;
+  contactPhone?: T;
+  slug?: T;
+  submittedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletters_select".
+ */
+export interface NewslettersSelect<T extends boolean = true> {
+  title?: T;
+  organization?: T;
+  content?: T;
+  image?: T;
+  slug?: T;
+  submittedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

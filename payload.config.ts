@@ -18,6 +18,8 @@ import { Posts } from './src/collections/Posts'
 import { Businesses } from './src/collections/Businesses'
 import { Events } from './src/collections/Events'
 import { Jobs } from './src/collections/Jobs'
+import { PressReleases } from './src/collections/PressReleases'
+import { Newsletters } from './src/collections/Newsletters'
 import { Ads } from './src/collections/Ads'
 import { Pages } from './src/collections/Pages'
 import { Members } from './src/collections/Members'
@@ -30,7 +32,23 @@ import { Hero } from './src/globals/Hero'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+const DEFAULT_NAV = [
+  { label: 'Arrangementer', url: '/arrangementer' },
+  { label: 'Historier', url: '/historier' },
+  { label: 'Bedrifter', url: '/bedrifter' },
+  { label: 'Stillinger', url: '/stillinger' },
+  { label: 'Pressemeldinger', url: '/pressemeldinger' },
+  { label: 'Nyhetsbrev', url: '/nyhetsbrev' },
+  { label: 'Min side', url: '/min-side' },
+]
+
 export default buildConfig({
+  onInit: async (payload) => {
+    const header = await payload.findGlobal({ slug: 'header' })
+    if (!header?.items?.length) {
+      await payload.updateGlobal({ slug: 'header', data: { items: DEFAULT_NAV } })
+    }
+  },
   i18n: {
     supportedLanguages: { en, nb },
     fallbackLanguage: 'nb',
@@ -57,6 +75,8 @@ export default buildConfig({
     Businesses,
     Events,
     Jobs,
+    PressReleases,
+    Newsletters,
     Ads,
     Pages,
   ],

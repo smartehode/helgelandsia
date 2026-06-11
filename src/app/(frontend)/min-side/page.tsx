@@ -19,16 +19,22 @@ export default async function MinSide() {
   const { user }: any = await payload.auth({ headers: await getHeaders() })
   if (!user || user.collection !== 'members') redirect('/logg-inn')
 
-  const [eventsRes, postsRes, jobsRes]: any = await Promise.all([
+  const [eventsRes, postsRes, jobsRes, businessesRes, pressRes, newsletterRes]: any = await Promise.all([
     payload.find({ collection: 'events', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
     payload.find({ collection: 'posts', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
     payload.find({ collection: 'jobs', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
+    payload.find({ collection: 'businesses', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
+    payload.find({ collection: 'press-releases', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
+    payload.find({ collection: 'newsletters', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
   ])
 
   const submissions = [
     ...eventsRes.docs.map((d: any) => ({ ...d, kind: 'Arrangement' })),
     ...postsRes.docs.map((d: any) => ({ ...d, kind: 'Artikkel' })),
     ...jobsRes.docs.map((d: any) => ({ ...d, kind: 'Stilling' })),
+    ...businessesRes.docs.map((d: any) => ({ ...d, title: d.name, kind: 'Bedrift' })),
+    ...pressRes.docs.map((d: any) => ({ ...d, kind: 'Pressemelding' })),
+    ...newsletterRes.docs.map((d: any) => ({ ...d, kind: 'Nyhetsbrev' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   return (

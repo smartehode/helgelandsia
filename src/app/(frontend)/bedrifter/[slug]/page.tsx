@@ -55,6 +55,11 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
         <aside className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-black/5">
           <h2 className="font-semibold text-sea">Kontakt</h2>
           {b.address && <p className="text-sm text-slate-600">{b.address}</p>}
+          {(b.city || b.county) && (
+            <p className="text-sm text-slate-600">
+              {[b.city, b.county, b.country].filter(Boolean).join(', ')}
+            </p>
+          )}
           {b.phone && <p className="text-sm">📞 {b.phone}</p>}
           {b.email && <p className="text-sm">✉️ <a className="text-brand-600" href={`mailto:${b.email}`}>{b.email}</a></p>}
           {b.website && <p className="text-sm">🔗 <a className="text-brand-600" href={b.website} target="_blank" rel="noopener">Nettside</a></p>}
@@ -66,6 +71,25 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
                   <li key={i}>{DAYS[h.day] ?? h.day}: {h.opens}–{h.closes}</li>
                 ))}
               </ul>
+            </div>
+          )}
+          {b.lat && b.lng && (
+            <div className="mt-2 overflow-hidden rounded-xl">
+              <iframe
+                title="Kart"
+                width="100%"
+                height="220"
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${b.lng - 0.015},${b.lat - 0.01},${b.lng + 0.015},${b.lat + 0.01}&layer=mapnik&marker=${b.lat},${b.lng}`}
+                className="border-0"
+              />
+              <a
+                href={`https://www.openstreetmap.org/?mlat=${b.lat}&mlon=${b.lng}#map=15/${b.lat}/${b.lng}`}
+                target="_blank"
+                rel="noopener"
+                className="block pt-1 text-center text-xs text-muted hover:underline"
+              >
+                Åpne i kart
+              </a>
             </div>
           )}
         </aside>

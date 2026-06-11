@@ -3,6 +3,24 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { isEditor, isPublishedOrLoggedIn } from '../access'
 import { slugField } from '../fields/slug'
 
+async function geocodeHook({ data }: { data: any }) {
+  const city = String(data.city || '').trim()
+  if (!city) return data
+  const q = [city, data.county, data.country].filter(Boolean).join(', ')
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?${new URLSearchParams({ q, format: 'json', limit: '1' })}`,
+      { headers: { 'User-Agent': 'Helgelandsia/1.0 (helgelandsia.no)' } },
+    )
+    const [hit] = (await res.json()) as any[]
+    if (hit) {
+      data.lat = parseFloat(hit.lat)
+      data.lng = parseFloat(hit.lon)
+    }
+  } catch { /* stille feil — lat/lng forblir uendret */ }
+  return data
+}
+
 export const Businesses: CollectionConfig = {
   slug: 'businesses',
   labels: { singular: 'Bedrift', plural: 'Bedrifter' },
@@ -12,6 +30,7 @@ export const Businesses: CollectionConfig = {
     group: 'Innhold',
   },
   versions: { drafts: true },
+  hooks: { beforeChange: [geocodeHook] },
   access: {
     read: isPublishedOrLoggedIn,
     create: isEditor,
@@ -59,8 +78,16 @@ export const Businesses: CollectionConfig = {
             {
               type: 'row',
               fields: [
-                { name: 'lat', type: 'number', label: 'Breddegrad', admin: { width: '50%' } },
-                { name: 'lng', type: 'number', label: 'Lengdegrad', admin: { width: '50%' } },
+                { name: 'city', type: 'text', label: 'By', admin: { width: '40%' } },
+                { name: 'county', type: 'text', label: 'Fylke', admin: { width: '30%' } },
+                { name: 'country', type: 'text', label: 'Land', defaultValue: 'Norge', admin: { width: '30%' } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'lat', type: 'number', label: 'Breddegrad (auto)', admin: { width: '50%', readOnly: true, description: 'Fylles ut automatisk fra By/Fylke/Land' } },
+                { name: 'lng', type: 'number', label: 'Lengdegrad (auto)', admin: { width: '50%', readOnly: true, description: 'Fylles ut automatisk fra By/Fylke/Land' } },
               ],
             },
             {
@@ -100,6 +127,7 @@ export const Businesses: CollectionConfig = {
       ],
     },
     slugField('name'),
+    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
     {
       name: 'category',
       type: 'relationship',
