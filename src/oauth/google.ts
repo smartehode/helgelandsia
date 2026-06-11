@@ -4,8 +4,7 @@ import type { PayloadRequest } from 'payload'
 const serverURL = process.env.DOMAIN ? `https://${process.env.DOMAIN}` : 'http://localhost:3000'
 
 export const googleOAuth = OAuth2Plugin({
-  enabled:
-    !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET,
+  enabled: true,
   strategyName: 'google',
   useEmailAsIdentity: true,
   serverURL,

@@ -41,10 +41,61 @@ alt godkjennes av redaksjonen i admin før publisering.
 - Kjør `docker system prune -af` på serveren før store ombygginger (liten disk).
 
 ## Veikart
-1. Nye collections: stillinger, pressemeldinger, nyhetsbrev (+ skjemaer på /min-side)
+1. ~~Nye collections: stillinger, pressemeldinger, nyhetsbrev (+ skjemaer på /min-side)~~ FERDIG
 2. Deling på sosiale medier: OG-metadata + delingsknapper på arrangement/artikkel
 3. Moduler fra gammel portal (nasdag.no/portal/lg): strømpriser NO4, vær,
    avganger (Entur/Avinor), NAV-stillinger, BRREG, politilogg m.m.
    (eieren har kildekoden — be om den)
 4. Senere: Facebook/Apple-innlogging, e-postverifisering + SMTP,
    re-opplasting av tapte mediebilder, ev. Hetzner Object Storage for media
+
+## Logg
+
+### 2026-06-11
+**Nye collections med medlemsinnsending**
+- `src/collections/Jobs.ts` — Stillinger (slug: jobs): stillingstittel, arbeidsgiver,
+  beskrivelse, stillingtype (select), søknadsfrist, arbeidssted, kontaktinfo,
+  søknadslenke/-epost, submittedBy, slugField.
+- `src/collections/PressReleases.ts` — Pressemeldinger (slug: press-releases):
+  title, organization, excerpt (textarea), content (richText), image, kontaktinfo,
+  submittedBy, slugField.
+- `src/collections/Newsletters.ts` — Nyhetsbrev (slug: newsletters):
+  title, organization, content (richText), image, submittedBy, slugField.
+- Alle registrert i payload.config.ts.
+
+**Bedriftsregistrering for medlemmer**
+- `submittedBy`-felt lagt til i `Businesses.ts`.
+- Geocoding via Nominatim (OpenStreetMap, ingen API-nøkkel): by/fylke/land-felt
+  erstattet manuelle bredde-/lengdegrad-felt. Hook `geocodeHook` i Businesses.ts
+  kaller Nominatim ved lagring og fyller inn lat/lng automatisk.
+- OpenStreetMap-kart (iframe) vist på bedriftsdetaljsiden når koordinater finnes.
+
+**Innsendingsskjemaer og ruter**
+- `src/app/(frontend)/innsending/stilling/route.ts`
+- `src/app/(frontend)/innsending/bedrift/route.ts`
+- `src/app/(frontend)/innsending/pressemelding/route.ts`
+- `src/app/(frontend)/innsending/nyhetsbrev/route.ts`
+- Alle følger mønsteret: member-sjekk, draft: true, _status: 'draft', submittedBy,
+  tekst → lexical, bildeopplasting (maks 8 MB).
+
+**Skjemakomponenter**
+- `src/components/JobForm.tsx`, `BusinessForm.tsx`, `PressReleaseForm.tsx`,
+  `NewsletterForm.tsx` — alle følger EventForm/ArticleForm-mønsteret.
+- `src/components/SubmissionTabs.tsx` oppdatert til 6 faner i 3×2-grid.
+
+**Offentlige sider (kun _status: 'published')**
+- `/stillinger` + `/stillinger/[slug]`
+- `/pressemeldinger` + `/pressemeldinger/[slug]`
+- `/nyhetsbrev` + `/nyhetsbrev/[slug]`
+- `/bedrifter/[slug]` oppdatert med by/fylke og kart.
+
+**Min side**
+- Henter nå alle 6 innsendings-collections og viser dem i «Mine innsendinger»
+  med kind-etikett.
+
+**Navigasjon**
+- `src/components/SiteHeader.tsx` — viser fallback-nav med alle sider hvis
+  admin-header er tom.
+- `src/components/MobileNav.tsx` — ny hamburgermeny for mobil (klient-komponent).
+- `payload.config.ts` — `onInit`-hook seeder header-globalen med alle 7 lenker
+  første gang, slik at de er synlige og redigerbare i admin → Meny (topp).
