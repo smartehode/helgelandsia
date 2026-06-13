@@ -10,6 +10,9 @@ import * as migration_20260612_235331_news_brreg_blocks from './20260612_235331_
 import * as migration_20260613_075834_verify_members from './20260613_075834_verify_members';
 import * as migration_20260613_095658_webcam_locations from './20260613_095658_webcam_locations';
 import * as migration_20260613_105605_webkamera_vaer from './20260613_105605_webkamera_vaer';
+import * as migration_20260613_133028_brreg_import from './20260613_133028_brreg_import';
+import * as migration_20260613_170043_business_model_a from './20260613_170043_business_model_a';
+import * as migration_20260613_220725_brreg_extended_fields from './20260613_220725_brreg_extended_fields';
 
 export const migrations = [
   {
@@ -70,6 +73,21 @@ export const migrations = [
   {
     up: migration_20260613_105605_webkamera_vaer.up,
     down: migration_20260613_105605_webkamera_vaer.down,
-    name: '20260613_105605_webkamera_vaer'
+    name: '20260613_105605_webkamera_vaer',
+  },
+  {
+    up: migration_20260613_133028_brreg_import.up,
+    down: migration_20260613_133028_brreg_import.down,
+    name: '20260613_133028_brreg_import',
+  },
+  {
+    up: migration_20260613_170043_business_model_a.up,
+    down: migration_20260613_170043_business_model_a.down,
+    name: '20260613_170043_business_model_a',
+  },
+  {
+    up: migration_20260613_220725_brreg_extended_fields.up,
+    down: migration_20260613_220725_brreg_extended_fields.down,
+    name: '20260613_220725_brreg_extended_fields'
   },
 ];

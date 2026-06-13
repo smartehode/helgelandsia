@@ -24,6 +24,7 @@ import { Newsletters } from './src/collections/Newsletters'
 import { Ads } from './src/collections/Ads'
 import { Pages } from './src/collections/Pages'
 import { Members } from './src/collections/Members'
+import { BRREGSyncJobs } from './src/collections/BRREGSyncJobs'
 import { googleOAuth } from './src/oauth/google'
 
 // Globals
@@ -99,6 +100,7 @@ export default buildConfig({
     Newsletters,
     Ads,
     Pages,
+    BRREGSyncJobs,
   ],
   globals: [SiteSettings, Hero, Header, Footer, WidgetAreas],
 

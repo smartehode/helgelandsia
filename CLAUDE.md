@@ -400,3 +400,175 @@ monetiseres. Verdi før pris — bedrifter skal VILLE være der.
 - `HolidaysWidget.tsx` slettet — erstattet av CalendarWidget.
 - `src/blocks/index.ts` — HolidaysBlock label endret til 'Kalender'. Slug 'holidays'
   uendret — eksisterende admin-plasseringer overlever, ingen migrasjon nødvendig.
+
+**BRREG-importmotor — fase 1**
+- Ny synk-jobb (`scripts/brreg-sync.ts`) som henter Helgelandsbedrifter
+  fra data.brreg.no, både hovedenheter og underenheter.
+- Pass 1: alle hovedenheter → bygg orgnr-sett. Pass 2: underenheter, behold
+  KUN de med `parent_orgnr` i Helgeland-orgnr-settet (utenbys filialer av
+  Helgeland-bedrifter beholdes — det er reell data om filialer).
+- Manuell trigger via `/api/admin/brreg-sync` (admin) eller
+  `scripts/brreg-sync.ts`. Flagg: `--full`, `--incremental YYYY-MM-DD`,
+  `--kommune NNNN` (importerer én enkelt kommune).
+- Synkhistorikk i `brreg-sync-jobs`. Full synk med 0 treff loggføres som
+  `failed`, ikke `success` — stille 0/0/0 er alltid en feil.
+- Sletter rader med HTTP 410 Gone; markerer konkurs/avvikling/sletting.
+- `src/lib/brreg/types.ts` — `BrregEnhet`, `BrregUnderenhet`,
+  `BrregOppdatering`, `BrregStatus`, `BrregEntityType`, `SyncResult`.
+- `src/lib/brreg/sync.ts` — `runFullSync`, `runIncrementalSync`,
+  `syncKommune`. Beriker aldri name/slug/description/logo ved oppdatering —
+  kun BRREG-autoritative felt.
+- `src/collections/BRREGSyncJobs.ts` — ny collection (slug: `brreg-sync-jobs`).
+- `src/app/api/admin/brreg-sync/route.ts` — POST-rute, kun admin.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create brreg-import`
+  og leser filen (ingen DROP) før commit.
+
+**Businesses-collection utvidet**
+- Nye felt: `orgnr` (unique), `source`, `claimed`/`claimedBy`/`claimedAt`,
+  `brregLastSynced`, `brregStatus`, `brregEntityType`, `parentOrgnr`,
+  `naceKode`/`naceBeskrivelse`, `organisasjonsform`, `kommunenummer`/`kommunenavn`,
+  `registreringsdato`, `avregistreringsdato`, `antallAnsatte`.
+- BRREG-felter er `readOnly` i admin (oppdateres kun av sync-jobben).
+
+**Helgeland-geografi — 19 kommunenumre**
+- 1811, 1812, 1813, 1815, 1816, 1818, 1820, 1822, 1824, 1825, 1826, 1827,
+  1828, 1832, 1833, 1834, 1835, 1836, 5046.
+- **VIKTIG:** 1833 = Rana (Helgelands største by). 1837 = Meløy (Salten,
+  IKKE Helgeland) — skal ALDRI være i listen.
+- 5046 = Bindal (nytt kommunenummer etter kommunereform).
+
+**Etter første synk og opprydding**
+- 1 943 Meløy-poster (kommunenummer 1837) slettet manuelt.
+- 592 foreldreløse underenheter slettet (53 var allerede dekket av Meløy-slettingen).
+- Sluttresultat: 24 849 bedrifter (Rana 6 617, Vefsn 3 662, Brønnøy 2 561 …).
+- 378 enheter uten forretningsadresse (NUF/sameier/foreninger) — beholdes i DB,
+  skjules som default på /bedrifter via `organisasjonsform`-filter.
+- Alle er `_status: 'draft'` — synlige kun i admin til fase 2.
+
+**Gjenstår i fase 2**
+- Skille hovedenhet/underenhet i visning (samme navn kan forvirre).
+- «Anbefalt»-flagg og Månedens bedrift (redaksjonell kurasjon).
+- Kart-visning på /bedrifter.
+
+### 2026-06-13 (fortsettelse) — Fase 2: Bedriftskatalog frontend
+
+**Datamodell låst — Modell A-felt på Businesses**
+- `naceCategory` (select, indeksert, auto fra NACE-kode via `setCategoryFromNace`-hook).
+- `owner` (relationship → members), `claimStatus` (select: unclaimed/pending/verified).
+- `social.linkedin`, `social.tiktok`, `social.youtube` (text).
+- `video` (text, URL til YouTube/Vimeo).
+- Migrasjon `20260613_170043_business_model_a` kjørt og verifisert (kun ADD COLUMN,
+  ingen DROP).
+
+**Felles filterfunksjon `publicListingWhere`**
+- `src/lib/businesses/categories.ts` — `publicListingWhere(...andExtra: Where[]): Where`
+  gir base-filter: `_status='published'` + ENK-eksklusjon (NULL-safe or+exists:false).
+  Brukes overalt der bedrifter listes — ingen duplisering av filterlogikk.
+
+**`/bedrifter` — hovedside**
+- Ingen standardlisting. Viser kun fremhevede bedrifter ved tomt søk.
+- Ved aktive filtre (q, kategori, kommune, enk): viser søkeresultater sortert
+  `-featured,name` (fremhevede øverst).
+- Kategori-grid med 15 bransjer + tellesum (bruker `publicListingWhere`).
+
+**`/bedrifter/kategori/[id]` — kategorisider**
+- «Anbefalte»-seksjon øverst: parallell query `featured=true` i samme kategori,
+  maks 6 kort, 3-kolonnersgrид. Skjules ved aktive søk/kommunefiltre.
+- Hoveddlisting: sortert `-featured,name` (fremhevede fortsatt øverst i listen).
+- `BizCard`-komponent (intern funksjon) delt mellom begge seksjoner.
+- `hasLocalFilters = !!(q || kommune)` styrer synlighet av Anbefalt-seksjonen.
+
+**`/bedrifter/[slug]` — bedriftsdetaljside**
+- BRREG-fakta, galleri, underenheter (avdelinger), kart (OpenStreetMap iframe).
+- «Ta over oppføringen»-knapp synlig for ALLE besøkende når `claimStatus='unclaimed'`.
+- `featured`-merke vist i tittelseksjonen.
+
+**`/bedrifter/[slug]/overta` — kravflyt**
+- Server Action `submitClaim` (closure over slug, re-fetcher for race-condition-sikring).
+- Tilstander: ikke innlogget → innloggingslenke; ukrevd+innlogget → skjema;
+  sendt → suksessmelding; pending/verified → statusmelding.
+- Setter `owner = member.id`, `claimStatus = 'pending'` via Local API
+  (`overrideAccess: true`). Ingen e-postverifisering i fase 1.
+
+**Admin-UI forbedringer**
+- `defaultColumns`: name, brregEntityType, claimStatus, kommunenavn, featured, _status.
+- `baseListFilter`: viser kun `brregEntityType = 'hovedenhet'` som standard.
+  Underenheter nås via moderenhetens Avdelinger-liste eller direkte URL.
+- `FeaturedCell` (`src/components/admin/FeaturedCell.tsx`): viser «Ja»/«Nei»
+  istedenfor sant/falsk.
+
+**«Anbefalt»-merke på kort**
+- `★ Anbefalt`-badge (sun-bakgrunn, fjord-tekst) på alle BusinessCard/BizCard
+  der `b.featured = true`. Vises på kategorisider, søkeresultater og detaljside.
+
+**`naceCategory`-backfill**
+- 24 599 rader oppdatert via SQL CASE WHEN (SPLIT_PART(nace_kode,'.', 1) → kategori-id)
+  etter at kolonnen ble lagt til med push:true men forble tom.
+
+**Revisjonsskript**
+- `scripts/audit-businesses.ts` — read-only, ingen skriving. Rapporterer via
+  rå SQL: kolonner, totaltall, duplikater, enhetstyper, BRREG-status, Payload-status,
+  kilder, berikingsstatus, kategorier, topp 20 kommuner.
+
+### 2026-06-14
+
+**Bedriftsliste-forbedringer (frontend, ingen skjemaendring)**
+- Fremhevet-sortering: to parallelle spørringer (featured=true + NOT_FEATURED) kombinert
+  i JS — Payload 3 støtter ikke kommaseparert flerfelt-sortering i `sort`-parameteren.
+- ENK i søk: `buildSearchWhere` inkluderer ENK automatisk når `hasSearchQuery = !!q`.
+  Browsing uten søk skjuler ENK som før; ENK-toggle er kun modifikator, ikke trigger.
+- `hasFilters` på /bedrifter ekskluderer `showEnk` — ENK-avhukingen alene viser ingen liste.
+- BildeplasspHolder fjernet: kortene viser bildeblokkken KUN når logo finnes.
+  Featured-badge flyttes til tekstblokkken når logo mangler.
+- Live-søk i `BedrifterFilters.tsx`: debounce 300 ms, `router.replace`, ≥2 tegn trigger,
+  `useRef(searchParams)` unngår foreldede closures i debounce-timeouten.
+
+**Businesses-collection utvidet — 11 nye BRREG-felter**
+Lagt til i BRREG-data-fanen (alle readOnly, nullable):
+- `sekundaerNaceKode` + `sekundaerNaceBeskrivelse` (sekundær næringskode/-beskrivelse)
+- `organisasjonsformBeskrivelse` (klartekst, f.eks. «Aksjeselskap») — ved siden av
+  eksisterende `organisasjonsform` (lagrer også beskrivelse; ENK-filteret avhenger av det)
+- `stiftelsesdato` (date) — stiftelse vs. `registreringsdato` (registrering) er to ulike datoer
+- `brregHjemmeside` (text) — BRREG-nettside, skilt fra berikelse-feltet `website`
+- `aktivitet` (textarea) — BRREGs fritekstbeskrivelse av virksomheten
+- `forretningsadresse` (group): gate, postnummer, poststed
+- `postadresse` (group): gate, postnummer, poststed
+- `registrertIMvaregisteret`, `registrertIForetaksregisteret`,
+  `registrertIFrivillighetsregisteret` (checkbox, default false)
+Ikke lagt til (fantes fra før): `naceBeskrivelse`, `registreringsdato`, `organisasjonsform`.
+`phone`/`email` i Kontakt-fanen er berikelse-felt, ikke BRREG-felt.
+Migrasjon: `npx payload migrate:create add_brreg_extra_fields` — kjørt og lest av eier.
+
+**BRREG-synk oppdatert — fyller alle nye felt**
+- `src/lib/brreg/types.ts` — `BrregEnhet` utvidet med: `naeringskode2`, `postadresse`,
+  `aktivitet`, `stiftelsesdato`, `hjemmeside`, `registrertIMvaregisteret`,
+  `registrertIForetaksregisteret`, `registrertIFrivillighetsregisteret`.
+  `BrregUnderenhet` utvidet med: `naeringskode2`, `postadresse`.
+- `src/lib/brreg/sync.ts` — `toBrregUpdateFields()` populerer nå alle 11 nye felt:
+  - `sekundaerNaceKode`/`sekundaerNaceBeskrivelse` fra `enhet.naeringskode2`
+  - `organisasjonsformBeskrivelse` = samme som `organisasjonsform` (beskrivelse, f.eks.
+    «Aksjeselskap»). Begge felter lagrer beskrivelse — ENK-filteret i
+    `publicListingWhere` avhenger av klartekst-verdien «Enkeltpersonforetak».
+  - `stiftelsesdato` og `brregHjemmeside` — kun fra `BrregEnhet` (hoved), null for under.
+  - `aktivitet`: `string[]` joints med `'; '`, null hvis tom/manglende.
+  - `forretningsadresse.{gate,postnummer,poststed}` — `addr.adresse[]` joins med `', '`.
+  - `postadresse.{gate,postnummer,poststed}` — separat for begge enhetstyper.
+  - `registrertIMvaregisteret`/`registrertIForetaksregisteret`/`registrertIFrivillighetsregisteret`
+    — kun fra `BrregEnhet`, `false` for underenheter (ikke relevant).
+  - Eksplisitt hviteliste i koden: alle berikelsesfelt er listet som utelatt.
+- `src/collections/Businesses.ts` — etiketten «Organisasjonsform (kode)» rettet til
+  «Organisasjonsform» (feltet lagrer beskrivelse, ikke kode).
+- Ingen skjemaendring, ingen migrasjon — kun synk-logikk og typeendringer.
+
+**Modell A — to soner (arkitektur)**
+- Businesses-poster er delt i to soner:
+  - **BRREG-sone** (synk-eid): alt i BRREG-data-fanen. Synken har eksplisitt hviteliste
+    i `toBrregUpdateFields()` og rører aldri berikelse-felt.
+  - **Berikelse-sone** (members-eid): Profil-fanen (description, logo, gallery, tagline),
+    Kontakt-fanen (phone, email, website, address, openingHours, social.*), video.
+    Fylles ut av bedriftseieren etter godkjent krav.
+- Migrasjoner kjørt i Fase 2: `business_model_a` (2026-06-13), `add_brreg_extra_fields`.
+- Roller (daglig leder/styre): bevisst utelatt — GDPR § 22 og norsk personopplysningslov
+  krever eget rettslig grunnlag for gjenbruk av personers roller på tredjeparts nettsted.
+  BRREG-data er offentlig, men gjenbruk av enkeltpersoners tilknytning er noe annet.
+- `orgnr` bekreftet unik i databasen: 0 duplikater blant 24 849 rader.

@@ -80,6 +80,7 @@ export interface Config {
     newsletters: Newsletter;
     ads: Ad;
     pages: Page;
+    'brreg-sync-jobs': BrregSyncJob;
     members: Member;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -100,6 +101,7 @@ export interface Config {
     newsletters: NewslettersSelect<false> | NewslettersSelect<true>;
     ads: AdsSelect<false> | AdsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    'brreg-sync-jobs': BrregSyncJobsSelect<false> | BrregSyncJobsSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -444,7 +446,56 @@ export interface Business {
   social?: {
     facebook?: string | null;
     instagram?: string | null;
+    linkedin?: string | null;
+    tiktok?: string | null;
+    youtube?: string | null;
   };
+  brregLastSynced?: string | null;
+  brregEntityType?: ('hovedenhet' | 'underenhet') | null;
+  brregStatus?: ('aktiv' | 'underAvvikling' | 'konkurs' | 'slettet' | 'fjernet') | null;
+  parentOrgnr?: string | null;
+  naceKode?: string | null;
+  naceBeskrivelse?: string | null;
+  sekundaerNaceKode?: string | null;
+  sekundaerNaceBeskrivelse?: string | null;
+  organisasjonsform?: string | null;
+  organisasjonsformBeskrivelse?: string | null;
+  kommunenummer?: string | null;
+  kommunenavn?: string | null;
+  registreringsdato?: string | null;
+  avregistreringsdato?: string | null;
+  antallAnsatte?: number | null;
+  stiftelsesdato?: string | null;
+  /**
+   * Fra Brønnøysundregistrene — ikke endre manuelt.
+   */
+  brregHjemmeside?: string | null;
+  aktivitet?: string | null;
+  forretningsadresse?: {
+    gate?: string | null;
+    postnummer?: string | null;
+    poststed?: string | null;
+  };
+  postadresse?: {
+    gate?: string | null;
+    postnummer?: string | null;
+    poststed?: string | null;
+  };
+  registrertIMvaregisteret?: boolean | null;
+  registrertIForetaksregisteret?: boolean | null;
+  registrertIFrivillighetsregisteret?: boolean | null;
+  /**
+   * YouTube- eller Vimeo-lenke. Eksempel: https://www.youtube.com/watch?v=...
+   */
+  video?: string | null;
+  /**
+   * "Verifisert" settes av admin når kravet er godkjent.
+   */
+  claimStatus?: ('unclaimed' | 'pending' | 'verified') | null;
+  /**
+   * Bekreftet bedriftseier — settes av admin ved godkjenning av krav.
+   */
+  owner?: (number | null) | Member;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -458,9 +509,39 @@ export interface Business {
    */
   slug?: string | null;
   submittedBy?: (number | null) | Member;
+  /**
+   * Settes automatisk ved BRREG-import. Kan kobles manuelt for å lenke en manuelt registrert bedrift til BRREG.
+   */
+  orgnr?: string | null;
+  source?: ('member' | 'brreg') | null;
+  claimed?: boolean | null;
+  claimedBy?: (number | null) | Member;
+  claimedAt?: string | null;
   category?: (number | null) | Category;
   place?: (number | null) | Place;
   featured?: boolean | null;
+  /**
+   * Settes automatisk fra NACE-koden ved synk. Kan overstyres manuelt for meldingsbaserte bedrifter.
+   */
+  naceCategory?:
+    | (
+        | 'bygg'
+        | 'handel'
+        | 'restaurant'
+        | 'transport'
+        | 'havbruk'
+        | 'landbruk'
+        | 'industri'
+        | 'tjenester'
+        | 'helse'
+        | 'utdanning'
+        | 'kultur'
+        | 'eiendom'
+        | 'forening'
+        | 'energi'
+        | 'annet'
+      )
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -860,6 +941,24 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Logg over automatiske importjobber fra Brønnøysundregistrene.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brreg-sync-jobs".
+ */
+export interface BrregSyncJob {
+  id: number;
+  syncType?: ('full' | 'incremental') | null;
+  status?: ('success' | 'partial' | 'failed') | null;
+  created?: number | null;
+  updated?: number | null;
+  skipped?: number | null;
+  errors?: number | null;
+  errorMessage?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -930,6 +1029,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'brreg-sync-jobs';
+        value: number | BrregSyncJob;
       } | null)
     | ({
         relationTo: 'members';
@@ -1159,7 +1262,48 @@ export interface BusinessesSelect<T extends boolean = true> {
     | {
         facebook?: T;
         instagram?: T;
+        linkedin?: T;
+        tiktok?: T;
+        youtube?: T;
       };
+  brregLastSynced?: T;
+  brregEntityType?: T;
+  brregStatus?: T;
+  parentOrgnr?: T;
+  naceKode?: T;
+  naceBeskrivelse?: T;
+  sekundaerNaceKode?: T;
+  sekundaerNaceBeskrivelse?: T;
+  organisasjonsform?: T;
+  organisasjonsformBeskrivelse?: T;
+  kommunenummer?: T;
+  kommunenavn?: T;
+  registreringsdato?: T;
+  avregistreringsdato?: T;
+  antallAnsatte?: T;
+  stiftelsesdato?: T;
+  brregHjemmeside?: T;
+  aktivitet?: T;
+  forretningsadresse?:
+    | T
+    | {
+        gate?: T;
+        postnummer?: T;
+        poststed?: T;
+      };
+  postadresse?:
+    | T
+    | {
+        gate?: T;
+        postnummer?: T;
+        poststed?: T;
+      };
+  registrertIMvaregisteret?: T;
+  registrertIForetaksregisteret?: T;
+  registrertIFrivillighetsregisteret?: T;
+  video?: T;
+  claimStatus?: T;
+  owner?: T;
   meta?:
     | T
     | {
@@ -1169,9 +1313,15 @@ export interface BusinessesSelect<T extends boolean = true> {
       };
   slug?: T;
   submittedBy?: T;
+  orgnr?: T;
+  source?: T;
+  claimed?: T;
+  claimedBy?: T;
+  claimedAt?: T;
   category?: T;
   place?: T;
   featured?: T;
+  naceCategory?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1464,6 +1614,21 @@ export interface PagesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brreg-sync-jobs_select".
+ */
+export interface BrregSyncJobsSelect<T extends boolean = true> {
+  syncType?: T;
+  status?: T;
+  created?: T;
+  updated?: T;
+  skipped?: T;
+  errors?: T;
+  errorMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

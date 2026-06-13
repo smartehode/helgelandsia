@@ -3,6 +3,16 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { isEditor, isPublishedOrLoggedIn } from '../access'
 import { slugField } from '../fields/slug'
 import { afterChangeApproved } from '../lib/email/submission-approved'
+import { mapNaceToCategory, CATEGORY_SELECT_OPTIONS } from '../lib/businesses/categories'
+
+function setCategoryFromNace({ data }: { data: any }) {
+  // Dersom naceKode er med i oppdateringen, utled naceCategory automatisk.
+  // Berøres ikke hvis naceKode ikke er i payloaden (bevarer manuell overstyring).
+  if ('naceKode' in data) {
+    data.naceCategory = mapNaceToCategory(data.naceKode)
+  }
+  return data
+}
 
 async function geocodeHook({ data }: { data: any }) {
   const city = String(data.city || '').trim()
@@ -27,12 +37,15 @@ export const Businesses: CollectionConfig = {
   labels: { singular: 'Bedrift', plural: 'Bedrifter' },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'category', 'place', 'featured', '_status'],
+    defaultColumns: ['name', 'brregEntityType', 'claimStatus', 'kommunenavn', 'featured', '_status'],
     group: 'Innhold',
+    // Viser kun hovedenheter som standard — redaksjonen slipper doble rader.
+    // Underenheter vises på moderenhetens detaljside under «Avdelinger».
+    baseListFilter: () => ({ brregEntityType: { equals: 'hovedenhet' } }),
   },
   versions: { drafts: true },
   hooks: {
-    beforeChange: [geocodeHook],
+    beforeChange: [setCategoryFromNace, geocodeHook],
     afterChange: [afterChangeApproved('businesses')],
   },
   access: {
@@ -124,7 +137,189 @@ export const Businesses: CollectionConfig = {
               fields: [
                 { name: 'facebook', type: 'text' },
                 { name: 'instagram', type: 'text' },
+                { name: 'linkedin', type: 'text' },
+                { name: 'tiktok', type: 'text' },
+                { name: 'youtube', type: 'text' },
               ],
+            },
+          ],
+        },
+        {
+          label: 'BRREG-data',
+          description: 'Synkroniseres automatisk fra Brønnøysundregistrene. Endre kun ved behov for korrigering.',
+          fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'brregLastSynced',
+                  type: 'date',
+                  label: 'Sist synkronisert',
+                  admin: {
+                    width: '50%',
+                    readOnly: true,
+                    date: { pickerAppearance: 'dayAndTime' },
+                  },
+                },
+                {
+                  name: 'brregEntityType',
+                  type: 'select',
+                  label: 'Enhetstype',
+                  admin: { width: '50%' },
+                  options: [
+                    { label: 'Hovedenhet', value: 'hovedenhet' },
+                    { label: 'Underenhet', value: 'underenhet' },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'brregStatus',
+              type: 'select',
+              label: 'BRREG-status',
+              options: [
+                { label: 'Aktiv', value: 'aktiv' },
+                { label: 'Under avvikling', value: 'underAvvikling' },
+                { label: 'Konkurs', value: 'konkurs' },
+                { label: 'Slettet fra Enhetsregisteret', value: 'slettet' },
+                { label: 'Fjernet (ikke lenger tilgjengelig)', value: 'fjernet' },
+              ],
+            },
+            { name: 'parentOrgnr', type: 'text', label: 'Overordnet enhet (orgnr)', admin: { readOnly: true } },
+            {
+              type: 'row',
+              fields: [
+                { name: 'naceKode', type: 'text', label: 'NACE-kode', admin: { width: '30%', readOnly: true } },
+                { name: 'naceBeskrivelse', type: 'text', label: 'Næringsbeskrivelse', admin: { width: '70%', readOnly: true } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'sekundaerNaceKode', type: 'text', label: 'Sekundær NACE-kode', admin: { width: '30%', readOnly: true } },
+                { name: 'sekundaerNaceBeskrivelse', type: 'text', label: 'Sekundær næringsbeskrivelse', admin: { width: '70%', readOnly: true } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'organisasjonsform', type: 'text', label: 'Organisasjonsform', admin: { width: '40%', readOnly: true } },
+                { name: 'organisasjonsformBeskrivelse', type: 'text', label: 'Organisasjonsform (klartekst)', admin: { width: '60%', readOnly: true } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'kommunenummer', type: 'text', label: 'Kommunenummer', admin: { width: '40%', readOnly: true } },
+                { name: 'kommunenavn', type: 'text', label: 'Kommune', admin: { width: '60%', readOnly: true } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'registreringsdato',
+                  type: 'date',
+                  label: 'Registrert',
+                  admin: { width: '50%', readOnly: true, date: { pickerAppearance: 'dayOnly', displayFormat: 'd. MMM yyyy' } },
+                },
+                {
+                  name: 'avregistreringsdato',
+                  type: 'date',
+                  label: 'Avregistrert',
+                  admin: { width: '50%', readOnly: true, date: { pickerAppearance: 'dayOnly', displayFormat: 'd. MMM yyyy' } },
+                },
+              ],
+            },
+            { name: 'antallAnsatte', type: 'number', label: 'Antall ansatte', admin: { readOnly: true } },
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'stiftelsesdato',
+                  type: 'date',
+                  label: 'Stiftelsesdato',
+                  admin: { width: '50%', readOnly: true, date: { pickerAppearance: 'dayOnly', displayFormat: 'd. MMM yyyy' } },
+                },
+                { name: 'brregHjemmeside', type: 'text', label: 'Nettside (BRREG)', admin: { width: '50%', readOnly: true, description: 'Fra Brønnøysundregistrene — ikke endre manuelt.' } },
+              ],
+            },
+            { name: 'aktivitet', type: 'textarea', label: 'Virksomhetsbeskrivelse (BRREG)', admin: { readOnly: true } },
+            {
+              name: 'forretningsadresse',
+              type: 'group',
+              label: 'Forretningsadresse',
+              fields: [
+                { name: 'gate', type: 'text', label: 'Gate/adresse', admin: { readOnly: true } },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'postnummer', type: 'text', label: 'Postnummer', admin: { width: '40%', readOnly: true } },
+                    { name: 'poststed', type: 'text', label: 'Poststed', admin: { width: '60%', readOnly: true } },
+                  ],
+                },
+              ],
+            },
+            {
+              name: 'postadresse',
+              type: 'group',
+              label: 'Postadresse',
+              fields: [
+                { name: 'gate', type: 'text', label: 'Gate/adresse', admin: { readOnly: true } },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'postnummer', type: 'text', label: 'Postnummer', admin: { width: '40%', readOnly: true } },
+                    { name: 'poststed', type: 'text', label: 'Poststed', admin: { width: '60%', readOnly: true } },
+                  ],
+                },
+              ],
+            },
+            { name: 'registrertIMvaregisteret', type: 'checkbox', label: 'MVA-registrert', defaultValue: false, admin: { readOnly: true } },
+            { name: 'registrertIForetaksregisteret', type: 'checkbox', label: 'Registrert i Foretaksregisteret', defaultValue: false, admin: { readOnly: true } },
+            { name: 'registrertIFrivillighetsregisteret', type: 'checkbox', label: 'Registrert i Frivillighetsregisteret', defaultValue: false, admin: { readOnly: true } },
+          ],
+        },
+        {
+          label: 'Berikelse',
+          description: 'Rik innhold — fylles ut av bedriftseieren etter godkjent krav.',
+          fields: [
+            {
+              name: 'video',
+              type: 'text',
+              label: 'Video-URL',
+              admin: {
+                description: 'YouTube- eller Vimeo-lenke. Eksempel: https://www.youtube.com/watch?v=...',
+              },
+            },
+          ],
+        },
+        {
+          label: 'Eierskap',
+          description: 'Kravflyt og verifisert eier. Administreres av redaksjonen.',
+          fields: [
+            {
+              name: 'claimStatus',
+              type: 'select',
+              label: 'Kravstatus',
+              defaultValue: 'unclaimed',
+              options: [
+                { label: 'Ukrevd', value: 'unclaimed' },
+                { label: 'Venter på godkjenning', value: 'pending' },
+                { label: 'Verifisert eier', value: 'verified' },
+              ],
+              admin: {
+                description: '"Verifisert" settes av admin når kravet er godkjent.',
+              },
+            },
+            {
+              name: 'owner',
+              type: 'relationship',
+              relationTo: 'members',
+              label: 'Eier (member)',
+              admin: {
+                description: 'Bekreftet bedriftseier — settes av admin ved godkjenning av krav.',
+              },
             },
           ],
         },
@@ -132,6 +327,48 @@ export const Businesses: CollectionConfig = {
     },
     slugField('name'),
     { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
+    {
+      name: 'orgnr',
+      type: 'text',
+      label: 'Organisasjonsnummer',
+      index: true,
+      unique: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Settes automatisk ved BRREG-import. Kan kobles manuelt for å lenke en manuelt registrert bedrift til BRREG.',
+      },
+    },
+    {
+      name: 'source',
+      type: 'select',
+      label: 'Kilde',
+      defaultValue: 'member',
+      admin: { position: 'sidebar' },
+      options: [
+        { label: 'Innsendt av medlem', value: 'member' },
+        { label: 'Importert fra BRREG', value: 'brreg' },
+      ],
+    },
+    {
+      name: 'claimed',
+      type: 'checkbox',
+      label: 'Bedriften er krevd av eier',
+      defaultValue: false,
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'claimedBy',
+      type: 'relationship',
+      relationTo: 'members',
+      label: 'Krevd av (bruker)',
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'claimedAt',
+      type: 'date',
+      label: 'Krevd dato',
+      admin: { position: 'sidebar', date: { pickerAppearance: 'dayOnly', displayFormat: 'd. MMM yyyy' } },
+    },
     {
       name: 'category',
       type: 'relationship',
@@ -150,8 +387,24 @@ export const Businesses: CollectionConfig = {
       name: 'featured',
       type: 'checkbox',
       defaultValue: false,
-      admin: { position: 'sidebar' },
       label: 'Fremhevet',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Cell: '@/components/admin/FeaturedCell',
+        },
+      },
+    },
+    {
+      name: 'naceCategory',
+      type: 'select',
+      label: 'Bransje (NACE)',
+      index: true,
+      options: CATEGORY_SELECT_OPTIONS,
+      admin: {
+        position: 'sidebar',
+        description: 'Settes automatisk fra NACE-koden ved synk. Kan overstyres manuelt for meldingsbaserte bedrifter.',
+      },
     },
   ],
 }
