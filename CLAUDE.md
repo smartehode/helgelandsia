@@ -85,6 +85,41 @@ docker compose logs --tail=50 app
    kan i dag registrere seg uten verifisering), re-opplasting av tapte
    mediebilder, ev. Hetzner Object Storage for media.
 
+## Næringslivsstrategi
+
+**Mål:** Bygge bedriftsdelen til en magnet for lokalt næringsliv som senere kan
+monetiseres. Verdi før pris — bedrifter skal VILLE være der.
+
+**Prinsipper:**
+1. **Eksklusivitet via krav, ikke pris.** Bedriften må være registrert i BRREG og ha
+   forretningsadresse i en Helgeland-kommune. BRREG-validering automatisk; manuell
+   godkjenning ved tvil.
+2. **Verifisert-merke** til bedrifter med gyldig orgnr i Helgeland.
+3. **To profilnivåer:** Standard (åpen) og Utvidet (flere bilder/video/SoMe-lenker/
+   kategorifremhevelse). Utvidet er gratis i fase 1, men krever redaksjonell
+   godkjenning. Mønsteret er klart for prising i fase 2.
+4. **Redaksjonelt utvalg:** "Månedens bedrift", "Anbefalt"-flagg i admin, kuraterte
+   kategorisider.
+5. **Ikke tillatt:** pop-up-annonser, trackere, sponsede oppføringer som later som de
+   er redaksjonelle.
+6. **Trafikk** drives av AI-assistent "Helge" (fase 3) som peker brukere til den lokale
+   bedriftskatalogen + relaterte NAV-stillinger og BRREG-data vi allerede har.
+
+**Fase 1 (nå):**
+- /bedrifter som ekte katalog: filter (bransje + kommune), søk, kart, kategorisider.
+- BRREG-validering på innsending (orgnr + Helgeland-kommune).
+- Verifisert-merke.
+- To profilnivåer (Utvidet krever redaksjonell godkjenning).
+- "Anbefalt"-flagg + Månedens bedrift.
+
+**Fase 2 (når det er trafikk og bedrifter):**
+- Monetisering: Utvidet blir betalt, Premium-nivå med fremhevelse, annonseplass,
+  sponsing av nyhetsbrev/seksjoner.
+
+**Fase 3 (på sikt):**
+- "Helge" — lokal AI-næringsassistent som svarer på spørsmål om Helgelands næringsliv
+  og peker til bedrifter/stillinger/BRREG.
+
 ## Logg
 
 ### 2026-06-11
