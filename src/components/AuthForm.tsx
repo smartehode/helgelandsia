@@ -9,6 +9,8 @@ export function AuthForm() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [registered, setRegistered] = useState<string | null>(null)
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setError(''); setLoading(true)
@@ -17,12 +19,67 @@ export function AuthForm() {
     try {
       if (mode === 'register') {
         const r = await fetch('/api/members', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, password }) })
-        if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j?.errors?.[0]?.message || 'Kunne ikke registrere.') }
+        const j = await r.json().catch(() => ({}))
+        if (!r.ok) throw new Error(j?.errors?.[0]?.message || 'Kunne ikke registrere.')
+        // Ikke prøv auto-innlogging — e-posten må bekreftes først
+        setRegistered(email)
+        return
       }
-      const login = await fetch('/api/members/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
-      if (!login.ok) throw new Error('Feil e-post eller passord.')
+      const loginRes = await fetch('/api/members/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
+      if (!loginRes.ok) {
+        const j = await loginRes.json().catch(() => ({}))
+        const errName: string = j?.errors?.[0]?.name ?? ''
+        const errMsg: string = j?.errors?.[0]?.message ?? ''
+        const isUnverified =
+          errName === 'UnverifiedEmail' ||
+          loginRes.status === 403 ||
+          errMsg.toLowerCase().includes('not verified') ||
+          errMsg.toLowerCase().includes('not yet verified')
+        if (isUnverified) { setUnverifiedEmail(email); return }
+        throw new Error('Feil e-post eller passord.')
+      }
       router.push('/min-side'); router.refresh()
     } catch (err: any) { setError(err.message) } finally { setLoading(false) }
+  }
+
+  if (unverifiedEmail) {
+    return (
+      <div className="mx-auto w-full max-w-md">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+          <p className="font-medium text-amber-800">E-posten er ikke bekreftet</p>
+          <p className="mt-2 text-sm text-amber-700">
+            Du må bekrefte e-posten din før du kan logge inn.
+            Sjekk innboksen din for bekreftelseslenken vi sendte til <strong>{unverifiedEmail}</strong>.
+          </p>
+        </div>
+        <button
+          onClick={() => { setUnverifiedEmail(null); setError('') }}
+          className="mt-4 w-full rounded-full border border-ink/15 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
+        >
+          Tilbake til innlogging
+        </button>
+      </div>
+    )
+  }
+
+  if (registered) {
+    return (
+      <div className="mx-auto w-full max-w-md">
+        <div className="rounded-2xl bg-sea/10 p-6">
+          <p className="font-medium text-fjord">Konto opprettet — sjekk innboksen din</p>
+          <p className="mt-2 text-sm text-ink/70">
+            Vi har sendt en bekreftelseslenke til <strong>{registered}</strong>.
+            Klikk lenken i e-posten for å aktivere kontoen din.
+          </p>
+        </div>
+        <button
+          onClick={() => { setRegistered(null); setMode('login') }}
+          className="mt-4 w-full rounded-full border border-ink/15 py-3 text-sm font-medium text-ink/70 hover:bg-ink/5"
+        >
+          Tilbake til innlogging
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -44,6 +101,11 @@ export function AuthForm() {
         {mode === 'register' && <input name="name" placeholder="Navn" className={input} />}
         <input name="email" type="email" required placeholder="E-post" className={input} />
         <input name="password" type="password" required minLength={8} placeholder="Passord (min. 8 tegn)" className={input} />
+        {mode === 'login' && (
+          <div className="text-right">
+            <a href="/nytt-passord" className="text-xs text-sea hover:underline">Glemt passord?</a>
+          </div>
+        )}
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button disabled={loading} className="w-full rounded-full bg-sea px-6 py-3 font-medium text-white transition hover:bg-fjord disabled:opacity-60">
           {loading ? 'Vent …' : mode === 'login' ? 'Logg inn' : 'Opprett konto'}

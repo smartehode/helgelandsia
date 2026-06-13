@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { isEditor, isPublishedOrLoggedIn } from '../access'
 import { slugField } from '../fields/slug'
+import { afterChangeApproved } from '../lib/email/submission-approved'
 
 async function geocodeHook({ data }: { data: any }) {
   const city = String(data.city || '').trim()
@@ -30,7 +31,10 @@ export const Businesses: CollectionConfig = {
     group: 'Innhold',
   },
   versions: { drafts: true },
-  hooks: { beforeChange: [geocodeHook] },
+  hooks: {
+    beforeChange: [geocodeHook],
+    afterChange: [afterChangeApproved('businesses')],
+  },
   access: {
     read: isPublishedOrLoggedIn,
     create: isEditor,

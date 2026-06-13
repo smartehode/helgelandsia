@@ -1,6 +1,7 @@
 import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { resendAdapter } from '@payloadcms/email-resend'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { s3Storage } from '@payloadcms/storage-s3'
 import sharp from 'sharp'
@@ -33,6 +34,16 @@ import { WidgetAreas } from './src/globals/Sidebar'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Parser "Navn <adresse@dom.no>" → { name, address }.
+// Faller tilbake til Resend sandbox-adresse hvis env mangler, så adapteren alltid lastes.
+function parseEmailFrom(raw?: string): { name: string; address: string } {
+  const m = raw?.match(/^(.+?)\s*<([^>]+)>$/)
+  if (m) return { name: m[1].trim(), address: m[2].trim() }
+  if (raw?.includes('@')) return { name: 'Helgelandsia', address: raw.trim() }
+  return { name: 'Helgelandsia', address: 'onboarding@resend.dev' }
+}
+const { name: fromName, address: fromAddress } = parseEmailFrom(process.env.EMAIL_FROM)
+
 const DEFAULT_NAV = [
   { label: 'Arrangementer', url: '/arrangementer' },
   { label: 'Historier', url: '/historier' },
@@ -45,6 +56,7 @@ const DEFAULT_NAV = [
 
 export default buildConfig({
   onInit: async (payload) => {
+    payload.logger.info(`Email adapter: Resend, from=${fromName} <${fromAddress}>`)
     const header = await payload.findGlobal({ slug: 'header' })
     if (!header?.items?.length) {
       await payload.updateGlobal({ slug: 'header', data: { items: DEFAULT_NAV } })
@@ -64,6 +76,13 @@ export default buildConfig({
 
   // ---- Standard rik-tekst-editor ----
   editor: lexicalEditor(),
+
+  // ---- E-post (Resend — alltid registrert; uten API-nøkkel logges advarsel men Payload tier) ----
+  email: resendAdapter({
+    defaultFromAddress: fromAddress,
+    defaultFromName: fromName,
+    apiKey: process.env.RESEND_API_KEY || '',
+  }),
 
   // ---- Datamodell ----
   collections: [

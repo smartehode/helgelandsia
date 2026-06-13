@@ -265,3 +265,51 @@ docker compose logs --tail=50 app
 - `FlightRow`-komponent: status C (Innstilt) vises rødt med stryking; status E
   (ny tid) viser gammel tid strøket over + ny tid i amber.
 - Krediteringen «Flydata fra Avinor» er lenke til avinor.no (krav fra Avinor).
+
+**E-post for medlemmer (Resend)**
+- `src/lib/email/templates.ts` — HTML-e-postmaler med fjord/sea/paper-palett.
+  Eksporterer `verifyEmailHtml(token)`, `forgotPasswordHtml(token)`,
+  `submissionApprovedHtml({ name, contentType, title, url })`.
+- `src/lib/email/submission-approved.ts` — `notifySubmissionApproved(payload, collection, doc)`
+  sender «Innholdet ditt er publisert»-e-post til `submittedBy`-member.
+  `afterChangeApproved(collection)` returnerer en ferdig `afterChange`-hook som
+  detekterer overgang `draft → published`.
+- `payload.config.ts` — `resendAdapter` fra `@payloadcms/email-resend` lagt til.
+  Aktiveres kun når `RESEND_API_KEY`-env er satt; ellers bruker Payload konsoll-fallback.
+- `src/collections/Members.ts` — `auth: true` erstattet med fullt auth-objekt:
+  - `verify.generateEmailHTML/Subject` — norsk velkomstmail, lenker til `/verifiser?token=`.
+  - `forgotPassword.generateEmailHTML/Subject` — norsk tilbakestillingsmail, lenker til `/nytt-passord?token=`.
+  - `beforeChange`-hook: nye Google OAuth-brukere (har `sub`) settes `_verified: true` automatisk.
+- `src/app/(frontend)/verifiser/page.tsx` — bekreftelsesside: leser `?token`, kaller
+  `payload.verifyEmail({ collection: 'members', token })`, viser suksess 🎉 eller feil.
+- `src/app/(frontend)/nytt-passord/page.tsx` + `NyttPassordClient.tsx` — to-stegs flyt:
+  1. Uten token: e-postskjema → POST `/api/members/forgot-password`.
+  2. Med token: nytt passord-skjema → POST `/api/members/reset-password`.
+- `src/components/AuthForm.tsx` — «Glemt passord?»-lenke til `/nytt-passord` lagt til
+  under passordfeltet i innloggings-modus.
+- Alle 6 innsendings-collections (events, posts, businesses, jobs, press-releases,
+  newsletters) fått `hooks.afterChange: [afterChangeApproved(slug)]`.
+- **SKJEMAENDRING** — `auth.verify` legger til `_verified` og `_verificationToken`-
+  kolonner på members-tabellen. Eieren kjører:
+  `npx payload migrate:create verify-members`
+  og leser filen (sjekk at ingen DROP) før commit.
+- **VIKTIG FOR DEPLOY** — eksisterende produksjonsmedlemmer må settes som verifisert
+  ETTER at migrasjonen har kjørt på serveren, men FØR man forventer at de skal kunne
+  logge inn. Kjør dette på prod-databasen:
+  ```sql
+  UPDATE members SET "_verified" = true WHERE "_verified" IS NULL OR "_verified" = false;
+  ```
+
+**Rettelser: e-postadapter og innloggingsfeil**
+- `payload.config.ts` — `resendAdapter` registreres nå alltid (ikke betinget av
+  `RESEND_API_KEY`). `parseEmailFrom()` parser `"Navn <adresse@dom.no>"` til separate
+  `defaultFromName`/`defaultFromAddress`-felt; faller tilbake til Resend sandbox-adresse
+  hvis env mangler. `onInit` logger `Email adapter: Resend, from=…` ved oppstart.
+- `src/components/AuthForm.tsx` — tre rettelser:
+  1. Etter vellykket registrering (201) prøves ikke auto-innlogging lenger — viser
+     grønt panel «Konto opprettet — sjekk innboksen din» med e-postadressen synlig.
+  2. Ny `unverifiedEmail`-state: ved 403 fra `/api/members/login` (eller melding med
+     «not verified») vises amber-panel «E-posten er ikke bekreftet» med adressen.
+     «Tilbake til innlogging»-knapp nullstiller tilstanden.
+  3. Serverens feilmelding (`errors[0].message`) vises ved 4xx på registrering;
+     andre innloggingsfeil viser «Feil e-post eller passord» som fallback.

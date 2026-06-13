@@ -7,6 +7,7 @@ import {
 } from '@payloadcms/richtext-lexical'
 import { isEditor, isPublishedOrLoggedIn } from '../access'
 import { slugField } from '../fields/slug'
+import { afterChangeApproved } from '../lib/email/submission-approved'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -25,6 +26,9 @@ export const Posts: CollectionConfig = {
   versions: {
     drafts: { autosave: { interval: 800 } },
     maxPerDoc: 25,
+  },
+  hooks: {
+    afterChange: [afterChangeApproved('posts')],
   },
   access: {
     read: isPublishedOrLoggedIn,

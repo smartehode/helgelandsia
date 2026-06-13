@@ -7,6 +7,7 @@ import * as migration_20260612_215753_widget_system from './20260612_215753_widg
 import * as migration_20260612_223647_widget_system from './20260612_223647_widget_system';
 import * as migration_20260612_224114_widget_system from './20260612_224114_widget_system';
 import * as migration_20260612_235331_news_brreg_blocks from './20260612_235331_news_brreg_blocks';
+import * as migration_20260613_075834_verify_members from './20260613_075834_verify_members';
 
 export const migrations = [
   {
@@ -52,6 +53,11 @@ export const migrations = [
   {
     up: migration_20260612_235331_news_brreg_blocks.up,
     down: migration_20260612_235331_news_brreg_blocks.down,
-    name: '20260612_235331_news_brreg_blocks'
+    name: '20260612_235331_news_brreg_blocks',
+  },
+  {
+    up: migration_20260613_075834_verify_members.up,
+    down: migration_20260613_075834_verify_members.down,
+    name: '20260613_075834_verify_members'
   },
 ];

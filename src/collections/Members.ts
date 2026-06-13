@@ -1,21 +1,40 @@
 import type { CollectionConfig } from 'payload'
 import { isEditor } from '../access'
+import { verifyEmailHtml, forgotPasswordHtml } from '../lib/email/templates'
 
 export const Members: CollectionConfig = {
   slug: 'members',
   labels: { singular: 'Medlem', plural: 'Medlemmer' },
-  auth: true, // e-post/passord + sikre httpOnly-cookies (Google m.fl. kobles på senere)
+  auth: {
+    tokenExpiration: 7 * 24 * 3600,
+    verify: {
+      generateEmailHTML: ({ token }: any) => verifyEmailHtml(token),
+      generateEmailSubject: () => 'Velkommen til Helgelandsia — bekreft e-posten din',
+    },
+    forgotPassword: {
+      generateEmailHTML: ({ token }: any) => forgotPasswordHtml(token),
+      generateEmailSubject: () => 'Tilbakestill passordet ditt på Helgelandsia',
+    },
+  },
+  hooks: {
+    beforeChange: [
+      ({ data, operation }: any) => {
+        // Google OAuth-brukere (har sub-felt) er allerede verifisert av Google
+        if (operation === 'create' && data.sub) {
+          return { ...data, _verified: true }
+        }
+        return data
+      },
+    ],
+  },
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['name', 'email', 'approved', 'createdAt'],
     group: 'Medlemmer',
   },
   access: {
-    // Hvem som helst kan registrere seg
     create: () => true,
-    // Medlemmer slipper ALDRI inn i adminpanelet
     admin: () => false,
-    // Medlemmer ser/redigerer kun seg selv; stab ser alle
     read: ({ req: { user } }) => (user?.collection === 'users' ? true : { id: { equals: user?.id } }),
     update: ({ req: { user } }) => (user?.collection === 'users' ? true : { id: { equals: user?.id } }),
     delete: ({ req: { user } }) => user?.collection === 'users',

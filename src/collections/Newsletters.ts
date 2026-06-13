@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { isEditor, isPublishedOrLoggedIn } from '../access'
 import { slugField } from '../fields/slug'
+import { afterChangeApproved } from '../lib/email/submission-approved'
 
 export const Newsletters: CollectionConfig = {
   slug: 'newsletters',
@@ -12,6 +13,9 @@ export const Newsletters: CollectionConfig = {
     group: 'Innhold',
   },
   versions: { drafts: true },
+  hooks: {
+    afterChange: [afterChangeApproved('newsletters')],
+  },
   access: {
     read: isPublishedOrLoggedIn,
     create: isEditor,

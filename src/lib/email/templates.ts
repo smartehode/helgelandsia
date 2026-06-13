@@ -1,0 +1,76 @@
+const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? 'https://helgelandsia.no'
+
+const FJORD  = '#0e3a5c'
+const SEA    = '#3b7fc4'
+const PAPER  = '#faf8f5'
+const BORDER = '#e5e0d8'
+const INK    = '#1a1a1a'
+const MUTED  = '#6b6560'
+
+function wrap(body: string): string {
+  return `<!DOCTYPE html>
+<html lang="no"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+</head>
+<body style="margin:0;padding:0;background:#f0f2f5;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;">
+<tr><td style="background:${FJORD};border-radius:12px 12px 0 0;padding:24px 40px;">
+<span style="font-family:Georgia,serif;font-size:20px;font-weight:bold;color:#f5f1eb;">Helgelandsia</span>
+</td></tr>
+<tr><td style="background:${PAPER};padding:36px 40px;border-radius:0 0 12px 12px;border:1px solid ${BORDER};border-top:none;">
+${body}
+</td></tr>
+<tr><td style="padding:20px 40px;text-align:center;">
+<p style="margin:0;font-size:12px;color:${MUTED};">Du mottar denne e-posten fordi du er registrert på Helgelandsia.<br/>Svar ikke på denne e-posten — den sendes automatisk.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`
+}
+
+const h1  = `font-family:Georgia,serif;font-size:22px;color:${FJORD};margin:0 0 16px;`
+const p   = `font-size:15px;line-height:1.6;color:${INK};margin:0 0 14px;`
+const btn = `display:inline-block;background:${SEA};color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:8px;margin-top:8px;`
+const sm  = `font-size:13px;color:${MUTED};margin-top:16px;word-break:break-all;`
+
+export function verifyEmailHtml(token: string): string {
+  const url = `${BASE_URL}/verifiser?token=${token}`
+  return wrap(`
+<h1 style="${h1}">Velkommen til Helgelandsia!</h1>
+<p style="${p}">Takk for at du registrerte deg. Klikk nedenfor for å bekrefte e-postadressen din.</p>
+<p style="${p}">Lenken er gyldig i 24 timer.</p>
+<a href="${url}" style="${btn}">Bekreft e-posten min</a>
+<p style="${sm}">Eller kopier denne lenken i nettleseren:<br/>${url}</p>
+  `)
+}
+
+export function forgotPasswordHtml(token: string): string {
+  const url = `${BASE_URL}/nytt-passord?token=${token}`
+  return wrap(`
+<h1 style="${h1}">Tilbakestill passordet ditt</h1>
+<p style="${p}">Vi mottok en forespørsel om å tilbakestille passordet for kontoen din på Helgelandsia.</p>
+<p style="${p}">Klikk nedenfor for å velge et nytt passord. Lenken er gyldig i 1 time.</p>
+<a href="${url}" style="${btn}">Velg nytt passord</a>
+<p style="${sm}">Eller kopier denne lenken:<br/>${url}</p>
+<p style="font-size:13px;color:${MUTED};margin-top:8px;">Hvis du ikke ba om dette, kan du se bort fra denne e-posten.</p>
+  `)
+}
+
+export function submissionApprovedHtml(params: {
+  name: string
+  contentType: string
+  title: string
+  url: string
+}): string {
+  const { name, contentType, title, url } = params
+  return wrap(`
+<h1 style="${h1}">Innholdet ditt er publisert!</h1>
+<p style="${p}">Hei${name ? ' ' + name : ''},</p>
+<p style="${p}">Din ${contentType} <strong>«${title}»</strong> er godkjent og publisert på Helgelandsia.</p>
+<a href="${url}" style="${btn}">Se publisert innhold</a>
+<p style="${sm}">Takk for ditt bidrag til Helgelandsia!</p>
+  `)
+}
