@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import { PowerPriceWidget } from '@/components/widgets/PowerPriceWidget'
 import { WeatherWidget } from '@/components/widgets/WeatherWidget'
