@@ -9,6 +9,7 @@ const FALLBACK_NAV = [
   { url: '/stillinger', label: 'Stillinger' },
   { url: '/pressemeldinger', label: 'Pressemeldinger' },
   { url: '/nyhetsbrev', label: 'Nyhetsbrev' },
+  { url: '/nyttig', label: 'Nyttig' },
   { url: '/min-side', label: 'Min side' },
 ]
 

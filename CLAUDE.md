@@ -140,3 +140,128 @@ docker compose logs --tail=50 app
 - Migrasjon generert lokalt med Google-plugin betinget av env droppet
   members.sub i prod (forside + Google-innlogging nede). Gjenopprettet med
   manuell ALTER TABLE + enabled: true + reglene over.
+
+**Deling på sosiale medier**
+- `src/lib/og.ts` — `abs()`-hjelper som bygger absolutt URL med fallback til
+  `https://helgelandsia.no` (metadataBase er upålitelig uten NEXT_PUBLIC_SERVER_URL).
+- `src/components/ShareButtons.tsx` — klient-komponent: Facebook, LinkedIn,
+  kopier lenke og e-post. Bruker `usePathname()` for dynamisk URL.
+- `generateMetadata` med `openGraph` (title, description, url, images) og
+  `twitter`-felt lagt til alle 6 detaljsider (historier, arrangementer,
+  bedrifter, stillinger, pressemeldinger, nyhetsbrev).
+
+**Nyttig-siden og første widgets**
+- `src/app/(frontend)/nyttig/page.tsx` — statisk side med strømpris og vær
+  side om side (md:grid-cols-2), ISR via widget-cache (revalidate 1800s).
+- `src/components/widgets/PowerPriceWidget.tsx` — første versjon (hardkodet NO4).
+- `src/components/widgets/WeatherWidget.tsx` — første versjon (hardkodet 4 byer).
+- `src/components/SiteHeader.tsx` — «Nyttig»-lenke lagt til FALLBACK_NAV.
+
+**Widget-system (strømpris og vær)**
+- `src/components/widgets/PowerPriceWidget.tsx` — async server-komponent.
+  Props: `title?`, `zone?: NO1–NO5 (std NO4)`, `variant?: 'full'|'kompakt'`.
+  full: nåpris + min/maks + søylediagram. kompakt: kun nåpris + min/maks.
+  Henter hvakosterstrommen.no API, revalidate 1800s.
+- `src/components/widgets/WeatherWidget.tsx` — async server-komponent.
+  Props: `title?`, `locations?: {name,lat,lon}[]` (std 4 Helgeland-byer),
+  `days?: 1–7 (std 4)`, `variant?: 'full'|'kompakt'`.
+  full: nåvær + daglig varsel. kompakt: kun nåvær.
+  Henter open-meteo.com API, revalidate 1800s.
+- `src/blocks/index.ts` — `PowerPricesBlock` og `WeatherBlock` lagt til.
+  Registrert i `layoutBlocks` (Pages-collection) og `widgetBlocks`
+  (Sidefelt-global).
+- `src/globals/Sidebar.ts` — ny global `sidefelt`, kun widget-blokker.
+  Vises kompakt i sidefeltet på forsiden over annonsen.
+- `src/components/RenderBlocks.tsx` — mapper blockType → komponent.
+  Støtter alle layout-blokker + PowerPricesBlock + WeatherBlock.
+  Tar valgfritt `forceVariant`-prop (forsiden bruker 'kompakt').
+- **SKJEMAENDRING** — Eieren kjører `npx payload migrate:create widget-system`
+  etter å ha testet lokalt og lest filen nøye (sjekk at ingen DROP).
+
+**Widget-områder: tre soner**
+- `src/globals/Sidebar.ts` — `WidgetAreas`-globalen (slug: `sidefelt`, label: «Widget-områder»)
+  utvidet fra ett `blocks`-felt til tre: `sidefelt`, `midten`, `bunn`.
+  Alle tre bruker `widgetBlocks` (PowerPrices + Weather).
+- `src/app/(frontend)/page.tsx` — forsiden renderer alle tre soner:
+  - `sidefelt` → høyrespalte, kompakt, sticky.
+  - `midten` → mellom «Fremhevede historier» og annonsen, `md:grid-cols-2`, full variant.
+  - `bunn` → under all innhold, `md:grid-cols-3`, kompakt variant.
+  Sonene vises kun når de har innhold (betingede render).
+- **SKJEMAENDRING** — dekkes av samme migrasjon: `npx payload migrate:create widget-system`.
+
+**Flyavganger og NAV-stillinger widgets**
+- `src/components/widgets/FlightsWidget.tsx` — async server-komponent.
+  Props: `title?`, `airports?: ('BNN'|'SSJ'|'MJF')[]` (std alle tre),
+  `direction?: 'departure'|'arrival'|'begge'` (std departure),
+  `count?: 1–10` (std 4 per flyplass), `variant?`.
+  Henter Avinor XML-feed, revalidate 300s. Promise.allSettled per flyplass —
+  viser «Ikke tilgjengelig» for flyplasser som feiler.
+- `src/components/widgets/NavJobsWidget.tsx` — async server-komponent.
+  Props: `title?`, `count?: 1–20` (std 6), `variant?`.
+  Henter NAV Arbeidsplassen (county=NORDLAND), filtrerer på 19 Helgeland-
+  kommunenavn. Lenker til arbeidsplassen.nav.no og /stillinger.
+  revalidate 1800s.
+- `src/blocks/index.ts` — `FlightsBlock` og `NavJobsBlock` lagt til i
+  `layoutBlocks` og `widgetBlocks`.
+- `src/components/RenderBlocks.tsx` — håndterer 'flights' og 'navJobs'.
+- `src/app/(frontend)/nyttig/page.tsx` — alle fire widgets i 2-kolonners
+  grid, full variant.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create <navn>`.
+
+### 2026-06-13
+**Feilretting: FlightsWidget og NavJobsWidget**
+
+**FlightsWidget** — byttet fra ødelagt REST-API til Avinors offisielle XML-feed:
+- Ny URL: `asrv.avinor.no/XmlFeed/v1.0?airport={IATA}&TimeFrom={t}&TimeTo={t}&direction={D|A}`
+  (`TimeFrom` = timer tilbake, `TimeTo` = timer fremover — begge positive tall).
+- XML-struktur: `<flight><flight_id>`, `<schedule_time>` (UTC ISO), `<airport>` (IATA),
+  `<status code="N" time="..."/>` (self-closing med attributter, ikke child-elementer).
+- Parser: regex-basert, bruker `extractText()` for child-elementer og `extractAttr()` for
+  attributter på self-closing tags.
+- Tidssone: `Intl.DateTimeFormat` med `timeZone: 'Europe/Oslo'` — konverterer UTC riktig
+  uavhengig av serverens lokale tidssone.
+- Avganger: `TimeFrom=6&TimeTo=24` (inkluderer fly fra siste 6 t så dagens avganger
+  vises selv etter at de er gått).
+- Ankomster: `TimeFrom=6&TimeTo=6`.
+- «Neste avgang»: første fremtidige fly; fallback til siste avgang i dag.
+- «Siste ankomst»: nyeste fly med `status code="A"`; fallback til siste i listen.
+- Diagnostikkrute `src/app/api/debug-avinor/route.ts` ble opprettet under feilsøking
+  (kan slettes når alt fungerer stabilt).
+
+**NavJobsWidget** — feilene lå i feil API-respons-parsing og feil filterfelt:
+- Responsen er `{ hits: { hits: [{ _source: NavJob }] } }` — ikke `content`.
+- Kommunefilter byttet fra numeriske koder (`municipalCode`) til kommunenavn-strenger
+  (`locationList[].municipal`, f.eks. `"BRØNNØY"`) — `municipalCode` finnes ikke i svaret.
+- Helgeland-settet oppdatert til 19 kommuner (navn som store bokstaver).
+- Søknadsfrist hentet fra `properties.applicationdue`, ikke `applicationDue`.
+- `businessName` lagt til som fallback for `employer.name`.
+- `size` økt fra 30 til 50 for å fange opp flere Helgeland-stillinger.
+
+**Nye widgets: NewsWidget og BrregWidget**
+- `src/components/widgets/NewsWidget.tsx` — RSS-nyheter fra BAnett, Helgelendingen,
+  Helgelands Blad og NRK Nordland. Regex-parser med CDATA/HTML-entity-støtte.
+  Karusell (topp 5) via klientkomponent `NewsCarousel.tsx`. Full variant viser
+  karusell + rader; kompakt variant viser maks 5 saker uten bilder.
+  Forsøker å hente `og:image` fra artikkelsiden for karusellsaker uten RSS-bilde
+  (2 s timeout, cachet 1 t). Fargede kildepiller per kilde.
+- `src/components/widgets/NewsCarousel.tsx` — klientkomponent med `useState`/
+  `useEffect`. Auto-rotasjon hvert 6. sek, pause på hover, opacity-fade (220 ms),
+  klikkbare prikk-indikatorer. Saker uten bilde: gradient fra-fjord-til-sea med
+  sentrert serif-tittel. Saker med bilde: bilde som bakgrunn, mørk gradient nederst.
+- `src/components/widgets/BrregWidget.tsx` — nyregistrerte bedrifter på Helgeland
+  fra BRREG enhetsregisteret API. Filtrerer på 18 Helgeland-kommunenummer,
+  sortert nyeste first. Lenker til virksomhet.brreg.no. revalidate: 21600.
+- `src/blocks/index.ts` — `NewsBlock` og `BrregBlock` lagt til i `layoutBlocks`
+  og `widgetBlocks`.
+- `src/components/RenderBlocks.tsx` — håndterer `'news'` og `'brreg'`.
+- `src/app/(frontend)/nyttig/page.tsx` — alle seks widgets.
+- **SKJEMAENDRING** — dekkes av `20260612_235331_news_brreg_blocks`.
+
+**Visuell oppgradering: FlightsWidget**
+- Kompakt variant redesignet: inline SVG-flyikon (Material Design "flight"-sti,
+  -45° for avgang ↗, 135° for ankomst ↙) i `text-sea`, ingen etiketter.
+  Format: ikon · tid · «fra»/destinasjon.
+- Full variant: opptil 4 avganger + 4 ankomster per flyplass med flightnummer.
+- `FlightRow`-komponent: status C (Innstilt) vises rødt med stryking; status E
+  (ny tid) viser gammel tid strøket over + ny tid i amber.
+- Krediteringen «Flydata fra Avinor» er lenke til avinor.no (krav fra Avinor).

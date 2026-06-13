@@ -79,6 +79,222 @@ export const CTABlock: Block = {
   ],
 }
 
+export const PowerPricesBlock: Block = {
+  slug: 'powerPrices',
+  labels: { singular: 'Strømpriswidget', plural: 'Strømpriswidgeter' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'zone',
+      type: 'select',
+      label: 'Prissone',
+      defaultValue: 'NO4',
+      options: [
+        { label: 'NO1 – Oslo / Øst-Norge', value: 'NO1' },
+        { label: 'NO2 – Sørvestlandet', value: 'NO2' },
+        { label: 'NO3 – Midt-Norge', value: 'NO3' },
+        { label: 'NO4 – Nord-Norge', value: 'NO4' },
+        { label: 'NO5 – Vestlandet', value: 'NO5' },
+      ],
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – inkl. søylediagram', value: 'full' },
+        { label: 'Kompakt – kun nåpris og min/maks', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const WeatherBlock: Block = {
+  slug: 'weather',
+  labels: { singular: 'Værwidget', plural: 'Værwidgeter' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'locations',
+      type: 'array',
+      label: 'Steder',
+      admin: { description: 'La stå tomt for standard Helgeland-steder (Brønnøysund, Sandnessjøen, Mosjøen, Mo i Rana).' },
+      fields: [
+        { name: 'name', type: 'text', required: true, label: 'Stednavn' },
+        {
+          type: 'row',
+          fields: [
+            { name: 'lat', type: 'number', required: true, label: 'Breddegrad', admin: { width: '50%' } },
+            { name: 'lon', type: 'number', required: true, label: 'Lengdegrad', admin: { width: '50%' } },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'days',
+      type: 'number',
+      label: 'Dager frem i tid',
+      defaultValue: 4,
+      min: 1,
+      max: 7,
+      admin: { description: '1–7 dager.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – med daglig varsel', value: 'full' },
+        { label: 'Kompakt – kun nåværende vær', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const FlightsBlock: Block = {
+  slug: 'flights',
+  labels: { singular: 'Flyavganger', plural: 'Flyavganger' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'airports',
+      type: 'select',
+      hasMany: true,
+      label: 'Flyplasser',
+      defaultValue: ['BNN', 'SSJ', 'MJF'],
+      options: [
+        { label: 'Brønnøysund (BNN)', value: 'BNN' },
+        { label: 'Sandnessjøen (SSJ)', value: 'SSJ' },
+        { label: 'Mosjøen (MJF)', value: 'MJF' },
+      ],
+    },
+    {
+      name: 'direction',
+      type: 'select',
+      label: 'Retning',
+      defaultValue: 'departure',
+      options: [
+        { label: 'Avganger', value: 'departure' },
+        { label: 'Ankomster', value: 'arrival' },
+        { label: 'Begge retninger', value: 'begge' },
+      ],
+    },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall per flyplass',
+      defaultValue: 4,
+      min: 1,
+      max: 10,
+      admin: { description: '1–10 avganger per flyplass.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – inkl. forsinkelse og kansellering', value: 'full' },
+        { label: 'Kompakt – kun tid, flightnummer og destinasjon', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const NavJobsBlock: Block = {
+  slug: 'navJobs',
+  labels: { singular: 'NAV-stillinger', plural: 'NAV-stillinger' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall stillinger',
+      defaultValue: 6,
+      min: 1,
+      max: 20,
+      admin: { description: '1–20 stillinger fra NAV Arbeidsplassen.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – tittel, arbeidsgiver, kommune og frist', value: 'full' },
+        { label: 'Kompakt – tittel og arbeidsgiver', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const NewsBlock: Block = {
+  slug: 'news',
+  labels: { singular: 'Lokale nyheter', plural: 'Lokale nyheter' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'sources',
+      type: 'select',
+      hasMany: true,
+      label: 'Kilder',
+      admin: { description: 'La stå tomt for alle fire kilder.' },
+      options: [
+        { label: 'BAnett', value: 'BAnett' },
+        { label: 'Helgelendingen', value: 'Helgelendingen' },
+        { label: 'Helgelands Blad', value: 'Helgelands Blad' },
+        { label: 'NRK Nordland', value: 'NRK Nordland' },
+      ],
+    },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall nyheter',
+      defaultValue: 8,
+      min: 1,
+      max: 20,
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – tittel, kilde og tid', value: 'full' },
+        { label: 'Kompakt – tittel og kilde', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const BrregBlock: Block = {
+  slug: 'brreg',
+  labels: { singular: 'Nye bedrifter', plural: 'Nye bedrifter' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall bedrifter',
+      defaultValue: 5,
+      min: 1,
+      max: 20,
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – navn, kommune, org.form og dato', value: 'full' },
+        { label: 'Kompakt – navn og kommune', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
 export const layoutBlocks = [
   HeroBlock,
   RichTextBlock,
@@ -86,4 +302,19 @@ export const layoutBlocks = [
   BusinessListBlock,
   EventListBlock,
   CTABlock,
+  PowerPricesBlock,
+  WeatherBlock,
+  FlightsBlock,
+  NavJobsBlock,
+  NewsBlock,
+  BrregBlock,
+]
+
+export const widgetBlocks = [
+  PowerPricesBlock,
+  WeatherBlock,
+  FlightsBlock,
+  NavJobsBlock,
+  NewsBlock,
+  BrregBlock,
 ]

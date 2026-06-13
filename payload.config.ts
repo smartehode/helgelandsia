@@ -29,6 +29,7 @@ import { googleOAuth } from './src/oauth/google'
 import { SiteSettings } from './src/globals/SiteSettings'
 import { Header, Footer } from './src/globals/Navigation'
 import { Hero } from './src/globals/Hero'
+import { WidgetAreas } from './src/globals/Sidebar'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -80,7 +81,7 @@ export default buildConfig({
     Ads,
     Pages,
   ],
-  globals: [SiteSettings, Hero, Header, Footer],
+  globals: [SiteSettings, Hero, Header, Footer, WidgetAreas],
 
   // ---- Database ----
   db: postgresAdapter({

@@ -115,12 +115,14 @@ export interface Config {
     hero: Hero;
     header: Header;
     footer: Footer;
+    sidefelt: Sidefelt;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     hero: HeroSelect<false> | HeroSelect<true>;
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    sidefelt: SidefeltSelect<false> | SidefeltSelect<true>;
   };
   locale: null;
   widgets: {
@@ -719,6 +721,80 @@ export interface Page {
             blockName?: string | null;
             blockType: 'cta';
           }
+        | {
+            title?: string | null;
+            zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'powerPrices';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-steder (Brønnøysund, Sandnessjøen, Mosjøen, Mo i Rana).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lon: number;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * 1–7 dager.
+             */
+            days?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'weather';
+          }
+        | {
+            title?: string | null;
+            airports?: ('BNN' | 'SSJ' | 'MJF')[] | null;
+            direction?: ('departure' | 'arrival' | 'begge') | null;
+            /**
+             * 1–10 avganger per flyplass.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'flights';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 stillinger fra NAV Arbeidsplassen.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'navJobs';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire kilder.
+             */
+            sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'news';
+          }
+        | {
+            title?: string | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'brreg';
+          }
       )[]
     | null;
   meta?: {
@@ -1220,6 +1296,71 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        powerPrices?:
+          | T
+          | {
+              title?: T;
+              zone?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        weather?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lon?: T;
+                    id?: T;
+                  };
+              days?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        flights?:
+          | T
+          | {
+              title?: T;
+              airports?: T;
+              direction?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        navJobs?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        news?:
+          | T
+          | {
+              title?: T;
+              sources?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        brreg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -1397,6 +1538,260 @@ export interface Footer {
   createdAt?: string | null;
 }
 /**
+ * Widgets som vises i tre soner på forsiden.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sidefelt".
+ */
+export interface Sidefelt {
+  id: number;
+  /**
+   * Kompakt variant. Vises i høyrespalten ved siden av innholdet på store skjermer.
+   */
+  sidefelt?:
+    | (
+        | {
+            title?: string | null;
+            zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'powerPrices';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-steder (Brønnøysund, Sandnessjøen, Mosjøen, Mo i Rana).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lon: number;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * 1–7 dager.
+             */
+            days?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'weather';
+          }
+        | {
+            title?: string | null;
+            airports?: ('BNN' | 'SSJ' | 'MJF')[] | null;
+            direction?: ('departure' | 'arrival' | 'begge') | null;
+            /**
+             * 1–10 avganger per flyplass.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'flights';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 stillinger fra NAV Arbeidsplassen.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'navJobs';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire kilder.
+             */
+            sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'news';
+          }
+        | {
+            title?: string | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'brreg';
+          }
+      )[]
+    | null;
+  /**
+   * Full variant. Vises mellom "Fremhevede historier" og annonsen, i et 2-kolonners grid.
+   */
+  midten?:
+    | (
+        | {
+            title?: string | null;
+            zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'powerPrices';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-steder (Brønnøysund, Sandnessjøen, Mosjøen, Mo i Rana).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lon: number;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * 1–7 dager.
+             */
+            days?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'weather';
+          }
+        | {
+            title?: string | null;
+            airports?: ('BNN' | 'SSJ' | 'MJF')[] | null;
+            direction?: ('departure' | 'arrival' | 'begge') | null;
+            /**
+             * 1–10 avganger per flyplass.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'flights';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 stillinger fra NAV Arbeidsplassen.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'navJobs';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire kilder.
+             */
+            sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'news';
+          }
+        | {
+            title?: string | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'brreg';
+          }
+      )[]
+    | null;
+  /**
+   * Kompakt variant. Vises som full-bredde stripe rett over footeren, i et 3-kolonners grid.
+   */
+  bunn?:
+    | (
+        | {
+            title?: string | null;
+            zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'powerPrices';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-steder (Brønnøysund, Sandnessjøen, Mosjøen, Mo i Rana).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lon: number;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * 1–7 dager.
+             */
+            days?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'weather';
+          }
+        | {
+            title?: string | null;
+            airports?: ('BNN' | 'SSJ' | 'MJF')[] | null;
+            direction?: ('departure' | 'arrival' | 'begge') | null;
+            /**
+             * 1–10 avganger per flyplass.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'flights';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 stillinger fra NAV Arbeidsplassen.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'navJobs';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire kilder.
+             */
+            sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'news';
+          }
+        | {
+            title?: string | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'brreg';
+          }
+      )[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
@@ -1488,6 +1883,222 @@ export interface FooterSelect<T extends boolean = true> {
         id?: T;
       };
   copyright?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sidefelt_select".
+ */
+export interface SidefeltSelect<T extends boolean = true> {
+  sidefelt?:
+    | T
+    | {
+        powerPrices?:
+          | T
+          | {
+              title?: T;
+              zone?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        weather?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lon?: T;
+                    id?: T;
+                  };
+              days?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        flights?:
+          | T
+          | {
+              title?: T;
+              airports?: T;
+              direction?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        navJobs?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        news?:
+          | T
+          | {
+              title?: T;
+              sources?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        brreg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  midten?:
+    | T
+    | {
+        powerPrices?:
+          | T
+          | {
+              title?: T;
+              zone?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        weather?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lon?: T;
+                    id?: T;
+                  };
+              days?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        flights?:
+          | T
+          | {
+              title?: T;
+              airports?: T;
+              direction?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        navJobs?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        news?:
+          | T
+          | {
+              title?: T;
+              sources?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        brreg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  bunn?:
+    | T
+    | {
+        powerPrices?:
+          | T
+          | {
+              title?: T;
+              zone?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        weather?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lon?: T;
+                    id?: T;
+                  };
+              days?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        flights?:
+          | T
+          | {
+              title?: T;
+              airports?: T;
+              direction?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        navJobs?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        news?:
+          | T
+          | {
+              title?: T;
+              sources?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        brreg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
