@@ -7,6 +7,9 @@ import { FlightsWidget } from '@/components/widgets/FlightsWidget'
 import { NavJobsWidget } from '@/components/widgets/NavJobsWidget'
 import { NewsWidget } from '@/components/widgets/NewsWidget'
 import { BrregWidget } from '@/components/widgets/BrregWidget'
+import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
+import { CurrencyWidget } from '@/components/widgets/CurrencyWidget'
+import { CalendarWidget } from '@/components/widgets/CalendarWidget'
 
 export const metadata: Metadata = {
   title: 'Nyttig for Helgeland',
@@ -38,6 +41,9 @@ export default function NyttigPage() {
         <NavJobsWidget count={6} variant="full" />
         <NewsWidget count={8} variant="full" />
         <BrregWidget count={5} variant="full" />
+        <WebcamWeatherWidget variant="full" />
+        <CurrencyWidget variant="full" />
+        <CalendarWidget variant="full" />
       </div>
     </div>
   )

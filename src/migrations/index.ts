@@ -8,6 +8,8 @@ import * as migration_20260612_223647_widget_system from './20260612_223647_widg
 import * as migration_20260612_224114_widget_system from './20260612_224114_widget_system';
 import * as migration_20260612_235331_news_brreg_blocks from './20260612_235331_news_brreg_blocks';
 import * as migration_20260613_075834_verify_members from './20260613_075834_verify_members';
+import * as migration_20260613_095658_webcam_locations from './20260613_095658_webcam_locations';
+import * as migration_20260613_105605_webkamera_vaer from './20260613_105605_webkamera_vaer';
 
 export const migrations = [
   {
@@ -58,6 +60,16 @@ export const migrations = [
   {
     up: migration_20260613_075834_verify_members.up,
     down: migration_20260613_075834_verify_members.down,
-    name: '20260613_075834_verify_members'
+    name: '20260613_075834_verify_members',
+  },
+  {
+    up: migration_20260613_095658_webcam_locations.up,
+    down: migration_20260613_095658_webcam_locations.down,
+    name: '20260613_095658_webcam_locations',
+  },
+  {
+    up: migration_20260613_105605_webkamera_vaer.up,
+    down: migration_20260613_105605_webkamera_vaer.down,
+    name: '20260613_105605_webkamera_vaer'
   },
 ];

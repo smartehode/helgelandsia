@@ -7,6 +7,9 @@ import { FlightsWidget, type Airport, type FlightDirection } from '@/components/
 import { NavJobsWidget } from '@/components/widgets/NavJobsWidget'
 import { NewsWidget, type NewsSourceName } from '@/components/widgets/NewsWidget'
 import { BrregWidget } from '@/components/widgets/BrregWidget'
+import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
+import { CurrencyWidget, type CurrencyItem } from '@/components/widgets/CurrencyWidget'
+import { CalendarWidget } from '@/components/widgets/CalendarWidget'
 
 interface RenderBlocksProps {
   blocks: any[]
@@ -85,6 +88,40 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
         <BrregWidget
           title={block.title}
           count={block.count ?? 5}
+          variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'webcam':
+      return (
+        <WebcamWeatherWidget
+          title={block.title}
+          locations={block.locations?.length
+            ? block.locations.map((loc: any) => ({
+                name: loc.name,
+                lat: loc.lat,
+                lng: loc.lng,
+                cameras: loc.cameras?.map((c: any) => ({
+                  url: c.url,
+                  title: c.camTitle ?? c.title,
+                  source: c.source,
+                })) ?? [],
+              }))
+            : undefined}
+          variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'currency':
+      return (
+        <CurrencyWidget
+          title={block.title}
+          show={block.show?.length ? (block.show as CurrencyItem[]) : undefined}
+          variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'holidays':
+      return (
+        <CalendarWidget
+          title={block.title}
           variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
         />
       )

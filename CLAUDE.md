@@ -266,50 +266,102 @@ docker compose logs --tail=50 app
   (ny tid) viser gammel tid strøket over + ny tid i amber.
 - Krediteringen «Flydata fra Avinor» er lenke til avinor.no (krav fra Avinor).
 
-**E-post for medlemmer (Resend)**
-- `src/lib/email/templates.ts` — HTML-e-postmaler med fjord/sea/paper-palett.
+**E-post for medlemmer (Resend) — ferdig deployet**
+- `src/lib/email/templates.ts` — HTML-maler med fjord/sea/paper-palett.
   Eksporterer `verifyEmailHtml(token)`, `forgotPasswordHtml(token)`,
   `submissionApprovedHtml({ name, contentType, title, url })`.
-- `src/lib/email/submission-approved.ts` — `notifySubmissionApproved(payload, collection, doc)`
-  sender «Innholdet ditt er publisert»-e-post til `submittedBy`-member.
-  `afterChangeApproved(collection)` returnerer en ferdig `afterChange`-hook som
-  detekterer overgang `draft → published`.
-- `payload.config.ts` — `resendAdapter` fra `@payloadcms/email-resend` lagt til.
-  Aktiveres kun når `RESEND_API_KEY`-env er satt; ellers bruker Payload konsoll-fallback.
+- `src/lib/email/submission-approved.ts` — `afterChangeApproved(collection)` returnerer
+  en `afterChange`-hook som sender godkjenningsvarsel til `submittedBy`-member ved
+  overgang `draft → published`. Alle 6 innsendings-collections har fått denne hooken.
+- `payload.config.ts` — `resendAdapter` alltid registrert (ikke betinget av env).
+  `parseEmailFrom()` parser `"Navn <adresse@dom.no>"`; faller tilbake til Resend
+  sandbox-adresse hvis `EMAIL_FROM` mangler. `onInit` logger avsenderadressen ved oppstart.
 - `src/collections/Members.ts` — `auth: true` erstattet med fullt auth-objekt:
-  - `verify.generateEmailHTML/Subject` — norsk velkomstmail, lenker til `/verifiser?token=`.
-  - `forgotPassword.generateEmailHTML/Subject` — norsk tilbakestillingsmail, lenker til `/nytt-passord?token=`.
-  - `beforeChange`-hook: nye Google OAuth-brukere (har `sub`) settes `_verified: true` automatisk.
-- `src/app/(frontend)/verifiser/page.tsx` — bekreftelsesside: leser `?token`, kaller
-  `payload.verifyEmail({ collection: 'members', token })`, viser suksess 🎉 eller feil.
-- `src/app/(frontend)/nytt-passord/page.tsx` + `NyttPassordClient.tsx` — to-stegs flyt:
-  1. Uten token: e-postskjema → POST `/api/members/forgot-password`.
-  2. Med token: nytt passord-skjema → POST `/api/members/reset-password`.
-- `src/components/AuthForm.tsx` — «Glemt passord?»-lenke til `/nytt-passord` lagt til
-  under passordfeltet i innloggings-modus.
-- Alle 6 innsendings-collections (events, posts, businesses, jobs, press-releases,
-  newsletters) fått `hooks.afterChange: [afterChangeApproved(slug)]`.
-- **SKJEMAENDRING** — `auth.verify` legger til `_verified` og `_verificationToken`-
-  kolonner på members-tabellen. Eieren kjører:
-  `npx payload migrate:create verify-members`
-  og leser filen (sjekk at ingen DROP) før commit.
-- **VIKTIG FOR DEPLOY** — eksisterende produksjonsmedlemmer må settes som verifisert
-  ETTER at migrasjonen har kjørt på serveren, men FØR man forventer at de skal kunne
-  logge inn. Kjør dette på prod-databasen:
+  - `verify` — norsk velkomstmail, lenker til `/verifiser?token=`.
+  - `forgotPassword` — norsk tilbakestillingsmail, lenker til `/nytt-passord?token=`.
+  - `beforeChange`-hook: Google OAuth-brukere (har `sub`) settes `_verified: true` automatisk.
+- `src/app/(frontend)/verifiser/page.tsx` — leser `?token`, kaller
+  `payload.verifyEmail({ collection: 'members', token })`, viser suksess eller feil.
+- `src/app/(frontend)/nytt-passord/page.tsx` + `NyttPassordClient.tsx`:
+  - Uten token: e-postskjema → POST `/api/members/forgot-password`.
+  - Med token: nytt passord-skjema → POST `/api/members/reset-password`.
+- `src/components/AuthForm.tsx`:
+  - «Glemt passord?»-lenke i innloggings-modus.
+  - Etter vellykket registrering vises grønt panel «Konto opprettet — sjekk innboksen
+    din» i stedet for auto-innlogging (som feiler med 403 når verify er på).
+  - 403 fra login → amber-panel «E-posten er ikke bekreftet» med adressen synlig.
+  - 4xx på registrering → serverens `errors[0].message` vises direkte.
+- **Migrasjon** — `auth.verify` la til `_verified`/`_verificationToken` på members.
+  Kjørt: `npx payload migrate:create verify-members`. Lest og verifisert (ingen DROP).
+- **Deploy-steg utført** — eksisterende prod-medlemmer ble satt til verifisert via SQL
+  etter at migrasjonen kjørte på serveren:
   ```sql
   UPDATE members SET "_verified" = true WHERE "_verified" IS NULL OR "_verified" = false;
   ```
 
-**Rettelser: e-postadapter og innloggingsfeil**
-- `payload.config.ts` — `resendAdapter` registreres nå alltid (ikke betinget av
-  `RESEND_API_KEY`). `parseEmailFrom()` parser `"Navn <adresse@dom.no>"` til separate
-  `defaultFromName`/`defaultFromAddress`-felt; faller tilbake til Resend sandbox-adresse
-  hvis env mangler. `onInit` logger `Email adapter: Resend, from=…` ved oppstart.
-- `src/components/AuthForm.tsx` — tre rettelser:
-  1. Etter vellykket registrering (201) prøves ikke auto-innlogging lenger — viser
-     grønt panel «Konto opprettet — sjekk innboksen din» med e-postadressen synlig.
-  2. Ny `unverifiedEmail`-state: ved 403 fra `/api/members/login` (eller melding med
-     «not verified») vises amber-panel «E-posten er ikke bekreftet» med adressen.
-     «Tilbake til innlogging»-knapp nullstiller tilstanden.
-  3. Serverens feilmelding (`errors[0].message`) vises ved 4xx på registrering;
-     andre innloggingsfeil viser «Feil e-post eller passord» som fallback.
+**Tre nye widgets: Webkamera, Valuta og Helligdager**
+- `src/components/widgets/WebcamWidget.tsx` — server-komponent (ikke async, ingen fetch).
+  Props: `title?`, `cameras?: {url,title,source}[]` (std 5 Helgeland-kameraer),
+  `variant?`. Cache-buster: `Date.now()` i `?t=`-parameter sikrer ferske bilder ved
+  hver server-render. Full: `md:grid-cols-2 lg:grid-cols-3`. Kompakt: ett bilde om
+  gangen via klient-wrapper.
+- `src/components/widgets/WebcamCarousel.tsx` — klient-komponent. Roterer mellom
+  kameraer hvert 30. sek med `setInterval`. `onError` viser «Bildet er ikke
+  tilgjengelig». Prikkindikator med manuell navigasjon.
+- `src/components/widgets/CurrencyWidget.tsx` — async server-komponent.
+  Props: `title?`, `show?: ('usd'|'eur'|'btc'|'brent')[]` (std alle fire), `variant?`.
+  Kilder: Frankfurter API (USD/NOK, EUR/NOK inkl. forrige virkedag for endring),
+  Coinbase (BTC/USD, pris uten endring), Stooq CSV (Brent, pris uten endring).
+  Promise.allSettled — én feilet kilde tar ikke ned resten. revalidate: 1800.
+  Full: pris + fargekodet endring (grønn/rød). Kompakt: kun pris.
+- `src/components/widgets/HolidaysWidget.tsx` — async server-komponent.
+  Props: `title?`, `count?: 1–20` (std 5), `variant?`.
+  Henter inneværende og neste år fra `date.nager.at/api/v3/PublicHolidays/{år}/NO`,
+  filtrerer på >= i dag, sorterer, tar første N. `format`/`differenceInCalendarDays`
+  fra `date-fns` v3 med `nb`-locale. Helligdager < 7 dager unna vises i `text-sea`.
+  Kreditering: lenke til date.nager.at. revalidate: 86400.
+- `src/blocks/index.ts` — `WebcamBlock` (slug: `webcam`), `CurrencyBlock` (slug:
+  `currency`), `HolidaysBlock` (slug: `holidays`) lagt til i `layoutBlocks` og
+  `widgetBlocks`. Kamera-array bruker `camTitle` (ikke `title`) for å unngå
+  navnekonflikt.
+- `src/components/RenderBlocks.tsx` — håndterer `'webcam'`, `'currency'`, `'holidays'`.
+  `camTitle`-feltet mappes til `title`-prop med fallback.
+- `src/app/(frontend)/nyttig/page.tsx` — alle tre widgets lagt til i 2-kolonnersgriden.
+- **SKJEMAENDRING** — tre nye blokk-tabeller (webcam, currency, holidays) i PostgreSQL.
+  Eieren kjører `npx payload migrate:create webcam-currency-holidays` og leser filen
+  (sjekk at ingen DROP) før commit.
+
+**WebcamWidget → WebcamWeatherWidget (skjemaendring i webcam-blokk)**
+- `src/components/widgets/WebcamWeatherWidget.tsx` — ikke-async server-komponent.
+  Tre standard-lokasjoner: Brønnøysund (5 kameraer), Sandnessjøen (3), Mosjøen (1).
+  Props: `title?`, `locations?: Location[]`, `variant?`.
+- `src/components/widgets/WebcamWeatherClient.tsx` — klient-komponent ('use client').
+  - Stedsvelger som piller (sun-farge aktiv, fog-farge inaktive).
+  - Stort bilde (aspect-video) med ‹/›-piler. Auto-rotasjon hvert 10. sek.
+    Pause ved hover (useRef `isHovered`) og skjult fane (visibilitychange-lytter).
+    Cache-buster: `?t=<ts>` oppdateres kun ved navigasjon/rotasjon — aldri ved re-render.
+  - Mørkt blått infofelt (bg-fjord/90) med "HELGELANDKAMERA"-etikett, tittel i
+    font-serif, kildenavn og X/N-posisjon. onError viser plassholder-tekst.
+  - Vær-kort (Open-Meteo) under bildet: temperatur, emoji og norsk beskrivelse.
+    30 min klient-side cache (useRef). Hentes på nytt ved lokasjonsskift.
+  - Klikkbar kameraliste under (skjules i kompakt variant).
+- `WebcamWidget.tsx` og `WebcamCarousel.tsx` slettet.
+- `src/blocks/index.ts` — WebcamBlock omstrukturert: `cameras`-array erstattet
+  av `locations`-array (name, lat, lng + nested cameras). Label: «Webkamera og vær».
+  Slug 'webcam' uendret. **SKJEMAENDRING** — eieren kjører
+  `npx payload migrate:create webcam-locations` og leser filen (ingen DROP) før commit.
+
+**HolidaysWidget → CalendarWidget (ingen skjemaendring)**
+- `src/components/widgets/CalendarWidget.tsx` — async server-komponent. Prefetcher
+  helligdager for inneværende og neste år fra date.nager.at og sender som
+  `preloadedHolidays: HolidayMap` til CalendarClient. revalidate: 86400.
+- `src/components/widgets/CalendarClient.tsx` — klient-komponent ('use client').
+  Måneds-navigasjon med ‹/›-knapper og `useState`. Kalender-grid: ISO-ukenummer
+  (date-fns `getISOWeek`), Man–Søn med `startOfWeek({weekStartsOn:1})`. Uthevinger:
+  i dag (sea-bakgrunn), helligdager (bg-red-50 text-red-700), dager utenfor måneden
+  (muted/30). Helligdagsliste under: `D.M. Navn`-format, maks 3 i kompakt variant.
+  Manglende år hentes klient-side med `fetch + cache:'force-cache'` via `useEffect`
+  (sporet av `useRef`-sett for å unngå dobbel-henting).
+- `HolidaysWidget.tsx` slettet — erstattet av CalendarWidget.
+- `src/blocks/index.ts` — HolidaysBlock label endret til 'Kalender'. Slug 'holidays'
+  uendret — eksisterende admin-plasseringer overlever, ingen migrasjon nødvendig.

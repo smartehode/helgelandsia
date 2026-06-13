@@ -295,6 +295,108 @@ export const BrregBlock: Block = {
   ],
 }
 
+export const WebcamBlock: Block = {
+  slug: 'webcam',
+  labels: { singular: 'Webkamera og vær', plural: 'Webkamera og vær' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'locations',
+      type: 'array',
+      label: 'Lokasjoner',
+      admin: { description: 'La stå tomt for standard Helgeland-lokasjoner (Brønnøysund, Sandnessjøen, Mosjøen).' },
+      fields: [
+        { name: 'name', type: 'text', required: true, label: 'Stedsnavn' },
+        {
+          type: 'row',
+          fields: [
+            { name: 'lat', type: 'number', required: true, label: 'Breddegrad', admin: { width: '50%' } },
+            { name: 'lng', type: 'number', required: true, label: 'Lengdegrad', admin: { width: '50%' } },
+          ],
+        },
+        {
+          name: 'cameras',
+          type: 'array',
+          label: 'Kameraer',
+          fields: [
+            { name: 'url', type: 'text', required: true, label: 'Bilde-URL' },
+            { name: 'camTitle', type: 'text', required: true, label: 'Kameratittel' },
+            { name: 'source', type: 'text', required: true, label: 'Kilde' },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – kamera, vær og liste', value: 'full' },
+        { label: 'Kompakt – kun kamera', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const CurrencyBlock: Block = {
+  slug: 'currency',
+  labels: { singular: 'Valuta & råvarer', plural: 'Valuta & råvarer' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'show',
+      type: 'select',
+      hasMany: true,
+      label: 'Vis',
+      admin: { description: 'La stå tomt for alle fire.' },
+      options: [
+        { label: 'USD/NOK', value: 'usd' },
+        { label: 'EUR/NOK', value: 'eur' },
+        { label: 'Bitcoin / USD', value: 'btc' },
+        { label: 'Brent råolje (USD/fat)', value: 'brent' },
+      ],
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – pris og daglig endring', value: 'full' },
+        { label: 'Kompakt – kun pris', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const HolidaysBlock: Block = {
+  slug: 'holidays',
+  labels: { singular: 'Kalender', plural: 'Kalender' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall helligdager',
+      defaultValue: 5,
+      min: 1,
+      max: 20,
+      admin: { description: '1–20 kommende norske helligdager.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – dato, navn og dager til', value: 'full' },
+        { label: 'Kompakt – navn og dager til', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
 export const layoutBlocks = [
   HeroBlock,
   RichTextBlock,
@@ -308,6 +410,9 @@ export const layoutBlocks = [
   NavJobsBlock,
   NewsBlock,
   BrregBlock,
+  WebcamBlock,
+  CurrencyBlock,
+  HolidaysBlock,
 ]
 
 export const widgetBlocks = [
@@ -317,4 +422,7 @@ export const widgetBlocks = [
   NavJobsBlock,
   NewsBlock,
   BrregBlock,
+  WebcamBlock,
+  CurrencyBlock,
+  HolidaysBlock,
 ]

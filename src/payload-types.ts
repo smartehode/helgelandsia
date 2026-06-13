@@ -797,6 +797,54 @@ export interface Page {
             blockName?: string | null;
             blockType: 'brreg';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-lokasjoner (Brønnøysund, Sandnessjøen, Mosjøen).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lng: number;
+                  cameras?:
+                    | {
+                        url: string;
+                        camTitle: string;
+                        source: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'webcam';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire.
+             */
+            show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'currency';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende norske helligdager.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'holidays';
+          }
       )[]
     | null;
   meta?: {
@@ -1363,6 +1411,48 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        webcam?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lng?: T;
+                    cameras?:
+                      | T
+                      | {
+                          url?: T;
+                          camTitle?: T;
+                          source?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        currency?:
+          | T
+          | {
+              title?: T;
+              show?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        holidays?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -1628,6 +1718,54 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'brreg';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-lokasjoner (Brønnøysund, Sandnessjøen, Mosjøen).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lng: number;
+                  cameras?:
+                    | {
+                        url: string;
+                        camTitle: string;
+                        source: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'webcam';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire.
+             */
+            show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'currency';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende norske helligdager.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'holidays';
+          }
       )[]
     | null;
   /**
@@ -1709,6 +1847,54 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'brreg';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-lokasjoner (Brønnøysund, Sandnessjøen, Mosjøen).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lng: number;
+                  cameras?:
+                    | {
+                        url: string;
+                        camTitle: string;
+                        source: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'webcam';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire.
+             */
+            show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'currency';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende norske helligdager.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'holidays';
+          }
       )[]
     | null;
   /**
@@ -1789,6 +1975,54 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'brreg';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-lokasjoner (Brønnøysund, Sandnessjøen, Mosjøen).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lng: number;
+                  cameras?:
+                    | {
+                        url: string;
+                        camTitle: string;
+                        source: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'webcam';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire.
+             */
+            show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'currency';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende norske helligdager.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'holidays';
           }
       )[]
     | null;
@@ -1964,6 +2198,48 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        webcam?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lng?: T;
+                    cameras?:
+                      | T
+                      | {
+                          url?: T;
+                          camTitle?: T;
+                          source?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        currency?:
+          | T
+          | {
+              title?: T;
+              show?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        holidays?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   midten?:
     | T
@@ -2033,6 +2309,48 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        webcam?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lng?: T;
+                    cameras?:
+                      | T
+                      | {
+                          url?: T;
+                          camTitle?: T;
+                          source?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        currency?:
+          | T
+          | {
+              title?: T;
+              show?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        holidays?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   bunn?:
     | T
@@ -2094,6 +2412,48 @@ export interface SidefeltSelect<T extends boolean = true> {
               blockName?: T;
             };
         brreg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        webcam?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lng?: T;
+                    cameras?:
+                      | T
+                      | {
+                          url?: T;
+                          camTitle?: T;
+                          source?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        currency?:
+          | T
+          | {
+              title?: T;
+              show?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        holidays?:
           | T
           | {
               title?: T;
