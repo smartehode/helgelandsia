@@ -384,6 +384,16 @@ export const Businesses: CollectionConfig = {
       label: 'Sted',
     },
     {
+      name: 'showOnPublicListing',
+      type: 'checkbox',
+      defaultValue: true,
+      label: 'Vis i offentlig bedriftsliste',
+      admin: {
+        position: 'sidebar',
+        description: 'Settes av BRREG-synken. Underenheter skjules automatisk når morselskapet er i katalogen.',
+      },
+    },
+    {
       name: 'featured',
       type: 'checkbox',
       defaultValue: false,

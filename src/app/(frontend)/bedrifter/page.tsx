@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getPayloadClient } from '@/lib/getPayload'
-import { BUSINESS_CATEGORIES, getCategoryById, publicListingWhere } from '@/lib/businesses/categories'
+import { BUSINESS_CATEGORIES, getCategoryById, publicListingWhere, SHOW_ON_PUBLIC_LISTING_FILTER } from '@/lib/businesses/categories'
 import BedrifterFilters from '@/components/BedrifterFilters'
 import type { Where } from 'payload'
 
@@ -117,9 +117,10 @@ export default async function BedrifterPage({
   const payload = await getPayloadClient()
 
   // Bygger base-where for søket. ENK inkluderes når toggle er på ELLER det er et tekstsøk.
+  // showOnPublicListing filtreres alltid — ENK-bypassen fjerner kun Enkeltpersonforetak-kravet.
   const buildSearchWhere = (extra: Where[]): Where => {
     return (showEnk || hasSearchQuery)
-      ? { and: [{ _status: { equals: 'published' } }, ...extra] }
+      ? { and: [{ _status: { equals: 'published' } }, SHOW_ON_PUBLIC_LISTING_FILTER, ...extra] }
       : publicListingWhere(...extra)
   }
 

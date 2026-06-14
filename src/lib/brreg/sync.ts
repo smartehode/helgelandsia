@@ -53,7 +53,12 @@ function toBrregUpdateFields(
   //   phone, email, website, address, city, county, country, lat, lng
   //   openingHours, social.*, owner, claimStatus, claimedAt, claimed
   //   featured, submittedBy, source, category, place
+  //
+  // showOnPublicListing: hovedenhet=true, underenhet=false.
+  // Vi importerer kun underenheter med parent i Helgeland-katalogen, og disse
+  // vises ikke separat fordi moderselskapet allerede er i listen.
   return {
+    showOnPublicListing: isHoved,
     brregLastSynced: new Date().toISOString(),
     brregStatus: deriveBrregStatus(enhet),
     brregEntityType: entityType,
@@ -158,7 +163,7 @@ async function upsertBusiness(
     await payload.update({
       collection: 'businesses',
       id: existing.docs[0].id,
-      data: brregFields as any,
+      data: { ...(brregFields as any), _status: 'published' },
       overrideAccess: true,
     })
     return { created: false }
@@ -173,7 +178,7 @@ async function upsertBusiness(
       orgnr,
       source: 'brreg',
       ...(brregFields as any),
-      _status: 'draft',
+      _status: 'published',
     },
     overrideAccess: true,
   })

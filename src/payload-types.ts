@@ -519,6 +519,10 @@ export interface Business {
   claimedAt?: string | null;
   category?: (number | null) | Category;
   place?: (number | null) | Place;
+  /**
+   * Settes av BRREG-synken. Underenheter skjules automatisk når morselskapet er i katalogen.
+   */
+  showOnPublicListing?: boolean | null;
   featured?: boolean | null;
   /**
    * Settes automatisk fra NACE-koden ved synk. Kan overstyres manuelt for meldingsbaserte bedrifter.
@@ -1325,6 +1329,7 @@ export interface BusinessesSelect<T extends boolean = true> {
   claimedAt?: T;
   category?: T;
   place?: T;
+  showOnPublicListing?: T;
   featured?: T;
   naceCategory?: T;
   updatedAt?: T;

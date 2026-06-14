@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import type { Where } from 'payload'
 import { getPayloadClient } from '@/lib/getPayload'
-import { getCategoryById, getCategoryById as getcat, BUSINESS_CATEGORIES, publicListingWhere } from '@/lib/businesses/categories'
+import { getCategoryById, getCategoryById as getcat, BUSINESS_CATEGORIES, publicListingWhere, SHOW_ON_PUBLIC_LISTING_FILTER } from '@/lib/businesses/categories'
 import BedrifterFilters from '@/components/BedrifterFilters'
 import { SITE } from '@/lib/og'
 
@@ -84,7 +84,7 @@ export default async function KategoriPage({
   const hasSearchQuery = !!q
 
   // Felles betingelser for denne kategorisiden (status + ENK + kategori + ev. søk/kommune)
-  const baseConditions: Where[] = [{ _status: { equals: 'published' } }]
+  const baseConditions: Where[] = [{ _status: { equals: 'published' } }, SHOW_ON_PUBLIC_LISTING_FILTER]
   // ENK skjules ved browsing, inkluderes ved tekstsøk
   if (!showEnk && !hasSearchQuery) {
     baseConditions.push({

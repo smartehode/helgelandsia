@@ -50,8 +50,17 @@ export const CATEGORY_SELECT_OPTIONS = BUSINESS_CATEGORIES.map(c => ({
 
 import type { Where } from 'payload'
 
+// NULL-safe filter for showOnPublicListing — delt mellom publicListingWhere og
+// manuelle baseConditions-arrays som ikke bruker publicListingWhere.
+export const SHOW_ON_PUBLIC_LISTING_FILTER: Where = {
+  or: [
+    { showOnPublicListing: { equals: true } },
+    { showOnPublicListing: { exists: false } },
+  ],
+}
+
 // Felles base-filter for offentlig bedriftslisting:
-// published + ikke Enkeltpersonforetak (NULL-safe via or+exists:false).
+// published + ikke Enkeltpersonforetak + showOnPublicListing (NULL-safe).
 // Legg til ekstra betingelser via andExtra-parameteren.
 export function publicListingWhere(...andExtra: Where[]): Where {
   return {
@@ -63,6 +72,7 @@ export function publicListingWhere(...andExtra: Where[]): Where {
           { organisasjonsform: { exists: false } },
         ],
       },
+      SHOW_ON_PUBLIC_LISTING_FILTER,
       ...andExtra,
     ],
   }
