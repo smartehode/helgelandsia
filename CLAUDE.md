@@ -572,3 +572,26 @@ Migrasjon: `npx payload migrate:create add_brreg_extra_fields` — kjørt og les
   krever eget rettslig grunnlag for gjenbruk av personers roller på tredjeparts nettsted.
   BRREG-data er offentlig, men gjenbruk av enkeltpersoners tilknytning er noe annet.
 - `orgnr` bekreftet unik i databasen: 0 duplikater blant 24 849 rader.
+
+**Fix: NaN-feil i BRREG-synken**
+- Rot: synken kjører uten innlogget bruker (`req.user = undefined`). Members-collection
+  sin `read`/`update`-access returnerte `{ id: { equals: user?.id } }` →
+  `{ id: { equals: undefined } }` → Postgres fikk NaN der det ventet heltall.
+- Fix 1 — `src/collections/Members.ts`: guard øverst i `read`/`update` access:
+  `if (!user) return false` (ingen bruker = ingen tilgang, NaN sendes aldri videre).
+- Fix 2 — `src/lib/brreg/sync.ts`: `depth: 0` på alle `payload.find`-kall i synken.
+  Synken trenger aldri relasjondata; `depth: 0` hindrer Payload fra å hente
+  `owner`/`submittedBy`-relasjoner og utløse Members-access-koden.
+
+**Fix: GraphQL-typenavn-kollisjon «Hero»**
+- `Hero`-globalen og `HeroBlock`-blokken (begge `slug: 'hero'`) genererte samme
+  GraphQL-typenavn → «Schema must contain uniquely named types but contains multiple
+  types named 'Hero'».
+- Fix: `interfaceName: 'HeroBlock'` lagt til i `src/blocks/index.ts` — endrer kun
+  GraphQL/TS-typenavnet, ikke databasetabellen. Ingen migrasjon nødvendig.
+
+**REGEL: jobber og synk er userless**
+All access-funksjon- og hook-kode MÅ tåle `req.user = undefined` uten å produsere
+NaN eller kaste ukontrollerte feil. Mønster: `if (!user) return false` (access) eller
+tidlig `return` (hook). Sjekk alltid `user?.id` aldri `user.id` direkte — og send
+ALDRI `undefined` videre til en databasespørring.

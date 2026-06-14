@@ -144,6 +144,7 @@ async function upsertBusiness(
     collection: 'businesses',
     where: { orgnr: { equals: orgnr } },
     limit: 1,
+    depth: 0,
     overrideAccess: true,
   })
 
@@ -182,6 +183,7 @@ async function markBrregStatus(
     collection: 'businesses',
     where: { orgnr: { equals: orgnr } },
     limit: 1,
+    depth: 0,
     overrideAccess: true,
   })
   if (!existing.docs.length) return
@@ -246,6 +248,7 @@ async function loadHelgelandOrgnr(payload: Payload): Promise<Set<string>> {
       },
       limit: 2000,
       page,
+      depth: 0,
       overrideAccess: true,
     })
     for (const doc of batch.docs) {
@@ -335,6 +338,7 @@ async function processOppdateringer(
                 ],
               },
               limit: 1,
+              depth: 0,
               overrideAccess: true,
             })
             if (!found.docs.length) { result.skipped++; continue }

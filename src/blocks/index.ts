@@ -6,6 +6,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 
 export const HeroBlock: Block = {
   slug: 'hero',
+  interfaceName: 'HeroBlock',
   labels: { singular: 'Hero', plural: 'Hero-seksjoner' },
   fields: [
     { name: 'heading', type: 'text', required: true, label: 'Overskrift' },

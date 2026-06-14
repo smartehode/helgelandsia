@@ -35,8 +35,14 @@ export const Members: CollectionConfig = {
   access: {
     create: () => true,
     admin: () => false,
-    read: ({ req: { user } }) => (user?.collection === 'users' ? true : { id: { equals: user?.id } }),
-    update: ({ req: { user } }) => (user?.collection === 'users' ? true : { id: { equals: user?.id } }),
+    read: ({ req: { user } }) => {
+      if (!user) return false
+      return user.collection === 'users' ? true : { id: { equals: user.id } }
+    },
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return user.collection === 'users' ? true : { id: { equals: user.id } }
+    },
     delete: ({ req: { user } }) => user?.collection === 'users',
   },
   fields: [
