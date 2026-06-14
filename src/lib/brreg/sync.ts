@@ -77,7 +77,7 @@ function toBrregUpdateFields(
     stiftelsesdato: hoved?.stiftelsesdato ?? null,
     // Størrelse og beskrivelse
     antallAnsatte: enhet.antallAnsatte ?? null,
-    aktivitet: enhet.aktivitet?.join('; ') || null,
+    aktivitet: hoved?.aktivitet?.join('; ') || null,
     brregHjemmeside: hoved?.hjemmeside ?? null,
     // Registermedlemskap (kun tilgjengelig for BrregEnhet, ikke underenhet)
     registrertIMvaregisteret: hoved?.registrertIMvaregisteret ?? false,
@@ -99,12 +99,13 @@ function toBrregUpdateFields(
 }
 
 // Paginerer gjennom BRREG-enheter for én kommune og kaller onEntity for hvert treff.
-// Returnerer antall enheter hentet.
+// Returnerer { count, httpError } — httpError=true betyr at minst én side-request feilet.
 async function paginateKommune(
   endpoint: 'enheter' | 'underenheter',
   kommunenummer: string,
   onEntity: (entity: any) => Promise<void>,
-): Promise<number> {
+  logger?: { error(msg: string): void },
+): Promise<{ count: number; httpError: boolean }> {
   let page = 0
   let total = 0
 
@@ -113,7 +114,12 @@ async function paginateKommune(
     const res = await fetch(url, {
       headers: { Accept: 'application/json', 'User-Agent': USER_AGENT },
     })
-    if (!res.ok) break
+    if (!res.ok) {
+      logger?.error(
+        `BRREG API feilet: ${endpoint} kommune ${kommunenummer} side ${page} → HTTP ${res.status}`,
+      )
+      return { count: total, httpError: true }
+    }
 
     const data = await res.json()
     const items: any[] = data._embedded?.[endpoint] ?? []
@@ -128,7 +134,7 @@ async function paginateKommune(
     page++
   }
 
-  return total
+  return { count: total, httpError: false }
 }
 
 // Oppretter eller oppdaterer én bedrift i Payload basert på orgnr.
@@ -273,17 +279,19 @@ async function processOppdateringer(
   helgelandOrgnr?: Set<string>,
 ): Promise<void> {
   let nextUrl: string | null = baseUrl
+  payload.logger.info(`BRREG oppdateringer — starter: ${baseUrl}`)
 
   while (nextUrl) {
-    const res = await fetch(nextUrl, {
+    payload.logger.info(`BRREG oppdateringer — henter: ${nextUrl}`)
+    const res: Response = await fetch(nextUrl, {
       headers: { Accept: 'application/json', 'User-Agent': USER_AGENT },
     })
     if (!res.ok) {
-      payload.logger.error(`BRREG oppdateringer feilet: HTTP ${res.status}`)
+      payload.logger.error(`BRREG oppdateringer feilet: HTTP ${res.status} — URL: ${nextUrl}`)
       break
     }
 
-    const data = await res.json()
+    const data: any = await res.json()
     const oppdateringer: BrregOppdatering[] =
       data._embedded?.oppdaterteEnheter ??
       data._embedded?.oppdaterteUnderenheter ??
@@ -377,21 +385,43 @@ export async function runFullSync(payload: Payload): Promise<SyncResult> {
   let topError: string | undefined
 
   try {
+    // --- Oppstartsdiagnostikk: DB-tilkobling ---
+    try {
+      const dbCheck = await payload.count({ collection: 'businesses', overrideAccess: true })
+      payload.logger.info(
+        `BRREG full synk starter — DB OK, ${dbCheck.totalDocs} bedrifter i DB, ` +
+        `${HELGELAND_KOMMUNENUMRE.size} kommuner skal hentes`,
+      )
+    } catch (e) {
+      payload.logger.error(`BRREG full synk — DB-tilkobling feilet: ${String(e)}`)
+      throw e
+    }
+
     // --- Pass 1: Alle HOVEDENHETER for alle kommuner ---
     payload.logger.info('BRREG full synk — pass 1: hovedenheter')
+    let pass1Total = 0
     for (const kommunenummer of HELGELAND_KOMMUNENUMRE) {
-      await paginateKommune('enheter', kommunenummer, async (enhet: BrregEnhet) => {
-        try {
-          const fields = toBrregUpdateFields(enhet, 'hovedenhet')
-          const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
-          if (created) result.created++
-          else result.updated++
-        } catch (e) {
-          payload.logger.error(`Upsert feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
-          result.errors++
-        }
-      })
+      const { count, httpError } = await paginateKommune(
+        'enheter',
+        kommunenummer,
+        async (enhet: BrregEnhet) => {
+          try {
+            const fields = toBrregUpdateFields(enhet, 'hovedenhet')
+            const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
+            if (created) result.created++
+            else result.updated++
+          } catch (e) {
+            payload.logger.error(`Upsert feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
+            result.errors++
+          }
+        },
+        payload.logger,
+      )
+      if (httpError) result.errors++
+      if (count > 0) payload.logger.info(`  Pass 1 — kommune ${kommunenummer}: ${count} enheter hentet`)
+      pass1Total += count
     }
+    payload.logger.info(`Pass 1 ferdig — totalt ${pass1Total} enheter hentet fra BRREG`)
 
     // --- Bygg Set av Helgeland-orgnr for underenhet-filtrering ---
     payload.logger.info('BRREG full synk — laster orgnr-sett')
@@ -402,24 +432,34 @@ export async function runFullSync(payload: Payload): Promise<SyncResult> {
     // En filial i Oslo med moderselskap i Brønnøy ER en Helgeland-bedrift.
     // En filial i Brønnøy med moderselskap i Oslo er det IKKE.
     payload.logger.info('BRREG full synk — pass 2: underenheter')
+    let pass2Total = 0
     for (const kommunenummer of HELGELAND_KOMMUNENUMRE) {
-      await paginateKommune('underenheter', kommunenummer, async (enhet: BrregUnderenhet) => {
-        try {
-          const parent = enhet.overordnetEnhet
-          if (!parent || !helgelandOrgnr.has(parent)) {
-            result.skipped++
-            return
+      const { count, httpError } = await paginateKommune(
+        'underenheter',
+        kommunenummer,
+        async (enhet: BrregUnderenhet) => {
+          try {
+            const parent = enhet.overordnetEnhet
+            if (!parent || !helgelandOrgnr.has(parent)) {
+              result.skipped++
+              return
+            }
+            const fields = toBrregUpdateFields(enhet, 'underenhet')
+            const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
+            if (created) result.created++
+            else result.updated++
+          } catch (e) {
+            payload.logger.error(`Upsert underenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
+            result.errors++
           }
-          const fields = toBrregUpdateFields(enhet, 'underenhet')
-          const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
-          if (created) result.created++
-          else result.updated++
-        } catch (e) {
-          payload.logger.error(`Upsert underenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
-          result.errors++
-        }
-      })
+        },
+        payload.logger,
+      )
+      if (httpError) result.errors++
+      if (count > 0) payload.logger.info(`  Pass 2 — kommune ${kommunenummer}: ${count} underenheter hentet`)
+      pass2Total += count
     }
+    payload.logger.info(`Pass 2 ferdig — totalt ${pass2Total} underenheter hentet fra BRREG`)
   } catch (e) {
     topError = String(e)
     payload.logger.error(`Full BRREG-synk avbrutt: ${topError}`)
@@ -438,38 +478,52 @@ export async function syncKommune(payload: Payload, kommunenummer: string): Prom
 
   try {
     // Enheter for denne kommunen
-    await paginateKommune('enheter', kommunenummer, async (enhet: BrregEnhet) => {
-      try {
-        const fields = toBrregUpdateFields(enhet, 'hovedenhet')
-        const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
-        if (created) result.created++
-        else result.updated++
-      } catch (e) {
-        payload.logger.error(`Upsert feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
-        result.errors++
-      }
-    })
+    const { count: enhetCount, httpError: enhetErr } = await paginateKommune(
+      'enheter',
+      kommunenummer,
+      async (enhet: BrregEnhet) => {
+        try {
+          const fields = toBrregUpdateFields(enhet, 'hovedenhet')
+          const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
+          if (created) result.created++
+          else result.updated++
+        } catch (e) {
+          payload.logger.error(`Upsert feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
+          result.errors++
+        }
+      },
+      payload.logger,
+    )
+    payload.logger.info(`Kommune ${kommunenummer}: ${enhetCount} enheter hentet fra BRREG`)
+    if (enhetErr) result.errors++
 
     // Last orgnr-sett (alle kjente Helgeland-hovedenheter, inkl. det vi nettopp importerte)
     const helgelandOrgnr = await loadHelgelandOrgnr(payload)
 
     // Underenheter for denne kommunen (filter på parent)
-    await paginateKommune('underenheter', kommunenummer, async (enhet: BrregUnderenhet) => {
-      try {
-        const parent = enhet.overordnetEnhet
-        if (!parent || !helgelandOrgnr.has(parent)) {
-          result.skipped++
-          return
+    const { count: underCount, httpError: underErr } = await paginateKommune(
+      'underenheter',
+      kommunenummer,
+      async (enhet: BrregUnderenhet) => {
+        try {
+          const parent = enhet.overordnetEnhet
+          if (!parent || !helgelandOrgnr.has(parent)) {
+            result.skipped++
+            return
+          }
+          const fields = toBrregUpdateFields(enhet, 'underenhet')
+          const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
+          if (created) result.created++
+          else result.updated++
+        } catch (e) {
+          payload.logger.error(`Upsert underenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
+          result.errors++
         }
-        const fields = toBrregUpdateFields(enhet, 'underenhet')
-        const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
-        if (created) result.created++
-        else result.updated++
-      } catch (e) {
-        payload.logger.error(`Upsert underenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
-        result.errors++
-      }
-    })
+      },
+      payload.logger,
+    )
+    payload.logger.info(`Kommune ${kommunenummer}: ${underCount} underenheter hentet fra BRREG`)
+    if (underErr) result.errors++
   } catch (e) {
     topError = String(e)
     payload.logger.error(`Kommune-synk ${kommunenummer} avbrutt: ${topError}`)
@@ -483,18 +537,25 @@ export async function syncKommune(payload: Payload, kommunenummer: string): Prom
 export async function runIncrementalSync(payload: Payload, since: string): Promise<SyncResult> {
   const result: SyncResult = { created: 0, updated: 0, skipped: 0, errors: 0, syncType: 'incremental' }
 
+  // BRREG krever full ISO-timestamp på oppdatertEtter-parameteret.
+  // Normaliser: "2026-06-13" → "2026-06-13T00:00:00.000Z"
+  const isoSince = /^\d{4}-\d{2}-\d{2}$/.test(since)
+    ? `${since}T00:00:00.000Z`
+    : since
+  payload.logger.info(`BRREG inkrementell synk — oppdatertEtter: ${isoSince}`)
+
   // Last orgnr-sett for underenhet-filtrering
   const helgelandOrgnr = await loadHelgelandOrgnr(payload)
 
   await processOppdateringer(
-    `${BRREG_API}/oppdateringer/enheter?dato=${since}&size=100`,
+    `${BRREG_API}/oppdateringer/enheter?oppdatertEtter=${encodeURIComponent(isoSince)}&size=100`,
     'hovedenhet',
     payload,
     result,
     helgelandOrgnr,
   )
   await processOppdateringer(
-    `${BRREG_API}/oppdateringer/underenheter?dato=${since}&size=100`,
+    `${BRREG_API}/oppdateringer/underenheter?oppdatertEtter=${encodeURIComponent(isoSince)}&size=100`,
     'underenhet',
     payload,
     result,

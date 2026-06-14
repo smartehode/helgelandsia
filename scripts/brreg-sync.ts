@@ -11,7 +11,9 @@
  *   0 3 * * * cd /root/helgelandsia && npx tsx scripts/brreg-sync.ts >> /var/log/brreg-sync.log 2>&1
  */
 
-// Laster .env FØR Payload initialiseres (trenger DATABASE_URI og PAYLOAD_SECRET)
+// Laster .env FØR Payload initialiseres (trenger DATABASE_URI og PAYLOAD_SECRET).
+// I prod-container: env-variabler settes via Docker Compose — .env-filen finnes ikke.
+// dotenv gjør ingenting uten filen; process.env har allerede container-variablene.
 import 'dotenv/config'
 
 import { getPayload } from 'payload'
@@ -19,6 +21,17 @@ import config from '../payload.config'
 import { runFullSync, runIncrementalSync, syncKommune } from '../src/lib/brreg/sync'
 
 async function main() {
+  // Eksplisitt env-sjekk FØR getPayload — gir klart feilmeldng istedenfor kryptisk DB-feil
+  const REQUIRED_ENV = ['DATABASE_URI', 'PAYLOAD_SECRET']
+  const missing = REQUIRED_ENV.filter(k => !process.env[k])
+  if (missing.length) {
+    console.error(`[BRREG-synk] MANGLENDE env-variabler: ${missing.join(', ')}`)
+    console.error('[BRREG-synk] I prod-container: settes via Docker Compose, ikke .env-fil.')
+    console.error('[BRREG-synk] Lokalt: sjekk at .env finnes og inneholder variablene.')
+    process.exit(1)
+  }
+  console.info(`[BRREG-synk] Env OK — DATABASE_URI og PAYLOAD_SECRET er satt`)
+
   const payload = await getPayload({ config })
 
   const args = process.argv.slice(2)
