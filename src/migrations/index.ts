@@ -13,6 +13,7 @@ import * as migration_20260613_105605_webkamera_vaer from './20260613_105605_web
 import * as migration_20260613_133028_brreg_import from './20260613_133028_brreg_import';
 import * as migration_20260613_170043_business_model_a from './20260613_170043_business_model_a';
 import * as migration_20260613_220725_brreg_extended_fields from './20260613_220725_brreg_extended_fields';
+import * as migration_20260615_000000_show_on_public_listing from './20260615_000000_show_on_public_listing';
 
 export const migrations = [
   {
@@ -88,6 +89,11 @@ export const migrations = [
   {
     up: migration_20260613_220725_brreg_extended_fields.up,
     down: migration_20260613_220725_brreg_extended_fields.down,
-    name: '20260613_220725_brreg_extended_fields'
+    name: '20260613_220725_brreg_extended_fields',
+  },
+  {
+    up: migration_20260615_000000_show_on_public_listing.up,
+    down: migration_20260615_000000_show_on_public_listing.down,
+    name: '20260615_000000_show_on_public_listing',
   },
 ];
