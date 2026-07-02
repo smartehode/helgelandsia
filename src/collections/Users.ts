@@ -14,13 +14,14 @@ export const Users: CollectionConfig = {
     create: isAdmin,
     delete: isAdmin,
     read: ({ req: { user } }) => {
-      if (user?.roles?.includes('admin')) return true
-      // Andre kan bare se seg selv
-      return { id: { equals: user?.id } }
+      if (!user) return false
+      if (user.roles?.includes('admin')) return true
+      return { id: { equals: user.id } }
     },
     update: ({ req: { user } }) => {
-      if (user?.roles?.includes('admin')) return true
-      return { id: { equals: user?.id } }
+      if (!user) return false
+      if (user.roles?.includes('admin')) return true
+      return { id: { equals: user.id } }
     },
   },
   fields: [
