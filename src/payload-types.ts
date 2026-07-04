@@ -451,7 +451,7 @@ export interface Business {
     youtube?: string | null;
   };
   brregLastSynced?: string | null;
-  brregEntityType?: ('hovedenhet' | 'underenhet') | null;
+  brregEntityType?: string | null;
   brregStatus?: ('aktiv' | 'underAvvikling' | 'konkurs' | 'slettet' | 'fjernet') | null;
   parentOrgnr?: string | null;
   naceKode?: string | null;

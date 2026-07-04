@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+﻿import type { CollectionConfig } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { isEditor, isPublishedOrLoggedIn } from '../access'
 import { slugField } from '../fields/slug'
@@ -163,13 +163,9 @@ export const Businesses: CollectionConfig = {
                 },
                 {
                   name: 'brregEntityType',
-                  type: 'select',
+                  type: 'text',
                   label: 'Enhetstype',
-                  admin: { width: '50%' },
-                  options: [
-                    { label: 'Hovedenhet', value: 'hovedenhet' },
-                    { label: 'Underenhet', value: 'underenhet' },
-                  ],
+                  admin: { width: '50%', readOnly: true },
                 },
               ],
             },

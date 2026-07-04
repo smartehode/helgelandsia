@@ -14,6 +14,8 @@ import * as migration_20260613_133028_brreg_import from './20260613_133028_brreg
 import * as migration_20260613_170043_business_model_a from './20260613_170043_business_model_a';
 import * as migration_20260613_220725_brreg_extended_fields from './20260613_220725_brreg_extended_fields';
 import * as migration_20260615_000000_show_on_public_listing from './20260615_000000_show_on_public_listing';
+import * as migration_20260704_000000_entity_type_to_text from './20260704_000000_entity_type_to_text';
+import * as migration_20260704_005223 from './20260704_005223';
 
 export const migrations = [
   {
@@ -95,5 +97,15 @@ export const migrations = [
     up: migration_20260615_000000_show_on_public_listing.up,
     down: migration_20260615_000000_show_on_public_listing.down,
     name: '20260615_000000_show_on_public_listing',
+  },
+  {
+    up: migration_20260704_000000_entity_type_to_text.up,
+    down: migration_20260704_000000_entity_type_to_text.down,
+    name: '20260704_000000_entity_type_to_text',
+  },
+  {
+    up: migration_20260704_005223.up,
+    down: migration_20260704_005223.down,
+    name: '20260704_005223'
   },
 ];

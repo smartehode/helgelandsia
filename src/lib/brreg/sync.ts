@@ -1,4 +1,4 @@
-import type { Payload } from 'payload'
+﻿import type { Payload } from 'payload'
 import type { BrregEnhet, BrregUnderenhet, BrregOppdatering, BrregStatus, SyncResult } from './types'
 import { mapNaceToCategory } from '../businesses/categories'
 
@@ -32,17 +32,17 @@ function deriveBrregStatus(enhet: BrregEnhet | BrregUnderenhet): BrregStatus {
 }
 
 // showOnPublicListing bestemmes av kalleren basert på enhetstype og kommunesammenligning:
-//   hoofdenhet                                   → true (alltid synlig)
-//   onderenhet med ANNEN kommune enn parent      → true (reell filial)
-//   onderenhet i SAMME kommune som parent        → false (samlokalisert tvilling)
+//   hovedenhet                                   → true (alltid synlig)
+//   underenhet med ANNEN kommune enn parent      → true (reell filial)
+//   underenhet i SAMME kommune som parent        → false (samlokalisert tvilling)
 //   (null-kommuner = ukjent → vis for sikkerhets skyld)
 function toBrregUpdateFields(
   enhet: BrregEnhet | BrregUnderenhet,
-  entityType: 'hoofdenhet' | 'onderenhet',
+  entityType: 'hovedenhet' | 'underenhet',
   showOnPublicListing: boolean,
 ): Record<string, unknown> {
-  const isHoved = entityType === 'hoofdenhet'
-  // Primæradresse: forretningsadresse for hoofdenhet, beliggenhetsadresse for onderenhet
+  const isHoved = entityType === 'hovedenhet'
+  // Primæradresse: forretningsadresse for hovedenhet, beliggenhetsadresse for underenhet
   const addr = isHoved
     ? (enhet as BrregEnhet).forretningsadresse
     : (enhet as BrregUnderenhet).beliggenhetsadresse
@@ -50,7 +50,7 @@ function toBrregUpdateFields(
   const post = isHoved
     ? (enhet as BrregEnhet).postadresse
     : (enhet as BrregUnderenhet).postadresse
-  // Felt som kun finnes på BrregEnhet (ikke onderenhet)
+  // Felt som kun finnes på BrregEnhet (ikke underenhet)
   const hoved = isHoved ? (enhet as BrregEnhet) : null
 
   // BRREG-autoritative felt — synken skriver KUN til disse.
@@ -83,12 +83,12 @@ function toBrregUpdateFields(
     avregistreringsdato: enhet.slettedato ?? null,
     stiftelsesdato: hoved?.stiftelsesdato ?? null,
     // Størrelse og beskrivelse
-    // antallAnsatte finnes på begge enhetstyper i BRREG — for onderenheter er dette
-    // gjerne mer nøyaktig enn på hoofdenheten, som kan ha 0 eller null.
+    // antallAnsatte finnes på begge enhetstyper i BRREG — for underenheter er dette
+    // gjerne mer nøyaktig enn på hovedenheten, som kan ha 0 eller null.
     antallAnsatte: enhet.antallAnsatte ?? null,
     aktivitet: hoved?.aktivitet?.join('; ') || null,
     brregHjemmeside: hoved?.hjemmeside ?? null,
-    // Registermedlemskap (kun tilgjengelig for BrregEnhet, ikke onderenhet)
+    // Registermedlemskap (kun tilgjengelig for BrregEnhet, ikke underenhet)
     registrertIMvaregisteret: hoved?.registrertIMvaregisteret ?? false,
     registrertIForetaksregisteret: hoved?.registrertIForetaksregisteret ?? false,
     registrertIFrivillighetsregisteret: hoved?.registrertIFrivillighetsregisteret ?? false,
@@ -246,8 +246,8 @@ async function logSyncJob(payload: Payload, result: SyncResult, errorMessage?: s
   }
 }
 
-// Laster alle kjente Helgeland-hoofdenheter inn i en Map: orgnr → kommunenummer.
-// Brukes til (1) parent-sjekk av onderenheter og (2) kommunesammenligning for dedup-regelen.
+// Laster alle kjente Helgeland-hovedenheter inn i en Map: orgnr → kommunenummer.
+// Brukes til (1) parent-sjekk av underenheter og (2) kommunesammenligning for dedup-regelen.
 async function loadHelgelandParentMap(payload: Payload): Promise<Map<string, string | null>> {
   const map = new Map<string, string | null>()
   let page = 1
@@ -258,7 +258,7 @@ async function loadHelgelandParentMap(payload: Payload): Promise<Map<string, str
       where: {
         and: [
           { source: { equals: 'brreg' } },
-          { brregEntityType: { equals: 'hoofdenhet' } },
+          { brregEntityType: { equals: 'hovedenhet' } },
         ],
       },
       limit: 2000,
@@ -278,16 +278,16 @@ async function loadHelgelandParentMap(payload: Payload): Promise<Map<string, str
   return map
 }
 
-// Bestemmer showOnPublicListing for en onderenhet.
-// Regel: onderenhet i SAMME kommune som sin hoofdenhet = samlokalisert tvilling → false.
+// Bestemmer showOnPublicListing for en underenhet.
+// Regel: underenhet i SAMME kommune som sin hovedenhet = samlokalisert tvilling → false.
 // Anderenhet i ANNEN kommune = reell filial → true.
 // Manglende kommuneinfo = vis for sikkerhets skyld → true.
 function resolveUnderShowOnPublicListing(
   parentKommune: string | null | undefined,
-  onderKommune: string | null | undefined,
+  underKommune: string | null | undefined,
 ): boolean {
-  if (!parentKommune || !onderKommune) return true
-  return parentKommune !== onderKommune
+  if (!parentKommune || !underKommune) return true
+  return parentKommune !== underKommune
 }
 
 // ---------------------------------------------------------------------------
@@ -296,7 +296,7 @@ function resolveUnderShowOnPublicListing(
 
 async function processOppdateringer(
   baseUrl: string,
-  entityType: 'hoofdenhet' | 'onderenhet',
+  entityType: 'hovedenhet' | 'underenhet',
   payload: Payload,
   result: SyncResult,
   parentMap?: Map<string, string | null>,
@@ -334,7 +334,7 @@ async function processOppdateringer(
         }
 
         // Endring eller Ny — hent full enhet og upsert
-        const isUnder = entityType === 'onderenhet'
+        const isUnder = entityType === 'underenhet'
         const entityUrl = isUnder
           ? `${BRREG_API}/underenheter/${op.organisasjonsnummer}`
           : `${BRREG_API}/enheter/${op.organisasjonsnummer}`
@@ -370,7 +370,7 @@ async function processOppdateringer(
                 and: [
                   { orgnr: { equals: parent } },
                   { source: { equals: 'brreg' } },
-                  { brregEntityType: { equals: 'hoofdenhet' } },
+                  { brregEntityType: { equals: 'hovedenhet' } },
                 ],
               },
               limit: 1,
@@ -381,8 +381,8 @@ async function processOppdateringer(
             parentKommune = (found.docs[0].kommunenummer as string) ?? null
           }
 
-          const onderKommune = (enhet as BrregUnderenhet).beliggenhetsadresse?.kommunenummer ?? null
-          showOnPublicListing = resolveUnderShowOnPublicListing(parentKommune, onderKommune)
+          const underKommune = (enhet as BrregUnderenhet).beliggenhetsadresse?.kommunenummer ?? null
+          showOnPublicListing = resolveUnderShowOnPublicListing(parentKommune, underKommune)
         } else {
           // Hoofdenhet: sjekk at den er i en Helgeland-kommune
           const addr = (enhet as BrregEnhet).forretningsadresse
@@ -431,7 +431,7 @@ export async function runFullSync(payload: Payload): Promise<SyncResult> {
     }
 
     // --- Pass 1: Alle HOOFDENHETER for alle kommuner ---
-    payload.logger.info('BRREG full synk — pass 1: hoofdenheter')
+    payload.logger.info('BRREG full synk — pass 1: hovedenheter')
     let pass1Total = 0
     for (const kommunenummer of HELGELAND_KOMMUNENUMRE) {
       const { count, httpError } = await paginateKommune(
@@ -439,7 +439,7 @@ export async function runFullSync(payload: Payload): Promise<SyncResult> {
         kommunenummer,
         async (enhet: BrregEnhet) => {
           try {
-            const fields = toBrregUpdateFields(enhet, 'hoofdenhet', true)
+            const fields = toBrregUpdateFields(enhet, 'hovedenhet', true)
             const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
             if (created) result.created++
             else result.updated++
@@ -456,15 +456,15 @@ export async function runFullSync(payload: Payload): Promise<SyncResult> {
     }
     payload.logger.info(`Pass 1 ferdig — totalt ${pass1Total} enheter hentet fra BRREG`)
 
-    // --- Bygg parentMap: orgnr → kommunenummer for alle Helgeland-hoofdenheter ---
+    // --- Bygg parentMap: orgnr → kommunenummer for alle Helgeland-hovedenheter ---
     payload.logger.info('BRREG full synk — laster parentMap')
     const parentMap = await loadHelgelandParentMap(payload)
-    payload.logger.info(`${parentMap.size} hoofdenheter funnet i Helgeland`)
+    payload.logger.info(`${parentMap.size} hovedenheter funnet i Helgeland`)
 
     // --- Pass 2: ONDERENHETER — kun der overordnetEnhet er i Helgeland ---
-    // Dedup-regel: onderenhet i SAMME kommune som sin hoofdenhet → showOnPublicListing=false
+    // Dedup-regel: underenhet i SAMME kommune som sin hovedenhet → showOnPublicListing=false
     // (samlokalisert tvilling). Onderenhet i ANNEN kommune → true (reell filial).
-    payload.logger.info('BRREG full synk — pass 2: onderenheter')
+    payload.logger.info('BRREG full synk — pass 2: underenheter')
     let pass2Total = 0
     for (const kommunenummer of HELGELAND_KOMMUNENUMRE) {
       const { count, httpError } = await paginateKommune(
@@ -478,24 +478,24 @@ export async function runFullSync(payload: Payload): Promise<SyncResult> {
               return
             }
             const parentKommune = parentMap.get(parent) ?? null
-            const onderKommune = enhet.beliggenhetsadresse?.kommunenummer ?? null
-            const showOnPublicListing = resolveUnderShowOnPublicListing(parentKommune, onderKommune)
-            const fields = toBrregUpdateFields(enhet, 'onderenhet', showOnPublicListing)
+            const underKommune = enhet.beliggenhetsadresse?.kommunenummer ?? null
+            const showOnPublicListing = resolveUnderShowOnPublicListing(parentKommune, underKommune)
+            const fields = toBrregUpdateFields(enhet, 'underenhet', showOnPublicListing)
             const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
             if (created) result.created++
             else result.updated++
           } catch (e) {
-            payload.logger.error(`Upsert onderenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
+            payload.logger.error(`Upsert underenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
             result.errors++
           }
         },
         payload.logger,
       )
       if (httpError) result.errors++
-      if (count > 0) payload.logger.info(`  Pass 2 — kommune ${kommunenummer}: ${count} onderenheter hentet`)
+      if (count > 0) payload.logger.info(`  Pass 2 — kommune ${kommunenummer}: ${count} underenheter hentet`)
       pass2Total += count
     }
-    payload.logger.info(`Pass 2 ferdig — totalt ${pass2Total} onderenheter hentet fra BRREG`)
+    payload.logger.info(`Pass 2 ferdig — totalt ${pass2Total} underenheter hentet fra BRREG`)
   } catch (e) {
     topError = String(e)
     payload.logger.error(`Full BRREG-synk avbrutt: ${topError}`)
@@ -506,7 +506,7 @@ export async function runFullSync(payload: Payload): Promise<SyncResult> {
   return result
 }
 
-// Importerer én kommune (enheter + onderenheter). Brukes for å tette hull
+// Importerer én kommune (enheter + underenheter). Brukes for å tette hull
 // etter feil, f.eks. 1833 (Rana) som manglet i den første full synken.
 export async function syncKommune(payload: Payload, kommunenummer: string): Promise<SyncResult> {
   const result: SyncResult = { created: 0, updated: 0, skipped: 0, errors: 0, syncType: 'full' }
@@ -519,7 +519,7 @@ export async function syncKommune(payload: Payload, kommunenummer: string): Prom
       kommunenummer,
       async (enhet: BrregEnhet) => {
         try {
-          const fields = toBrregUpdateFields(enhet, 'hoofdenhet', true)
+          const fields = toBrregUpdateFields(enhet, 'hovedenhet', true)
           const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
           if (created) result.created++
           else result.updated++
@@ -533,7 +533,7 @@ export async function syncKommune(payload: Payload, kommunenummer: string): Prom
     payload.logger.info(`Kommune ${kommunenummer}: ${enhetCount} enheter hentet fra BRREG`)
     if (enhetErr) result.errors++
 
-    // Last parentMap (alle kjente Helgeland-hoofdenheter, inkl. det vi nettopp importerte)
+    // Last parentMap (alle kjente Helgeland-hovedenheter, inkl. det vi nettopp importerte)
     const parentMap = await loadHelgelandParentMap(payload)
 
     // Onderenheter for denne kommunen (filter på parent + dedup-regel)
@@ -548,20 +548,20 @@ export async function syncKommune(payload: Payload, kommunenummer: string): Prom
             return
           }
           const parentKommune = parentMap.get(parent) ?? null
-          const onderKommune = enhet.beliggenhetsadresse?.kommunenummer ?? null
-          const showOnPublicListing = resolveUnderShowOnPublicListing(parentKommune, onderKommune)
-          const fields = toBrregUpdateFields(enhet, 'onderenhet', showOnPublicListing)
+          const underKommune = enhet.beliggenhetsadresse?.kommunenummer ?? null
+          const showOnPublicListing = resolveUnderShowOnPublicListing(parentKommune, underKommune)
+          const fields = toBrregUpdateFields(enhet, 'underenhet', showOnPublicListing)
           const { created } = await upsertBusiness(payload, enhet.organisasjonsnummer, enhet.navn, fields)
           if (created) result.created++
           else result.updated++
         } catch (e) {
-          payload.logger.error(`Upsert onderenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
+          payload.logger.error(`Upsert underenhet feilet for ${enhet.organisasjonsnummer}: ${String(e)}`)
           result.errors++
         }
       },
       payload.logger,
     )
-    payload.logger.info(`Kommune ${kommunenummer}: ${underCount} onderenheter hentet fra BRREG`)
+    payload.logger.info(`Kommune ${kommunenummer}: ${underCount} underenheter hentet fra BRREG`)
     if (underErr) result.errors++
   } catch (e) {
     topError = String(e)
@@ -588,14 +588,14 @@ export async function runIncrementalSync(payload: Payload, since: string): Promi
 
   await processOppdateringer(
     `${BRREG_API}/oppdateringer/enheter?oppdatertEtter=${encodeURIComponent(isoSince)}&size=100`,
-    'hoofdenhet',
+    'hovedenhet',
     payload,
     result,
     parentMap,
   )
   await processOppdateringer(
     `${BRREG_API}/oppdateringer/underenheter?oppdatertEtter=${encodeURIComponent(isoSince)}&size=100`,
-    'onderenhet',
+    'underenhet',
     payload,
     result,
     parentMap,

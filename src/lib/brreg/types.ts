@@ -1,4 +1,4 @@
-// BRREG Enhetsregisteret API v2 — typer
+﻿// BRREG Enhetsregisteret API v2 — typer
 
 export interface BrregOrganisasjonsform {
   kode: string
@@ -63,7 +63,7 @@ export interface BrregOppdatering {
 }
 
 export type BrregStatus = 'aktiv' | 'underAvvikling' | 'konkurs' | 'slettet' | 'fjernet'
-export type BrregEntityType = 'hovedenhet' | 'underenhet'
+export type BrregEntityType = string
 
 export interface SyncResult {
   created: number
