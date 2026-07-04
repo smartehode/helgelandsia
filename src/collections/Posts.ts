@@ -37,7 +37,7 @@ export const Posts: CollectionConfig = {
     delete: isEditor,
   },
   fields: [
-    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
+    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' }, access: { read: ({ req: { user } }) => Boolean(user) } },
     {
       type: 'tabs',
       tabs: [

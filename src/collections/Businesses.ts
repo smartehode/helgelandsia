@@ -316,13 +316,14 @@ export const Businesses: CollectionConfig = {
               admin: {
                 description: 'Bekreftet bedriftseier — settes av admin ved godkjenning av krav.',
               },
+              access: { read: ({ req: { user } }) => Boolean(user) },
             },
           ],
         },
       ],
     },
     slugField('name'),
-    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
+    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' }, access: { read: ({ req: { user } }) => Boolean(user) } },
     {
       name: 'orgnr',
       type: 'text',
@@ -358,6 +359,7 @@ export const Businesses: CollectionConfig = {
       relationTo: 'members',
       label: 'Krevd av (bruker)',
       admin: { position: 'sidebar' },
+      access: { read: ({ req: { user } }) => Boolean(user) },
     },
     {
       name: 'claimedAt',

@@ -23,7 +23,7 @@ export const Jobs: CollectionConfig = {
     delete: isEditor,
   },
   fields: [
-    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
+    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' }, access: { read: ({ req: { user } }) => Boolean(user) } },
     { name: 'title', type: 'text', required: true, label: 'Stillingstittel' },
     { name: 'employer', type: 'text', required: true, label: 'Arbeidsgiver' },
     {

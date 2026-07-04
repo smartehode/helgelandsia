@@ -117,6 +117,9 @@ export default buildConfig({
   secret: process.env.PAYLOAD_SECRET || '',
   cors: [process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'],
   csrf: [process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'],
+  graphQL: {
+  disable: true,
+},
 
   // ---- Auto-genererte TypeScript-typer (delt med frontend) ----
   typescript: {

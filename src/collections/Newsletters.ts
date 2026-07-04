@@ -34,6 +34,6 @@ export const Newsletters: CollectionConfig = {
     },
     { name: 'image', type: 'upload', relationTo: 'media', label: 'Bilde' },
     slugField('title'),
-    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' } },
+    { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' }, access: { read: ({ req: { user } }) => Boolean(user) } },
   ],
 }
