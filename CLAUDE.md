@@ -66,6 +66,13 @@ i admin før publisering.
     docker compose exec app npx tsx scripts/brreg-sync.ts --full`
     (scripts/ er ikke med i prod-imaget; admin-knappen «Full nedlasting»
     er fortsatt død — egen sak.)
+14. CADDY: Caddyfile-endringer krever `docker compose restart caddy`.
+    `up -d --build` restarter IKKE caddy når imaget er uendret.
+15. PAYLOAD-RUTER: API-endepunkter i Payload 3 lever som route-filer i
+    src/app/(payload)/api/ — config-flagg (f.eks. graphQL disable) stopper
+    dem IKKE. Skal et endepunkt bort, må route-filen fjernes.
+16. CRON/JOBS: kommandoer i cron må bruke `docker compose exec -T` (ingen
+    TTY) og inkludere cp av scripts/ siden mappa ikke er i prod-imaget.
 
 ## Drift — nødkommandoer
 
@@ -617,9 +624,9 @@ NaN eller kaste ukontrollerte feil. Mønster: `if (!user) return false` (access)
 tidlig `return` (hook). Sjekk alltid `user?.id` aldri `user.id` direkte — og send
 ALDRI `undefined` videre til en databasespørring.
 
-### 2026-07-04 — BRREG-synk selvgående, claim/redigering komplett
+### 2026-07-04/05 — BRREG-synk selvgående, claim/redigering komplett, sikkerhet
 
-Fullført:
+Fullført 2026-07-04:
 - Enhetstype: enum → text (migrasjon 20260704_005223). Årsak: enum tålte ikke
   alle verdier, og synk-koden hadde skrivefeil «hoofdenhet»/«onderenhet».
   Alle verdier standardisert til NORSK: 'hovedenhet' / 'underenhet'.
@@ -636,9 +643,35 @@ Fullført:
 - Root-LVM utvidet 18G → 36G (lvextend -r -l +100%FREE). «No space left»
   ved deploy var rotårsaken, ikke image-oppsamling alene.
 
+Sikkerhet (2026-07-05):
+- API: field-level access (read: innloggede) på owner/submittedBy/claimedBy
+  i Businesses + submittedBy i Posts/Events/Jobs/PressReleases/Newsletters.
+  /api/members gir 403 uinnlogget. Verifisert i prod.
+- GraphQL fjernet: route-filene src/app/(payload)/api/graphql/ og
+  graphql-playground/ slettet. POST /api/graphql → 404 i prod.
+- Kontaktinfo skjult for høstere: e-post/telefon rendres ikke i server-HTML;
+  KontaktReveal-komponent + GET /api/bedrift/[slug]/kontakt (kun phone/email,
+  kun publiserte, én orgnr per kall).
+- Sikkerhetsheadere i Caddy: X-Frame-Options, nosniff, Referrer-Policy,
+  Permissions-Policy, HSTS (1 år), -Server. CSP i REPORT-ONLY med kartlagte
+  kilder (webkameraer, Open-Meteo, OpenStreetMap).
+
+Drift (2026-07-05):
+- Inkrementell synk fikset: oppdateringer-endepunktet bruker parameter
+  «dato» (ikke «oppdatertEtter»). HTTP-feil fra oppdateringer-kall telles
+  nå i result.errors. Verifisert i prod: 0 feil.
+- Cron på host: 03:30 backup (fantes), 04:30 daglig inkrementell BRREG-synk
+  (med cp av scripts/ først — mappa overlever ikke rebuild), søndag 05:00
+  docker system prune -af. Logger: /var/log/brreg-sync.log og
+  /var/log/docker-prune.log.
+
 ## GJENSTÅR
-- Daglig synk 04:30: verifiser HTTP 400-fiksen på oppdateringer-endepunktet
-- Admin-knapp «Full nedlasting» trigger ikke — feilsøk eller fjern
+- CSP: observer Report-Only noen dager → bytt til enforced i Caddyfile
+- Rate limiting på skjemaer (claim, innsending, kontakt-endepunktet er
+  førstekandidat)
+- DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
 - Min side: vis pending claims («venter på godkjenning»)
-- Ukentlig docker prune-cron
+- Død admin-knapp «Full nedlasting» — feilsøk eller fjern
+- applefavicon.png mangler i public/ (kosmetisk, spammer dev-logg)
+- Verifiser: /var/log/brreg-sync.log etter 04:30 (første automatiske kjøring)
 - Rette gjenværende «hoofdenhet»-kommentarer i sync.ts (kosmetisk)
