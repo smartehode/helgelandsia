@@ -45,6 +45,27 @@ i admin før publisering.
 6. Én funksjon per runde. Deploy ofte og smått — aldri la flere funksjoner
    hope seg opp uncommittet.
 7. Hver økt avsluttes med å oppdatere Logg-seksjonen nederst i denne filen.
+8. MIGRASJONER SKAL VÆRE IDEMPOTENTE — ALLTID.
+   ADD COLUMN IF NOT EXISTS, DROP TYPE IF EXISTS, CREATE INDEX IF NOT EXISTS.
+   Gjelder også migrasjoner generert av `payload migrate:create` — de skal
+   LESES og HERDES manuelt før commit. Brudd på dette tok prod ned 2026-07-04
+   (restart-loop: «column already exists»).
+9. SCHEMA-DRIFT: felt lagt til i config uten migrasjon = prod-krasj senere.
+   Test: kjør `payload migrate:create` til den produserer TOM migrasjon.
+   Husk at _businesses_v (version_-kolonner) alltid følger med hovedtabellen.
+10. NaN-KLASSEN (4 forekomster nå: Members.ts, BRREG-synk, Users.ts,
+    claim-flyt): ALL access/hook/handler-kode skal guarde mot manglende
+    req.user / ugyldig ID FØR findOne/update. Number(undefined) = NaN =
+    Postgres-feil. Jobs/synk kjører uten innlogget bruker.
+11. ENTITETSVERDIER: 'hovedenhet' og 'underenhet' (norsk) er de eneste
+    gyldige verdiene for brregEntityType. Aldri 'hoofdenhet'/'onderenhet'.
+12. VASK/RE-IMPORT AV BUSINESSES nuller claims og eierskap. Var OK før
+    berikelse fantes — fra nå av finnes eierdata, så full truncate er IKKE
+    lenger tillatt uten eksplisitt beslutning.
+13. PROD-SYNK kjøres via: `docker compose cp scripts app:/app/scripts &&
+    docker compose exec app npx tsx scripts/brreg-sync.ts --full`
+    (scripts/ er ikke med i prod-imaget; admin-knappen «Full nedlasting»
+    er fortsatt død — egen sak.)
 
 ## Drift — nødkommandoer
 
@@ -595,3 +616,29 @@ All access-funksjon- og hook-kode MÅ tåle `req.user = undefined` uten å produ
 NaN eller kaste ukontrollerte feil. Mønster: `if (!user) return false` (access) eller
 tidlig `return` (hook). Sjekk alltid `user?.id` aldri `user.id` direkte — og send
 ALDRI `undefined` videre til en databasespørring.
+
+### 2026-07-04 — BRREG-synk selvgående, claim/redigering komplett
+
+Fullført:
+- Enhetstype: enum → text (migrasjon 20260704_005223). Årsak: enum tålte ikke
+  alle verdier, og synk-koden hadde skrivefeil «hoofdenhet»/«onderenhet».
+  Alle verdier standardisert til NORSK: 'hovedenhet' / 'underenhet'.
+  Migrasjonen normaliserer evt. avvikende DB-verdier.
+- Full BRREG-synk kjører rent: 0 feil lokalt og i prod. Synken setter nå
+  showOnPublicListing selv (dedup: underenhet i samme kommune som sin
+  hovedenhet → false, ellers true).
+- Claim-flyt komplett i prod: claim → pending → admin setter verified →
+  bedrift på Min side → eier redigerer berikelse-felter → synlig offentlig.
+- Redigeringsside /min-side/bedrift/[slug]/rediger: kun berikelse-felter
+  (eier-sonen), BRREG-felter read-only. Tilgangskontroll på server
+  (owner + verified), lagring endrer ikke _status.
+- NaN-guard lagt inn i Users.ts (read/update): if (!user) return false.
+- Root-LVM utvidet 18G → 36G (lvextend -r -l +100%FREE). «No space left»
+  ved deploy var rotårsaken, ikke image-oppsamling alene.
+
+## GJENSTÅR
+- Daglig synk 04:30: verifiser HTTP 400-fiksen på oppdateringer-endepunktet
+- Admin-knapp «Full nedlasting» trigger ikke — feilsøk eller fjern
+- Min side: vis pending claims («venter på godkjenning»)
+- Ukentlig docker prune-cron
+- Rette gjenværende «hoofdenhet»-kommentarer i sync.ts (kosmetisk)
