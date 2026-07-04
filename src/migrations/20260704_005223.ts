@@ -4,10 +4,10 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
    ALTER TABLE "businesses" ALTER COLUMN "brreg_entity_type" SET DATA TYPE varchar;
   ALTER TABLE "_businesses_v" ALTER COLUMN "version_brreg_entity_type" SET DATA TYPE varchar;
-  ALTER TABLE "businesses" ADD COLUMN "show_on_public_listing" boolean DEFAULT true;
-  ALTER TABLE "_businesses_v" ADD COLUMN "version_show_on_public_listing" boolean DEFAULT true;
-  DROP TYPE "public"."enum_businesses_brreg_entity_type";
-  DROP TYPE "public"."enum__businesses_v_version_brreg_entity_type";`)
+  ALTER TABLE "businesses" ADD COLUMN IF NOT EXISTS "show_on_public_listing" boolean DEFAULT true;
+  ALTER TABLE "_businesses_v" ADD COLUMN IF NOT EXISTS "version_show_on_public_listing" boolean DEFAULT true;
+  DROP TYPE IF EXISTS "public"."enum_businesses_brreg_entity_type";
+  DROP TYPE IF EXISTS "public"."enum__businesses_v_version_brreg_entity_type";`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
