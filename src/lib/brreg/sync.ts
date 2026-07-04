@@ -311,6 +311,7 @@ async function processOppdateringer(
     })
     if (!res.ok) {
       payload.logger.error(`BRREG oppdateringer feilet: HTTP ${res.status} — URL: ${nextUrl}`)
+      result.errors++
       break
     }
 
@@ -576,25 +577,25 @@ export async function syncKommune(payload: Payload, kommunenummer: string): Prom
 export async function runIncrementalSync(payload: Payload, since: string): Promise<SyncResult> {
   const result: SyncResult = { created: 0, updated: 0, skipped: 0, errors: 0, syncType: 'incremental' }
 
-  // BRREG krever full ISO-timestamp på oppdatertEtter-parameteret.
+  // BRREG krever full ISO-timestamp på dato-parameteret.
   // Normaliser: "2026-06-13" → "2026-06-13T00:00:00.000Z"
   const isoSince = /^\d{4}-\d{2}-\d{2}$/.test(since)
     ? `${since}T00:00:00.000Z`
     : since
-  payload.logger.info(`BRREG inkrementell synk — oppdatertEtter: ${isoSince}`)
+  payload.logger.info(`BRREG inkrementell synk — dato: ${isoSince}`)
 
   // Last parentMap for parent-sjekk og dedup-regel
   const parentMap = await loadHelgelandParentMap(payload)
 
   await processOppdateringer(
-    `${BRREG_API}/oppdateringer/enheter?oppdatertEtter=${encodeURIComponent(isoSince)}&size=100`,
+    `${BRREG_API}/oppdateringer/enheter?dato=${encodeURIComponent(isoSince)}&size=100`,
     'hovedenhet',
     payload,
     result,
     parentMap,
   )
   await processOppdateringer(
-    `${BRREG_API}/oppdateringer/underenheter?oppdatertEtter=${encodeURIComponent(isoSince)}&size=100`,
+    `${BRREG_API}/oppdateringer/underenheter?dato=${encodeURIComponent(isoSince)}&size=100`,
     'underenhet',
     payload,
     result,
