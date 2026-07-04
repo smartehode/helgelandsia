@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { RichText } from '@/components/RichText'
 import { ShareButtons } from '@/components/ShareButtons'
+import { KontaktReveal } from '@/components/KontaktReveal'
 import { getPayloadClient } from '@/lib/getPayload'
 import { SITE, abs } from '@/lib/og'
 import { getCategoryById } from '@/lib/businesses/categories'
@@ -227,10 +228,7 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
               {[b.city || b.kommunenavn, b.county, b.country].filter(Boolean).join(', ')}
             </p>
           )}
-          {b.phone && <p className="text-sm">📞 {b.phone}</p>}
-          {b.email && (
-            <p className="text-sm">✉️ <a className="text-sea hover:underline" href={`mailto:${b.email}`}>{b.email}</a></p>
-          )}
+          <KontaktReveal slug={slug} hasPhone={Boolean(b.phone)} hasEmail={Boolean(b.email)} />
           {b.website && (
             <p className="text-sm">🔗 <a className="text-sea hover:underline" href={b.website} target="_blank" rel="noopener">Nettside</a></p>
           )}
