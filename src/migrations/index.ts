@@ -19,6 +19,7 @@ import * as migration_20260704_005223 from './20260704_005223';
 import * as migration_20260705_061342_doffin_tenders from './20260705_061342_doffin_tenders';
 import * as migration_20260705_100347_regnskap from './20260705_100347_regnskap';
 import * as migration_20260705_105446_regnskap from './20260705_105446_regnskap';
+import * as migration_20260705_172608_fremhevet_og_anbudwidget from './20260705_172608_fremhevet_og_anbudwidget';
 
 export const migrations = [
   {
@@ -124,6 +125,11 @@ export const migrations = [
   {
     up: migration_20260705_105446_regnskap.up,
     down: migration_20260705_105446_regnskap.down,
-    name: '20260705_105446_regnskap'
+    name: '20260705_105446_regnskap',
+  },
+  {
+    up: migration_20260705_172608_fremhevet_og_anbudwidget.up,
+    down: migration_20260705_172608_fremhevet_og_anbudwidget.down,
+    name: '20260705_172608_fremhevet_og_anbudwidget'
   },
 ];
