@@ -8,6 +8,7 @@ import { KontaktReveal } from '@/components/KontaktReveal'
 import { getPayloadClient } from '@/lib/getPayload'
 import { SITE, abs } from '@/lib/og'
 import { getCategoryById } from '@/lib/businesses/categories'
+import { getPercentilerForBusiness } from '@/lib/regnskap/percentiler'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,8 +70,10 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
 
   const payload = await getPayloadClient()
 
-  // Hent underenheter og siste regnskap parallelt
-  const [subunitsResult, regnskapResult] = await Promise.all([
+  const cat = b.naceCategory ? getCategoryById(b.naceCategory) : null
+
+  // Hent underenheter, regnskap og percentiler parallelt
+  const [subunitsResult, regnskapResult, percentilResult] = await Promise.all([
     b.orgnr
       ? payload.find({
           collection: 'businesses',
@@ -90,11 +93,14 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
           overrideAccess: true,
         })
       : null,
+    b.orgnr && b.naceCategory && cat
+      ? getPercentilerForBusiness(payload, b.orgnr, b.naceCategory, cat.label)
+      : null,
   ])
 
   const subunits = subunitsResult?.docs ?? []
   const regnskap: any = (regnskapResult as any)?.docs?.[0] ?? null
-  const cat = b.naceCategory ? getCategoryById(b.naceCategory) : null
+  const percentil = percentilResult
   const isBrreg = b.source === 'brreg'
 
   return (
@@ -248,6 +254,22 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
                       </>
                     )}
                   </dl>
+
+                  {/* Percentil-badger — kun topp 25 % vises, stille ellers */}
+                  {percentil && (percentil.omsetningLabel || percentil.driftsmarginLabel) && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {percentil.omsetningLabel && (
+                        <span className="inline-flex items-center rounded-full bg-sea/10 px-2.5 py-0.5 text-[11px] font-medium text-sea">
+                          {percentil.omsetningLabel} omsetning i {percentil.kategorinavn} på Helgeland
+                        </span>
+                      )}
+                      {percentil.driftsmarginLabel && (
+                        <span className="inline-flex items-center rounded-full bg-sea/10 px-2.5 py-0.5 text-[11px] font-medium text-sea">
+                          {percentil.driftsmarginLabel} driftsmargin i {percentil.kategorinavn} på Helgeland
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
