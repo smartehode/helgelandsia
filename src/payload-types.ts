@@ -864,6 +864,17 @@ export interface Page {
         | {
             title?: string | null;
             /**
+             * 1–20 aktive anbud fra Doffin.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'anbud';
+          }
+        | {
+            title?: string | null;
+            /**
              * La stå tomt for alle fire kilder.
              */
             sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
@@ -1649,6 +1660,15 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        anbud?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
         news?:
           | T
           | {
@@ -1966,6 +1986,198 @@ export interface Footer {
 export interface Sidefelt {
   id: number;
   /**
+   * Full bredde under navigasjonskortene. Bruk «Fremhevede historier»-blokken til å plukke ut ekslusive artikler og saker.
+   */
+  fremhevet?:
+    | (
+        | HeroBlock
+        | {
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            heading?: string | null;
+            posts?: (number | Post)[] | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'featuredPosts';
+          }
+        | {
+            heading?: string | null;
+            category?: (number | null) | Category;
+            limit?: number | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'businessList';
+          }
+        | {
+            heading?: string | null;
+            limit?: number | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'eventList';
+          }
+        | {
+            heading: string;
+            text?: string | null;
+            buttonLabel?: string | null;
+            buttonUrl?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cta';
+          }
+        | {
+            title?: string | null;
+            zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'powerPrices';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-steder (Brønnøysund, Sandnessjøen, Mosjøen, Mo i Rana).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lon: number;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * 1–7 dager.
+             */
+            days?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'weather';
+          }
+        | {
+            title?: string | null;
+            airports?: ('BNN' | 'SSJ' | 'MJF')[] | null;
+            direction?: ('departure' | 'arrival' | 'begge') | null;
+            /**
+             * 1–10 avganger per flyplass.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'flights';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 stillinger fra NAV Arbeidsplassen.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'navJobs';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 aktive anbud fra Doffin.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'anbud';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire kilder.
+             */
+            sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'news';
+          }
+        | {
+            title?: string | null;
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'brreg';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for standard Helgeland-lokasjoner (Brønnøysund, Sandnessjøen, Mosjøen).
+             */
+            locations?:
+              | {
+                  name: string;
+                  lat: number;
+                  lng: number;
+                  cameras?:
+                    | {
+                        url: string;
+                        camTitle: string;
+                        source: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'webcam';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle fire.
+             */
+            show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'currency';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende norske helligdager.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'holidays';
+          }
+      )[]
+    | null;
+  /**
    * Kompakt variant. Vises i høyrespalten ved siden av innholdet på store skjermer.
    */
   sidefelt?:
@@ -2023,6 +2235,17 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'navJobs';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 aktive anbud fra Doffin.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'anbud';
           }
         | {
             title?: string | null;
@@ -2156,6 +2379,17 @@ export interface Sidefelt {
         | {
             title?: string | null;
             /**
+             * 1–20 aktive anbud fra Doffin.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'anbud';
+          }
+        | {
+            title?: string | null;
+            /**
              * La stå tomt for alle fire kilder.
              */
             sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
@@ -2281,6 +2515,17 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'navJobs';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 aktive anbud fra Doffin.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'anbud';
           }
         | {
             title?: string | null;
@@ -2456,6 +2701,169 @@ export interface FooterSelect<T extends boolean = true> {
  * via the `definition` "sidefelt_select".
  */
 export interface SidefeltSelect<T extends boolean = true> {
+  fremhevet?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        richText?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        featuredPosts?:
+          | T
+          | {
+              heading?: T;
+              posts?: T;
+              id?: T;
+              blockName?: T;
+            };
+        businessList?:
+          | T
+          | {
+              heading?: T;
+              category?: T;
+              limit?: T;
+              id?: T;
+              blockName?: T;
+            };
+        eventList?:
+          | T
+          | {
+              heading?: T;
+              limit?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              heading?: T;
+              text?: T;
+              buttonLabel?: T;
+              buttonUrl?: T;
+              id?: T;
+              blockName?: T;
+            };
+        powerPrices?:
+          | T
+          | {
+              title?: T;
+              zone?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        weather?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lon?: T;
+                    id?: T;
+                  };
+              days?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        flights?:
+          | T
+          | {
+              title?: T;
+              airports?: T;
+              direction?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        navJobs?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        anbud?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        news?:
+          | T
+          | {
+              title?: T;
+              sources?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        brreg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        webcam?:
+          | T
+          | {
+              title?: T;
+              locations?:
+                | T
+                | {
+                    name?: T;
+                    lat?: T;
+                    lng?: T;
+                    cameras?:
+                      | T
+                      | {
+                          url?: T;
+                          camTitle?: T;
+                          source?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        currency?:
+          | T
+          | {
+              title?: T;
+              show?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        holidays?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
   sidefelt?:
     | T
     | {
@@ -2497,6 +2905,15 @@ export interface SidefeltSelect<T extends boolean = true> {
               blockName?: T;
             };
         navJobs?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        anbud?:
           | T
           | {
               title?: T;
@@ -2616,6 +3033,15 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        anbud?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
         news?:
           | T
           | {
@@ -2719,6 +3145,15 @@ export interface SidefeltSelect<T extends boolean = true> {
               blockName?: T;
             };
         navJobs?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        anbud?:
           | T
           | {
               title?: T;

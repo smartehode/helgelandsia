@@ -1,6 +1,6 @@
 import type { GlobalConfig } from 'payload'
 import { isEditor } from '../access'
-import { widgetBlocks } from '../blocks'
+import { widgetBlocks, layoutBlocks } from '../blocks'
 
 export const WidgetAreas: GlobalConfig = {
   slug: 'sidefelt',
@@ -11,6 +11,15 @@ export const WidgetAreas: GlobalConfig = {
   },
   access: { read: () => true, update: isEditor },
   fields: [
+    {
+      name: 'fremhevet',
+      type: 'blocks',
+      label: 'Fremhevet sone (full bredde)',
+      blocks: layoutBlocks,
+      admin: {
+        description: 'Full bredde under navigasjonskortene. Bruk «Fremhevede historier»-blokken til å plukke ut ekslusive artikler og saker.',
+      },
+    },
     {
       name: 'sidefelt',
       type: 'blocks',

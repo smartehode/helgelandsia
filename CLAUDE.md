@@ -733,6 +733,88 @@ REGEL 17: Bygg ALDRI funksjonalitet utover bestillingen. Ubestilt kode
 i git status = stopp, rapportér, avklar før commit. E-postsending og
 andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 
+### 2026-07-05 — Forsidedesign + ny widget
+
+**Forsiden fullstendig redesignet — NAV/Aksel-stil**
+- Inspirasjon: arbeidsplassen.nav.no. Nøkkelord: kompakt, rolig, oppgaveorientert.
+- Beholdt palett (fjord/sea/fog/sun) og fonter (Fraunces/Hanken Grotesk), men
+  adoptert NAVs layout-prinsipper: én maks-bredde (`max-w-[1200px]`), konsistent
+  `py-12` mellom seksjoner, flate flater (maks `shadow-sm`), ingen fargebånd.
+- Struktur `src/app/(frontend)/page.tsx`:
+  1. **Hero** — kompakt (`py-10/14`), H1 + undertekst + søkefelt + vær/strøm-strip.
+     Ingen stor fjord-bakgrunn. `ForsideSearch` fikset for lys bakgrunn
+     (`border border-ink/20 bg-white`, mørk tekst).
+  2. **Inngangskort** — 4 klikkbare kort (Bedrifter, Anbud, Stillinger, Arrangementer)
+     med Heroicons-ikoner. `grid-cols-2 sm:grid-cols-4`.
+  3. **Fremhevet sone** (full bredde) — ny admin-konfigurerbar sone fra WidgetAreas.
+     Støtter alle `layoutBlocks` inkl. `FeaturedPostsBlock` (plukk ut ekslusive
+     artikler fra CMS). Posts populeres via `depth:1` i globalfetchen — ingen
+     ekstra DB-kall. Skjemaendring: nytt `fremhevet`-felt i `src/globals/Sidebar.ts`.
+     Eieren kjører `npx payload migrate:create fremhevet-sone`.
+  4. **Innhold + sidefelt** — to-kolonne grid (`lg:grid-cols-[1fr_340px]`).
+     Venstre: Siste historier (3, `getLatestPosts`) + Midten-sone (admin) +
+     Kommende arrangementer. Høyre: sticky sidefelt (admin `sidefelt`-sone,
+     fallback til hardkodet `WebcamWeatherWidget`).
+  5. **Bunn-sone** — full bredde, 3-kolonners grid, kompakt variant (admin).
+  6. **CTA-stripe** — «Driver du bedrift på Helgeland?» med lenker til /bedrifter
+     og /min-side. Flat lys stil (fjord-knapp, border-knapp).
+- Hardkodet «Siste offentlige anbud» og «Ledige stillinger» fjernet fra forsiden —
+  vises nå KUN hvis admin legger dem i en widget-sone.
+- Alle tre WidgetAreas-soner (sidefelt, midten, bunn) hentes i én `findGlobal`
+  parallelt med øvrig data. `RenderBlocks` brukes for sonene.
+
+**AnbudWidget — ny widget**
+- `src/components/widgets/AnbudWidget.tsx` — async server-komponent.
+  Props: `title?`, `count?: 1–20` (std 5), `variant?: 'full'|'kompakt'`.
+  Henter aktive anbud (`status='ACTIVE'`, `deadline > now`) fra egen `tenders`-
+  collection via `getPayloadClient()`. Full: tittel + oppdragsgiver + frist.
+  Kompakt: tittel + frist. `return null` ved tom liste.
+- `src/blocks/index.ts` — `AnbudBlock` (slug: `anbud`) lagt til i `layoutBlocks`
+  og `widgetBlocks`.
+- `src/components/RenderBlocks.tsx` — håndterer `'anbud'`.
+- **SKJEMAENDRING** — ny blokk-tabell for anbud i PostgreSQL.
+  Eieren kjører `npx payload migrate:create anbud-widget`.
+
+**Stillinger-sider — visuell konsistens**
+- `src/app/(frontend)/stillinger/page.tsx` og `stillinger/[slug]/page.tsx`:
+  - Jobbtitler: `font-serif` lagt til (var sans-serif, skilte seg ut fra resten).
+  - H1/H2-farger: `text-sea` → `text-fjord` (primærfarge på headings er fjord).
+  - Kortbeholdere: `bg-paper ring-1 ring-ink/5 rounded-2xl` → `border border-ink/10 bg-white rounded-xl`.
+  - Hover: `hover:bg-ink/[0.02]` → `hover:bg-fog/60`.
+  - Søknadsknapp: `bg-sea` → `bg-fjord` (konsistent med andre primærknapper).
+  - Etiketter på detaljside: `bg-ink/5` → `border border-ink/10` (flat stil).
+
+**HeroStrip — vær roterer, strøm er statisk**
+- `src/components/HeroStrip.tsx` — klientkomponent med useState/useEffect.
+  Roterer mellom vær-items (én per Helgeland-by) med fade-effekt hvert 5. sek (250 ms fade).
+  Returnerer `<span>`, ikke `<p>` — sitter inline ved siden av strømpris-span i forsidehen.
+- `src/app/(frontend)/page.tsx` — `fetchHeroPower()` og `fetchHeroWeather()` kjøres
+  parallelt (Promise.all). Strømpris vises som statisk `<span>`. Kun vær-items sendes
+  til `<HeroStrip>`. 4 byer: Brønnøysund, Sandnessjøen, Mosjøen, Mo i Rana.
+
+**Skipstrafikk-widget (Kystverket NAIS)**
+- `src/components/widgets/ShipTrafficWidget.tsx` — ikke-async server-komponent.
+  Embed av Kystverkets offisielle AIS-kart for Helgelandskysten (bbox 9.5–17.5°E,
+  63.5–67.8°N). `loading="lazy"` — iframen lastes ikke ved sidelast, kun ved scroll.
+  Høyde: 300 px mobil / 420 px desktop. Kildelinje med lenke til nais.kystverket.no.
+- Plassert som egen full-bredde seksjon på forsiden mellom innholds-/sidefelt-seksjonen
+  og bunn-sonen.
+- Caddyfile CSP `frame-src` utvidet med `https://nais.kystverket.no`.
+  **Husk: `docker compose restart caddy` på serveren etter deploy (regel 14).**
+
+**Kryssinnholds-søk — /api/sok**
+- `src/app/api/sok/route.ts` — GET med `?q=` (min 2 tegn). Søker parallelt
+  (Promise.allSettled) i: Businesses (published + showOnPublicListing), Events
+  (published + fremtidige), Jobs (published), Posts (published), Tenders (ACTIVE +
+  frist > now). Maks 5 treff per type. Ingen sensitive felt i svaret (ingen
+  owner/submittedBy/claimedBy). `overrideAccess: true` + `depth: 0` på synk-collections.
+- `src/components/ForsideSearch.tsx` — fullstendig omskrevet til live-søk:
+  debounce 300 ms, fra 2 tegn. Resultater gruppert under overskrifter
+  (Bedrifter / Arrangementer / Stillinger / Artikler / Anbud). Dropdown lukkes
+  ved klikk utenfor. Anbud åpner eksternt (doffinUrl, target=_blank). Tastatur-
+  navigasjon: ArrowUp/Down beveger markøren, Enter navigerer til valgt treff,
+  Escape lukker dropdown.
+
 ## GJENSTÅR
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
 - Bransje-percentiler Helgeland (SQL over regnskap per nace_category —
@@ -742,8 +824,8 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 - Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
   akkumulert data over tid
 - CSP: observer Report-Only noen dager → bytt til enforced i Caddyfile
-- Rate limiting på skjemaer (claim, innsending, kontakt-endepunktet er
-  førstekandidat)
+- Rate limiting: skjemaer (claim, innsending, kontakt-endepunktet) OG
+  /api/sok (er offentlig, ingen autentisering — bør ha IP-basert throttle)
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
@@ -751,3 +833,4 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 - Matching finkorning: divisjonsnivå + evt. vis på fremhevede profiler
 - Vurder langsiktig: Doffins offisielle subscription-API hvis webclient-
   API-et endrer seg
+- Migrasjoner som gjenstår å kjøre: `fremhevet-sone`, `anbud-widget`

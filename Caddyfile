@@ -40,8 +40,9 @@
         #   date.nager.at       — helligdager (CalendarClient)
         #
         # frame-src:
-        #   www.openstreetmap.org — kart-iframe på /bedrifter/[slug]
+        #   www.openstreetmap.org  — kart-iframe på /bedrifter/[slug]
+        #   nais.kystverket.no     — skipstrafikk-widget på forsiden
         # -----------------------------------------------------------------------
-        Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://weathercam.herokuapp.com https://webcam.havbrukssenter.no https://www.velfjordferie.no https://ftp.hald-ikt.no https://kamera.atlas.vegvesen.no https://infohelgeland.no; connect-src 'self' https://api.open-meteo.com https://date.nager.at; frame-src https://www.openstreetmap.org; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://weathercam.herokuapp.com https://webcam.havbrukssenter.no https://www.velfjordferie.no https://ftp.hald-ikt.no https://kamera.atlas.vegvesen.no https://infohelgeland.no; connect-src 'self' https://api.open-meteo.com https://date.nager.at; frame-src https://www.openstreetmap.org https://nais.kystverket.no; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
     }
 }

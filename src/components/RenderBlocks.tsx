@@ -10,6 +10,7 @@ import { BrregWidget } from '@/components/widgets/BrregWidget'
 import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
 import { CurrencyWidget, type CurrencyItem } from '@/components/widgets/CurrencyWidget'
 import { CalendarWidget } from '@/components/widgets/CalendarWidget'
+import { AnbudWidget } from '@/components/widgets/AnbudWidget'
 
 interface RenderBlocksProps {
   blocks: any[]
@@ -122,6 +123,14 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
       return (
         <CalendarWidget
           title={block.title}
+          variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'anbud':
+      return (
+        <AnbudWidget
+          title={block.title}
+          count={block.count ?? 5}
           variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
         />
       )

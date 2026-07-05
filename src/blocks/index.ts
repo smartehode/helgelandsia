@@ -371,6 +371,33 @@ export const CurrencyBlock: Block = {
   ],
 }
 
+export const AnbudBlock: Block = {
+  slug: 'anbud',
+  labels: { singular: 'Offentlige anbud', plural: 'Offentlige anbud' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall anbud',
+      defaultValue: 5,
+      min: 1,
+      max: 20,
+      admin: { description: '1–20 aktive anbud fra Doffin.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – tittel, oppdragsgiver og frist', value: 'full' },
+        { label: 'Kompakt – tittel og frist', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
 export const HolidaysBlock: Block = {
   slug: 'holidays',
   labels: { singular: 'Kalender', plural: 'Kalender' },
@@ -409,6 +436,7 @@ export const layoutBlocks = [
   WeatherBlock,
   FlightsBlock,
   NavJobsBlock,
+  AnbudBlock,
   NewsBlock,
   BrregBlock,
   WebcamBlock,
@@ -421,6 +449,7 @@ export const widgetBlocks = [
   WeatherBlock,
   FlightsBlock,
   NavJobsBlock,
+  AnbudBlock,
   NewsBlock,
   BrregBlock,
   WebcamBlock,
