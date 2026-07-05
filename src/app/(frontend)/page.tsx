@@ -7,7 +7,6 @@ import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
 import { ShipTrafficWidget } from '@/components/widgets/ShipTrafficWidget'
 import { RenderBlocks } from '@/components/RenderBlocks'
 import { getPayloadClient } from '@/lib/getPayload'
-import { getLatestPosts, getUpcomingEvents } from '@/lib/queries'
 
 export const dynamic = 'force-dynamic'
 
@@ -126,17 +125,13 @@ function SecHeader({ label, href }: { label: string; href: string }) {
 
 export default async function HomePage() {
   const payload = await getPayloadClient()
-  const now = new Date()
 
-  const [postsRes, events, widgetAreasRes, weather, power] = await Promise.all([
-    getLatestPosts(3),
-    getUpcomingEvents(4),
+  const [widgetAreasRes, weather, power] = await Promise.all([
     payload.findGlobal({ slug: 'sidefelt', depth: 1 }).catch(() => null),
     fetchHeroWeather(),
     fetchHeroPower(),
   ])
 
-  const posts: any[] = postsRes.docs
   const widgetAreas: any = widgetAreasRes
   const weatherItems = weather.map(w => ({ label: `${w.emoji} ${w.name}:`, value: `${w.temp}°C` }))
 
@@ -233,94 +228,17 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ── 3–5. INNHOLD + SIDEFELT ─────────────────────────────────────── */}
+      {/* ── 3. INNHOLD + SIDEFELT ───────────────────────────────────────── */}
+      {/* Midten-sone (venstre) + sidefelt (høyre) — alt konfigureres i admin  */}
       <div className="border-t border-ink/10 pt-12 pb-16 grid gap-10 lg:grid-cols-[1fr_340px] lg:items-start">
 
-        {/* Hovedkolonne */}
-        <div className="space-y-0 divide-y divide-ink/10">
-
-          {posts.length > 0 && (
-            <section className="pb-12">
-              <SecHeader label="Siste historier" href="/historier" />
-              <div className="grid gap-4 sm:grid-cols-3">
-                {posts.map((post: any) => {
-                  const img = mediaUrl(post.heroImage, 'card') ?? mediaUrl(post.heroImage)
-                  return (
-                    <Link
-                      key={post.id}
-                      href={`/historier/${post.slug}`}
-                      className="group overflow-hidden rounded-xl border border-ink/10 bg-white transition hover:shadow-sm"
-                    >
-                      <div className="aspect-[3/2] overflow-hidden bg-fog">
-                        {img
-                          ? <img src={img} alt={post.heroImage?.alt ?? post.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                          : <div className="flex h-full w-full items-center justify-center"><span className="font-serif text-3xl text-sea/20">H</span></div>
-                        }
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-serif text-base font-semibold leading-snug text-ink transition group-hover:text-sea">
-                          {post.title}
-                        </h3>
-                        {post.publishedAt && (
-                          <p className="mt-2 text-[11px] text-muted">
-                            {format(new Date(post.publishedAt), 'd. MMMM yyyy', { locale: nb })}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            </section>
-          )}
-
-          {events.length > 0 && (
-            <section className="pt-12">
-              <SecHeader label="Kommende arrangementer" href="/arrangementer" />
-              <ul className="divide-y divide-ink/5 rounded-xl border border-ink/10 bg-white">
-                {(events as any[]).map((event: any) => {
-                  const startDt = event.startDate ? new Date(event.startDate) : null
-                  return (
-                    <li key={event.id}>
-                      <Link
-                        href={`/arrangementer/${event.slug}`}
-                        className="group flex items-center gap-4 px-4 py-3.5 transition hover:bg-fog/60"
-                      >
-                        {startDt && (
-                          <div className="w-8 shrink-0 text-center">
-                            <span className="block font-serif text-xl font-bold leading-none text-sea">
-                              {format(startDt, 'd', { locale: nb })}
-                            </span>
-                            <span className="block text-[9px] font-semibold uppercase tracking-wide text-muted">
-                              {format(startDt, 'MMM', { locale: nb })}
-                            </span>
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-ink transition group-hover:text-sea">
-                            {event.title}
-                          </p>
-                          {event.location && (
-                            <p className="mt-0.5 truncate text-[11px] text-muted">{event.location}</p>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </section>
-          )}
-
-          {/* Midten-sone — i hovedkolonnen, sidefelt strekker seg forbi */}
+        {/* Midten-sone: historier, arrangementer og andre admin-blokker */}
+        <div>
           {widgetAreas?.midten?.length > 0 && (
-            <section className="border-t border-ink/10 pt-12">
-              <div className="grid gap-6 sm:grid-cols-2">
-                <RenderBlocks blocks={widgetAreas.midten} />
-              </div>
-            </section>
+            <div className="space-y-10">
+              <RenderBlocks blocks={widgetAreas.midten} />
+            </div>
           )}
-
         </div>
 
         {/* Sidefelt: admin-konfigurerte blokker, ellers webkamera som standard */}

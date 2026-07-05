@@ -425,6 +425,60 @@ export const HolidaysBlock: Block = {
   ],
 }
 
+export const HistorierBlock: Block = {
+  slug: 'historier',
+  labels: { singular: 'Siste historier', plural: 'Siste historier' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall historier',
+      defaultValue: 3,
+      min: 1,
+      max: 20,
+      admin: { description: '1–20 siste publiserte historier.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – bilde, tittel og dato', value: 'full' },
+        { label: 'Kompakt – tittel og dato', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
+export const ArrangementerBlock: Block = {
+  slug: 'arrangementer',
+  labels: { singular: 'Kommende arrangementer', plural: 'Kommende arrangementer' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall arrangementer',
+      defaultValue: 5,
+      min: 1,
+      max: 20,
+      admin: { description: '1–20 kommende arrangementer.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – dato, tittel og sted', value: 'full' },
+        { label: 'Kompakt – dato og tittel', value: 'kompakt' },
+      ],
+    },
+  ],
+}
+
 export const layoutBlocks = [
   HeroBlock,
   RichTextBlock,
@@ -442,6 +496,8 @@ export const layoutBlocks = [
   WebcamBlock,
   CurrencyBlock,
   HolidaysBlock,
+  HistorierBlock,
+  ArrangementerBlock,
 ]
 
 export const widgetBlocks = [
@@ -455,4 +511,6 @@ export const widgetBlocks = [
   WebcamBlock,
   CurrencyBlock,
   HolidaysBlock,
+  HistorierBlock,
+  ArrangementerBlock,
 ]

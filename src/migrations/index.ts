@@ -20,6 +20,8 @@ import * as migration_20260705_061342_doffin_tenders from './20260705_061342_dof
 import * as migration_20260705_100347_regnskap from './20260705_100347_regnskap';
 import * as migration_20260705_105446_regnskap from './20260705_105446_regnskap';
 import * as migration_20260705_172608_fremhevet_og_anbudwidget from './20260705_172608_fremhevet_og_anbudwidget';
+import * as migration_20260705_175634_historier_arrangementer_blokker from './20260705_175634_historier_arrangementer_blokker';
+import * as migration_20260705_175739_test_tom from './20260705_175739_test_tom';
 
 export const migrations = [
   {
@@ -130,6 +132,16 @@ export const migrations = [
   {
     up: migration_20260705_172608_fremhevet_og_anbudwidget.up,
     down: migration_20260705_172608_fremhevet_og_anbudwidget.down,
-    name: '20260705_172608_fremhevet_og_anbudwidget'
+    name: '20260705_172608_fremhevet_og_anbudwidget',
+  },
+  {
+    up: migration_20260705_175634_historier_arrangementer_blokker.up,
+    down: migration_20260705_175634_historier_arrangementer_blokker.down,
+    name: '20260705_175634_historier_arrangementer_blokker',
+  },
+  {
+    up: migration_20260705_175739_test_tom.up,
+    down: migration_20260705_175739_test_tom.down,
+    name: '20260705_175739_test_tom'
   },
 ];

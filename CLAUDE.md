@@ -815,6 +815,25 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
   navigasjon: ArrowUp/Down beveger markøren, Enter navigerer til valgt treff,
   Escape lukker dropdown.
 
+**Forsiden refaktorert — widget-basert komposisjon**
+- Hardkodede seksjoner "Siste historier" og "Kommende arrangementer" fjernet fra
+  `page.tsx`. All innholdslisting styres nå via admin → Widget-områder → sonene.
+- `src/components/widgets/HistorierWidget.tsx` — async RSC. Props: `title?`,
+  `count? (std 3)`, `variant? full|kompakt`. Full: 3-kolonnersgrrid med bilde,
+  tittel, dato. Kompakt: titteliste med dato. Henter egne data med `depth: 1`
+  for heroImage. `return null` ved tom liste.
+- `src/components/widgets/ArrangementerWidget.tsx` — async RSC. Props: `title?`,
+  `count? (std 5)`, `variant? full|kompakt`. Viser dato-kolonne + tittel + sted
+  (sted skjules i kompakt variant). Filtrerer kun fremtidige (startDate >= now).
+  `return null` ved tom liste.
+- `src/blocks/index.ts` — `HistorierBlock` (slug: `historier`) og
+  `ArrangementerBlock` (slug: `arrangementer`) lagt til i begge arrays.
+- `src/components/RenderBlocks.tsx` — håndterer `'historier'` og `'arrangementer'`.
+- `page.tsx` — `Promise.all` forenklet (fjernet getLatestPosts/getUpcomingEvents).
+  Midten-sone rendres i `space-y-10` stacking uten 2-kolonners grid-wrapper.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create historier-arrangementer-blokker`,
+  leser filen (sjekk ingen DROP, legg til IF NOT EXISTS), committer med koden.
+
 ## GJENSTÅR
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
 - Bransje-percentiler Helgeland (SQL over regnskap per nace_category —

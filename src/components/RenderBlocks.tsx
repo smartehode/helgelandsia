@@ -11,6 +11,8 @@ import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
 import { CurrencyWidget, type CurrencyItem } from '@/components/widgets/CurrencyWidget'
 import { CalendarWidget } from '@/components/widgets/CalendarWidget'
 import { AnbudWidget } from '@/components/widgets/AnbudWidget'
+import { HistorierWidget } from '@/components/widgets/HistorierWidget'
+import { ArrangementerWidget } from '@/components/widgets/ArrangementerWidget'
 
 interface RenderBlocksProps {
   blocks: any[]
@@ -129,6 +131,22 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
     case 'anbud':
       return (
         <AnbudWidget
+          title={block.title}
+          count={block.count ?? 5}
+          variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'historier':
+      return (
+        <HistorierWidget
+          title={block.title}
+          count={block.count ?? 3}
+          variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'arrangementer':
+      return (
+        <ArrangementerWidget
           title={block.title}
           count={block.count ?? 5}
           variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}

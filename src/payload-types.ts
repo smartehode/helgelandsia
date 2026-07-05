@@ -940,6 +940,28 @@ export interface Page {
             blockName?: string | null;
             blockType: 'holidays';
           }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste publiserte historier.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'historier';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende arrangementer.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'arrangementer';
+          }
       )[]
     | null;
   meta?: {
@@ -1730,6 +1752,24 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        historier?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        arrangementer?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -2175,6 +2215,28 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'holidays';
           }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste publiserte historier.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'historier';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende arrangementer.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'arrangementer';
+          }
       )[]
     | null;
   /**
@@ -2314,6 +2376,28 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'holidays';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste publiserte historier.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'historier';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende arrangementer.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'arrangementer';
           }
       )[]
     | null;
@@ -2455,6 +2539,28 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'holidays';
           }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste publiserte historier.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'historier';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende arrangementer.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'arrangementer';
+          }
       )[]
     | null;
   /**
@@ -2594,6 +2700,28 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'holidays';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste publiserte historier.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'historier';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 kommende arrangementer.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'arrangementer';
           }
       )[]
     | null;
@@ -2863,6 +2991,24 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        historier?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        arrangementer?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   sidefelt?:
     | T
@@ -2975,6 +3121,24 @@ export interface SidefeltSelect<T extends boolean = true> {
               blockName?: T;
             };
         holidays?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        historier?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        arrangementer?:
           | T
           | {
               title?: T;
@@ -3103,6 +3267,24 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        historier?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        arrangementer?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   bunn?:
     | T
@@ -3215,6 +3397,24 @@ export interface SidefeltSelect<T extends boolean = true> {
               blockName?: T;
             };
         holidays?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        historier?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        arrangementer?:
           | T
           | {
               title?: T;
