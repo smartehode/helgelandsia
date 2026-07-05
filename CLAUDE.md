@@ -73,6 +73,13 @@ i admin før publisering.
     dem IKKE. Skal et endepunkt bort, må route-filen fjernes.
 16. CRON/JOBS: kommandoer i cron må bruke `docker compose exec -T` (ingen
     TTY) og inkludere cp av scripts/ siden mappa ikke er i prod-imaget.
+17. BYGG ALDRI UTOVER BESTILLINGEN. Ubestilt kode i git status = stopp,
+    rapportér, avklar før commit. E-postsending og andre utadrettede
+    handlinger skal ALLTID bak env-brems (f.eks. FEATURE_ENABLED=true)
+    i første runde — aldri aktiv som standard.
+    (Hendelse 2026-07-05: tender-digest bygget uten bestilling; neste
+    nattlige cron ville sendt e-post til medlemmer. Oppdaget via git status
+    før commit. Fikset med TENDER_DIGEST_ENABLED-brems.)
 
 ## Drift — nødkommandoer
 
@@ -693,68 +700,47 @@ Drift (2026-07-05):
 - Matching er på seksjonsnivå i v1 (grov, ærlig). Finkorning til
   divisjonsnivå er kjent forbedring.
 
-### 2026-07-05 — Anbud utvidet + Regnskapstall-modul
+### 2026-07-05 — tillegg: Regnskapsmodul + opprydding
 
-**Bedriftskatalog-utvidelser (frontend, ingen skjemaendring)**
-- «Siste offentlige anbud»-seksjon nederst på /bedrifter: 5 nyeste aktive anbud,
-  skjules om DB er tom.
-- Bransjegrid: antall aktive anbud per kategori som badge (bg-sea/10 text-sea).
-  Én query henter alle ~500 aktive anbud; in-memory telling via `kategorierForAnbud`.
-  `kategorierForAnbud` eksportert fra match.ts — oversetter CPV-divisjon til
-  NACE-seksjon → kategori-ID via prekomputert `SEKSJON_TO_CAT_IDS`-map.
-- «Nytt på Helgeland»-feed på /bedrifter: to-kolonnersgrид, venstre nyregistrerte
-  (siste 30 dager, brregEntityType=hovedenhet, registreringsdato-filter), høyre
-  opphørte (brregStatus in ['konkurs','underAvvikling']). Maks 10 per kolonne.
-  Fotnote: «Dato for statusendring lagres ikke» (opphørtdato finnes ikke i data).
+- Regnskap-collection (UTEN drafts — offisielle synk-data), migrasjon
+  20260705_100347_regnskap. Felter: orgnr, aar (unik kombinasjon),
+  omsetning, driftsresultat, aarsresultat, egenkapital, valuta, hentetDato.
+- Synk scripts/regnskap-sync.ts mot Regnskapsregisterets åpne API
+  (data.brreg.no). Støtter --kommune og --limit for kontrollert testing.
+  Prod: 5004 regnskap, ~45% hoppet over (ingen innlevert data — normalt),
+  5 feil = HTTP 500 fra API-et selv (fanges neste kjøring).
+- Visning: "Nøkkeltall (ÅÅÅÅ)" i Registerdata-boksen på bedriftssiden,
+  norsk tallformat. Ingen regnskap → ingen rad.
+- Månedlig cron: 1. i måneden kl 05:15 → /var/log/regnskap-sync.log.
+- Deployet samtidig (lå ucommittet lokalt): anbudsmatching på Min side,
+  "5 siste anbud" på /bedrifter, anbuds-badger på bransjekategorier.
 
-**Anbud trinn 3: E-postvarsling ved nye anbud**
-- `src/lib/email/tender-digest.ts` — `sendTenderDigests(payload, newTenders)`.
-  Henter alle verifiserte bedrifter med owner+naceKode. Bygger digest per eier
-  (én e-post per eier per synkkjøring, ikke én per anbud). NaN-guard: depth:0
-  → biz.owner er numerisk ID, sjekkes med typeof === 'number'.
-  Opt-out: `member.anbudsvarsling === false` → hopp over.
-- `src/lib/email/templates.ts` — `tenderDigestHtml(params)` lagt til.
-  Per-bedrift-seksjoner i samme e-post, opt-out-merknad med lenke til Min side.
-- `src/lib/doffin/sync.ts` — nye anbud samles i `createdTenders[]`; kaller
-  `sendTenderDigests` etter upsert-løkken. `notified` telles i SyncResult.
-- `src/collections/Members.ts` — felt `anbudsvarsling` (checkbox, default true).
-  **MIGRASJON MANGLER** — eieren kjører `npx payload migrate:create anbudsvarsling-members`
-  og verifiserer `ADD COLUMN IF NOT EXISTS "anbudsvarsling" boolean DEFAULT true`.
-- `src/app/(frontend)/min-side/page.tsx` — «Varsler»-seksjon med På/Av-toggle
-  (server action `toggleAnbudsvarsling`). Vises kun til eiere med verifisert bedrift.
+Lærdommer:
+- API-parsing: Regnskapsregisterets respons er dypt nøstet — map mot
+  FAKTISK respons, aldri antatte feltstier. Første versjon ga 34 rader
+  med bare null-verdier; oppdaget i admin-lista FØR deploy. Sjekk alltid
+  faktiske verdier i admin etter smoke-test, ikke bare feiltall.
+- migrate:create etter dev-push er trygt uansett rekkefølge — den ser
+  kun på config-vs-historikk-diffen, ikke på data.
 
-**Regnskapstall-modul (ny)**
-- `src/collections/Regnskap.ts` — ny collection (slug: `regnskap`, UTEN drafts).
-  Felt: orgnr (text, index), aar (number, index), omsetning, driftsresultat,
-  aarsresultat, egenkapital (alle number, nullable), valuta (text), hentetDato (date).
-  Ingen Payload-nivå unik constraint — håndteres i synkskript (find+upsert) og
-  migrasjonsindeks.
-- Registrert i payload.config.ts.
-- **MIGRASJON MANGLER** — eieren kjører `npx payload migrate:create regnskap`,
-  leser filen (regel 3), herder til idempotent (regel 8):
-  - `CREATE TABLE IF NOT EXISTS regnskap ...`
-  - `CREATE UNIQUE INDEX IF NOT EXISTS regnskap_orgnr_aar ON regnskap (orgnr, aar)`
-- `scripts/regnskap-sync.ts` — henter siste årsregnskap fra
-  `data.brreg.no/regnskapsregisteret/regnskap/{orgnr}`. Filtrerer: source=brreg,
-  brregEntityType=hovedenhet, organisasjonsform≠Enkeltpersonforetak.
-  Upsert på (orgnr, aar) — historikk akkumuleres over tid.
-  404 = skip (telles som hoppet over, ikke feil). 150 ms sleep mellom kall.
-  Per-100-batch-logging. Flagg: `--kommune NNNN`, `--limit N`.
-  `extractAmount()` håndterer { value: N }, { offentligVerdi: N } og flat tall.
-  `parseRegnskapsApiResponse()` prøver nøstet+flat struktur for alle fire felter.
-- `/bedrifter/[slug]` — regnskap hentes parallelt med underenheter. Vises som
-  «Nøkkeltall (ÅÅÅÅ)»-seksjon med strek i Registerdata-boksen. Negative tall
-  vises i text-red-600. Lenke «Fullstendig årsregnskap →» til virksomhet.brreg.no.
-  `fmtKr(n)` formatter med nb-NO-locale (1 234 567 kr).
-- **IKKE deployet** — lokal test FØR commit: `npx tsx scripts/regnskap-sync.ts --kommune 1833 --limit 50`
+HENDELSE + NY REGEL 17:
+Claude Code bygde anbudsvarsling (trinn 3: tender-digest.ts, e-postmaler,
+Members-felt, OG automatisk sending i doffin-synken) UTEN bestilling.
+Neste nattlige cron ville sendt utestet e-post til medlemmer. Oppdaget
+via git status-sjekk før commit. Sending nå bak TENDER_DIGEST_ENABLED
+(default av).
+REGEL 17: Bygg ALDRI funksjonalitet utover bestillingen. Ubestilt kode
+i git status = stopp, rapportér, avklar før commit. E-postsending og
+andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 
 ## GJENSTÅR
-- **MIGRASJON: anbudsvarsling-members** — kjør `npx payload migrate:create anbudsvarsling-members`,
-  verifiser `ADD COLUMN IF NOT EXISTS "anbudsvarsling" boolean DEFAULT true`
-- **MIGRASJON: regnskap** — kjør `npx payload migrate:create regnskap`, herd til idempotent
-  (IF NOT EXISTS + unik indeks på orgnr+aar), commit begge filer
-- **LOKAL TEST: regnskap-synk** — `npx tsx scripts/regnskap-sync.ts --kommune 1833 --limit 50`
-  → se output → ev. full Rana: `--kommune 1833` → deploy først etter vellykket test
+- Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
+- Bransje-percentiler Helgeland (SQL over regnskap per nace_category —
+  fundament for KI-sammendrag + egen "Topp X%"-badge-verdi)
+- KI-sammendrag per bedrift (Claude API, stram tallbasert prompt,
+  genereres ved månedlig synk, tydelig merket som KI + kildeår)
+- Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
+  akkumulert data over tid
 - CSP: observer Report-Only noen dager → bytt til enforced i Caddyfile
 - Rate limiting på skjemaer (claim, innsending, kontakt-endepunktet er
   førstekandidat)
@@ -762,9 +748,6 @@ Drift (2026-07-05):
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
 - applefavicon.png mangler i public/ (kosmetisk, spammer dev-logg)
-- Rette gjenværende «hoofdenhet»-kommentarer i sync.ts (kosmetisk)
 - Matching finkorning: divisjonsnivå + evt. vis på fremhevede profiler
 - Vurder langsiktig: Doffins offisielle subscription-API hvis webclient-
   API-et endrer seg
-- Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
-  akkumulert data over tid
