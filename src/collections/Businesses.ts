@@ -41,7 +41,12 @@ export const Businesses: CollectionConfig = {
     group: 'Innhold',
     // Viser kun hovedenheter som standard — redaksjonen slipper doble rader.
     // Underenheter vises på moderenhetens detaljside under «Avdelinger».
-    baseListFilter: () => ({ brregEntityType: { equals: 'hovedenhet' } }),
+    baseListFilter: ({ req }) => {
+      // Pending-claims-lenken fra admin-dashbordet inkluderer claimStatus i URL-en.
+      // Da vises alle entitetstyper, slik at underenheters claims ikke skjules.
+      if ((req?.url ?? '').includes('claimStatus')) return {}
+      return { brregEntityType: { equals: 'hovedenhet' } }
+    },
   },
   versions: { drafts: true },
   hooks: {
@@ -306,6 +311,9 @@ export const Businesses: CollectionConfig = {
               ],
               admin: {
                 description: '"Verifisert" settes av admin når kravet er godkjent.',
+                components: {
+                  Cell: '@/components/admin/ClaimStatusCell',
+                },
               },
             },
             {

@@ -27,7 +27,7 @@ export default async function MinSide({
   const { user }: any = await payload.auth({ headers: await getHeaders() })
   if (!user || user.collection !== 'members') redirect('/logg-inn')
 
-  const [eventsRes, postsRes, jobsRes, businessesRes, pressRes, newsletterRes, ownedBusinessesRes]: any =
+  const [eventsRes, postsRes, jobsRes, businessesRes, pressRes, newsletterRes, ownedVerifiedRes, ownedPendingRes]: any =
     await Promise.all([
       payload.find({ collection: 'events', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
       payload.find({ collection: 'posts', where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
@@ -38,6 +38,14 @@ export default async function MinSide({
       payload.find({
         collection: 'businesses',
         where: { and: [{ owner: { equals: user.id } }, { claimStatus: { equals: 'verified' } }] },
+        sort: 'name',
+        limit: 50,
+        depth: 0,
+        overrideAccess: true,
+      }),
+      payload.find({
+        collection: 'businesses',
+        where: { and: [{ owner: { equals: user.id } }, { claimStatus: { equals: 'pending' } }] },
         sort: 'name',
         limit: 50,
         depth: 0,
@@ -54,7 +62,8 @@ export default async function MinSide({
     ...newsletterRes.docs.map((d: any) => ({ ...d, kind: 'Nyhetsbrev' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-  const ownedBusinesses: any[] = ownedBusinessesRes.docs
+  const verifiedBusinesses: any[] = ownedVerifiedRes.docs
+  const pendingBusinesses: any[] = ownedPendingRes.docs
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
@@ -79,11 +88,11 @@ export default async function MinSide({
         </div>
       </section>
 
-      {ownedBusinesses.length > 0 && (
+      {(verifiedBusinesses.length > 0 || pendingBusinesses.length > 0) && (
         <section className="mt-10">
           <h2 className="mb-4 font-serif text-xl font-semibold text-fjord">Mine bedrifter</h2>
           <ul className="divide-y divide-ink/5 rounded-2xl bg-paper ring-1 ring-ink/5">
-            {ownedBusinesses.map((b: any) => (
+            {verifiedBusinesses.map((b: any) => (
               <li key={b.id} className="flex items-center justify-between gap-4 px-5 py-4">
                 <div>
                   <p className="font-medium text-ink">{b.name}</p>
@@ -103,6 +112,17 @@ export default async function MinSide({
                     Rediger
                   </Link>
                 </div>
+              </li>
+            ))}
+            {pendingBusinesses.map((b: any) => (
+              <li key={b.id} className="flex items-center justify-between gap-4 px-5 py-4">
+                <div>
+                  <p className="font-medium text-ink">{b.name}</p>
+                  {b.orgnr && <p className="text-xs text-muted">Org.nr. {b.orgnr}</p>}
+                </div>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                  Venter på godkjenning
+                </span>
               </li>
             ))}
           </ul>

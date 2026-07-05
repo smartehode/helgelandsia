@@ -73,6 +73,10 @@ export default buildConfig({
     meta: {
       titleSuffix: '· Helgeland-portalen',
     },
+    components: {
+      beforeDashboard: ['@/components/admin/PendingOverview'],
+      beforeNavLinks: ['@/components/admin/PendingNavBadges'],
+    },
   },
 
   // ---- Standard rik-tekst-editor ----
