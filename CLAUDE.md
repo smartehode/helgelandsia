@@ -815,6 +815,16 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
   navigasjon: ArrowUp/Down beveger markøren, Enter navigerer til valgt treff,
   Escape lukker dropdown.
 
+**SkipstrafikkBlock — widget-innpakket**
+- `src/components/widgets/ShipTrafficWidget.tsx` utvidet med props:
+  `title? (std 'Skipstrafikk på Helgeland')`, `hoyde?: 'normal'|'lav'`
+  (420 px / 300 px desktop, 300 px / 220 px mobil).
+- `SkipstrafikkBlock` (slug: `skipstrafikk`) lagt til i `layoutBlocks` og `widgetBlocks`.
+- `RenderBlocks.tsx` håndterer `'skipstrafikk'`.
+- Hardkodet skipstrafikk-seksjon fjernet fra `page.tsx` — plasseres i bunn-sonen via admin.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create skipstrafikk-blokk`,
+  leser og herder filen (IF NOT EXISTS), committer med koden.
+
 **Forsiden refaktorert — widget-basert komposisjon**
 - Hardkodede seksjoner "Siste historier" og "Kommende arrangementer" fjernet fra
   `page.tsx`. All innholdslisting styres nå via admin → Widget-områder → sonene.

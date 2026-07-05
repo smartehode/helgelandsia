@@ -1,8 +1,17 @@
-export function ShipTrafficWidget() {
+interface Props {
+  title?: string
+  hoyde?: 'normal' | 'lav'
+}
+
+export function ShipTrafficWidget({ title = 'Skipstrafikk på Helgeland', hoyde = 'normal' }: Props) {
+  const iframeClass = hoyde === 'lav'
+    ? 'block h-[220px] w-full border-0 md:h-[300px]'
+    : 'block h-[300px] w-full border-0 md:h-[420px]'
+
   return (
     <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
       <div className="flex items-center justify-between border-b border-ink/5 px-4 py-3">
-        <h2 className="text-sm font-semibold text-ink">Skipstrafikk på Helgeland</h2>
+        <h2 className="text-sm font-semibold text-ink">{title}</h2>
         <a
           href="https://nais.kystverket.no/"
           target="_blank"
@@ -16,7 +25,7 @@ export function ShipTrafficWidget() {
         src="https://nais.kystverket.no/embed/?datasetIds=aisstream&mapBounds=9.5%2C63.5%3B17.5%2C67.8"
         title="Live skipstrafikk fra Kystverket NAIS"
         loading="lazy"
-        className="block h-[300px] w-full border-0 md:h-[420px]"
+        className={iframeClass}
       />
     </div>
   )

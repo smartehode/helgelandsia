@@ -452,6 +452,24 @@ export const HistorierBlock: Block = {
   ],
 }
 
+export const SkipstrafikkBlock: Block = {
+  slug: 'skipstrafikk',
+  labels: { singular: 'Skipstrafikk (NAIS)', plural: 'Skipstrafikk (NAIS)' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'hoyde',
+      type: 'radio',
+      label: 'Høyde på kart',
+      defaultValue: 'normal',
+      options: [
+        { label: 'Normal – 420 px desktop', value: 'normal' },
+        { label: 'Lav – 300 px desktop', value: 'lav' },
+      ],
+    },
+  ],
+}
+
 export const ArrangementerBlock: Block = {
   slug: 'arrangementer',
   labels: { singular: 'Kommende arrangementer', plural: 'Kommende arrangementer' },
@@ -498,6 +516,7 @@ export const layoutBlocks = [
   HolidaysBlock,
   HistorierBlock,
   ArrangementerBlock,
+  SkipstrafikkBlock,
 ]
 
 export const widgetBlocks = [
@@ -513,4 +532,5 @@ export const widgetBlocks = [
   HolidaysBlock,
   HistorierBlock,
   ArrangementerBlock,
+  SkipstrafikkBlock,
 ]

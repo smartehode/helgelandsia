@@ -4,7 +4,6 @@ import { nb } from 'date-fns/locale'
 import { ForsideSearch } from '@/components/ForsideSearch'
 import { HeroStrip } from '@/components/HeroStrip'
 import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
-import { ShipTrafficWidget } from '@/components/widgets/ShipTrafficWidget'
 import { RenderBlocks } from '@/components/RenderBlocks'
 import { getPayloadClient } from '@/lib/getPayload'
 
@@ -259,11 +258,6 @@ export default async function HomePage() {
         </aside>
 
       </div>
-
-      {/* ── HELGELAND LIVE — skipstrafikk ───────────────────────────────── */}
-      <section className="border-t border-ink/10 py-12">
-        <ShipTrafficWidget />
-      </section>
 
       {/* Bunn-sone — kompakt, 3-kolonners grid */}
       {widgetAreas?.bunn?.length > 0 && (

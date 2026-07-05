@@ -13,6 +13,7 @@ import { CalendarWidget } from '@/components/widgets/CalendarWidget'
 import { AnbudWidget } from '@/components/widgets/AnbudWidget'
 import { HistorierWidget } from '@/components/widgets/HistorierWidget'
 import { ArrangementerWidget } from '@/components/widgets/ArrangementerWidget'
+import { ShipTrafficWidget } from '@/components/widgets/ShipTrafficWidget'
 
 interface RenderBlocksProps {
   blocks: any[]
@@ -150,6 +151,13 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
           title={block.title}
           count={block.count ?? 5}
           variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'skipstrafikk':
+      return (
+        <ShipTrafficWidget
+          title={block.title || undefined}
+          hoyde={(block.hoyde as 'normal' | 'lav') ?? 'normal'}
         />
       )
     case 'featuredPosts':
