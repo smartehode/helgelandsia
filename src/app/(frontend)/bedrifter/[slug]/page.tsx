@@ -20,6 +20,11 @@ function fmtDate(d: string | null | undefined): string {
   return `${dt.getDate()}.${dt.getMonth() + 1}.${dt.getFullYear()}`
 }
 
+function fmtKr(n: number | null | undefined): string {
+  if (n == null) return '—'
+  return new Intl.NumberFormat('nb-NO', { maximumFractionDigits: 0 }).format(n) + ' kr'
+}
+
 async function getBusiness(slug: string) {
   const payload = await getPayloadClient()
   const { docs } = await payload.find({
@@ -64,19 +69,31 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
 
   const payload = await getPayloadClient()
 
-  // Hent underenheter (draft, overrides access) og vis i listen
-  const subunitsResult = b.orgnr
-    ? await payload.find({
-        collection: 'businesses',
-        where: { parentOrgnr: { equals: b.orgnr } },
-        sort: 'name',
-        limit: 50,
-        depth: 0,
-        overrideAccess: true,
-      })
-    : null
+  // Hent underenheter og siste regnskap parallelt
+  const [subunitsResult, regnskapResult] = await Promise.all([
+    b.orgnr
+      ? payload.find({
+          collection: 'businesses',
+          where: { parentOrgnr: { equals: b.orgnr } },
+          sort: 'name',
+          limit: 50,
+          depth: 0,
+          overrideAccess: true,
+        })
+      : null,
+    b.orgnr
+      ? payload.find({
+          collection: 'regnskap' as any,
+          where: { orgnr: { equals: b.orgnr } },
+          sort: '-aar',
+          limit: 1,
+          overrideAccess: true,
+        })
+      : null,
+  ])
 
   const subunits = subunitsResult?.docs ?? []
+  const regnskap: any = (regnskapResult as any)?.docs?.[0] ?? null
   const cat = b.naceCategory ? getCategoryById(b.naceCategory) : null
   const isBrreg = b.source === 'brreg'
 
@@ -180,6 +197,60 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
                   </>
                 )}
               </dl>
+
+              {/* Nøkkeltall fra Regnskapsregisteret */}
+              {regnskap && (
+                <div className="mt-4 border-t border-ink/10 pt-4">
+                  <div className="mb-2 flex items-baseline justify-between gap-2">
+                    <h3 className="text-sm font-semibold uppercase tracking-eyebrow text-muted">
+                      Nøkkeltall ({regnskap.aar})
+                    </h3>
+                    {b.orgnr && (
+                      <a
+                        href={`https://virksomhet.brreg.no/${b.orgnr}`}
+                        target="_blank"
+                        rel="noopener"
+                        className="text-[10px] text-sea hover:underline"
+                      >
+                        Fullstendig årsregnskap →
+                      </a>
+                    )}
+                  </div>
+                  <dl className="grid gap-y-1.5 text-sm sm:grid-cols-2">
+                    {regnskap.omsetning != null && (
+                      <>
+                        <dt className="text-muted">Omsetning</dt>
+                        <dd className="font-medium">{fmtKr(regnskap.omsetning)}</dd>
+                      </>
+                    )}
+                    {regnskap.driftsresultat != null && (
+                      <>
+                        <dt className="text-muted">Driftsresultat</dt>
+                        <dd className={`font-medium ${regnskap.driftsresultat < 0 ? 'text-red-600' : ''}`}>
+                          {fmtKr(regnskap.driftsresultat)}
+                        </dd>
+                      </>
+                    )}
+                    {regnskap.aarsresultat != null && (
+                      <>
+                        <dt className="text-muted">Årsresultat</dt>
+                        <dd className={`font-medium ${regnskap.aarsresultat < 0 ? 'text-red-600' : ''}`}>
+                          {fmtKr(regnskap.aarsresultat)}
+                        </dd>
+                      </>
+                    )}
+                    {regnskap.egenkapital != null && (
+                      <>
+                        <dt className="text-muted">Egenkapital</dt>
+                        <dd className={`font-medium ${regnskap.egenkapital < 0 ? 'text-red-600' : ''}`}>
+                          {fmtKr(regnskap.egenkapital)}
+                        </dd>
+                      </>
+                    )}
+                  </dl>
+                </div>
+              )}
+
               {b.brregLastSynced && (
                 <p className="mt-3 text-[10px] text-muted">
                   Sist oppdatert fra BRREG: {fmtDate(b.brregLastSynced)}

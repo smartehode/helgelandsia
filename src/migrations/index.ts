@@ -17,6 +17,7 @@ import * as migration_20260615_000000_show_on_public_listing from './20260615_00
 import * as migration_20260704_000000_entity_type_to_text from './20260704_000000_entity_type_to_text';
 import * as migration_20260704_005223 from './20260704_005223';
 import * as migration_20260705_061342_doffin_tenders from './20260705_061342_doffin_tenders';
+import * as migration_20260705_100347_regnskap from './20260705_100347_regnskap';
 
 export const migrations = [
   {
@@ -112,6 +113,11 @@ export const migrations = [
   {
     up: migration_20260705_061342_doffin_tenders.up,
     down: migration_20260705_061342_doffin_tenders.down,
-    name: '20260705_061342_doffin_tenders'
+    name: '20260705_061342_doffin_tenders',
+  },
+  {
+    up: migration_20260705_100347_regnskap.up,
+    down: migration_20260705_100347_regnskap.down,
+    name: '20260705_100347_regnskap'
   },
 ];

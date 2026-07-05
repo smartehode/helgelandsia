@@ -58,5 +58,9 @@ export const Members: CollectionConfig = {
       admin: { description: 'Hukes av av stab.' },
       access: { update: isEditor },
     },
+    {
+      name: 'anbudsvarsling', type: 'checkbox', defaultValue: true, label: 'Anbudsvarsling',
+      admin: { description: 'Motta e-post når nye offentlige anbud kan passe for bedriften din.' },
+    },
   ],
 }

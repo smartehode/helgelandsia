@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getPayloadClient } from '@/lib/getPayload'
 import { BUSINESS_CATEGORIES, getCategoryById, publicListingWhere, SHOW_ON_PUBLIC_LISTING_FILTER } from '@/lib/businesses/categories'
+import { kategorierForAnbud } from '@/lib/doffin/match'
 import BedrifterFilters from '@/components/BedrifterFilters'
 import type { Where } from 'payload'
 
@@ -116,6 +117,68 @@ export default async function BedrifterPage({
 
   const payload = await getPayloadClient()
 
+  const nowDate = new Date()
+  const thirtyDaysAgo = new Date(nowDate)
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  // Tre bakgrunnsqueries i parallell: anbud, nyregistrerte og opphørte bedrifter.
+  // registreringsdato = enhet.registreringsdatoEnhetsregisteret (historisk BRREG-dato,
+  // IKKE import-dato) — trygt å filtrere på uten "25 000 nye bedrifter"-fellen.
+  const [allActiveTendersRes, nyregistrerteRes, opphortRes] = await Promise.all([
+    payload.find({
+      collection: 'tenders' as any,
+      where: { status: { equals: 'ACTIVE' } },
+      sort: '-publicationDate',
+      limit: 500,
+      overrideAccess: true,
+      depth: 0,
+    }),
+    payload.find({
+      collection: 'businesses',
+      where: {
+        and: [
+          { _status: { equals: 'published' } },
+          { brregEntityType: { equals: 'hovedenhet' } },
+          { registreringsdato: { greater_than_equal: thirtyDaysAgo.toISOString() } },
+        ],
+      },
+      sort: '-registreringsdato',
+      limit: 10,
+      depth: 0,
+      overrideAccess: true,
+    }),
+    payload.find({
+      collection: 'businesses',
+      where: {
+        and: [
+          { _status: { equals: 'published' } },
+          { brregStatus: { in: ['konkurs', 'underAvvikling'] } },
+        ],
+      },
+      sort: 'name',
+      limit: 10,
+      depth: 0,
+      overrideAccess: true,
+    }),
+  ])
+
+  const allActiveTenders: any[] = allActiveTendersRes.docs
+  const nyregistrerte: any[] = nyregistrerteRes.docs
+  const opphort: any[] = opphortRes.docs
+
+  // Kategoritelling: ett anbud kan treffe flere kategorier (flere CPV-koder)
+  const tenderCountPerCategory: Record<string, number> = {}
+  for (const t of allActiveTenders) {
+    for (const catId of kategorierForAnbud(t)) {
+      tenderCountPerCategory[catId] = (tenderCountPerCategory[catId] ?? 0) + 1
+    }
+  }
+
+  // Siste 5 med ikke-passert frist (for "Siste offentlige anbud"-seksjonen)
+  const latestTenders = allActiveTenders
+    .filter(t => !t.deadline || new Date(t.deadline) > nowDate)
+    .slice(0, 5)
+
   // Bygger base-where for søket. ENK inkluderes når toggle er på ELLER det er et tekstsøk.
   // showOnPublicListing filtreres alltid — ENK-bypassen fjerner kun Enkeltpersonforetak-kravet.
   const buildSearchWhere = (extra: Where[]): Where => {
@@ -209,6 +272,7 @@ export default async function BedrifterPage({
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           {BUSINESS_CATEGORIES.map((cat, i) => {
             const count = catCounts[i]?.totalDocs ?? 0
+            const tenderCount = tenderCountPerCategory[cat.id] ?? 0
             return (
               <Link
                 key={cat.id}
@@ -217,7 +281,12 @@ export default async function BedrifterPage({
               >
                 <span className="text-2xl leading-none">{cat.icon}</span>
                 <span className="text-[11px] font-medium leading-tight text-ink">{cat.label}</span>
-                <span className="text-[10px] tabular-nums text-muted">{count.toLocaleString('nb')}</span>
+                <span className="text-[10px] tabular-nums text-muted">{count.toLocaleString('nb')} bedrifter</span>
+                {tenderCount > 0 && (
+                  <span className="rounded-full bg-sea/10 px-2 py-0.5 text-[9px] font-medium text-sea">
+                    {tenderCount} anbud
+                  </span>
+                )}
               </Link>
             )
           })}
@@ -250,6 +319,148 @@ export default async function BedrifterPage({
             <p className="py-16 text-center text-muted">Prøv et annet søk eller filter.</p>
           )}
           <Pagination page={side} totalPages={totalPages} searchParams={searchParamsForPagination} />
+        </section>
+      )}
+
+      {/* Nytt på Helgeland — nyregistrerte og opphørte bedrifter */}
+      {(nyregistrerte.length > 0 || opphort.length > 0) && (
+        <section className="mt-12 border-t border-ink/10 pt-10">
+          <h2 className="mb-6 font-serif text-xl font-semibold text-ink">Nytt på Helgeland</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+
+            {nyregistrerte.length > 0 && (
+              <div>
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
+                  Nyregistrerte siste 30 dager
+                </h3>
+                <ul className="divide-y divide-ink/5 rounded-2xl bg-paper ring-1 ring-ink/5">
+                  {nyregistrerte.map((b: any) => {
+                    const cat = b.naceCategory ? getCategoryById(b.naceCategory) : null
+                    const regDato = b.registreringsdato
+                      ? new Date(b.registreringsdato).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
+                      : null
+                    return (
+                      <li key={b.id}>
+                        <Link
+                          href={`/bedrifter/${b.slug}`}
+                          className="group flex items-start justify-between gap-3 px-5 py-3 transition hover:bg-fog/50"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-ink transition group-hover:text-sea">
+                              {b.name}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted">
+                              {b.kommunenavn}
+                              {cat && ` · ${cat.icon} ${cat.label}`}
+                            </p>
+                          </div>
+                          {regDato && (
+                            <span className="shrink-0 text-xs text-muted">{regDato}</span>
+                          )}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {opphort.length > 0 && (
+              <div>
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
+                  Konkurs & avvikling (nåværende status)
+                </h3>
+                <ul className="divide-y divide-ink/5 rounded-2xl bg-paper ring-1 ring-ink/5">
+                  {opphort.map((b: any) => {
+                    const cat = b.naceCategory ? getCategoryById(b.naceCategory) : null
+                    const isKonkurs = b.brregStatus === 'konkurs'
+                    return (
+                      <li key={b.id}>
+                        <Link
+                          href={`/bedrifter/${b.slug}`}
+                          className="group flex items-start justify-between gap-3 px-5 py-3 transition hover:bg-fog/50"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-ink transition group-hover:text-sea">
+                              {b.name}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted">
+                              {b.kommunenavn}
+                              {cat && ` · ${cat.icon} ${cat.label}`}
+                            </p>
+                          </div>
+                          <span className={`shrink-0 text-[11px] font-semibold ${isKonkurs ? 'text-red-600' : 'text-amber-600'}`}>
+                            {isKonkurs ? 'Konkurs' : 'Under avvikling'}
+                          </span>
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+                <p className="mt-2 text-[11px] text-muted">
+                  Kilde: Brønnøysundregistrene. Dato for statusendring lagres ikke.
+                </p>
+              </div>
+            )}
+
+          </div>
+        </section>
+      )}
+
+      {/* Siste offentlige anbud — skjules helt hvis ingen anbud i basen */}
+      {latestTenders.length > 0 && (
+        <section className="mt-12 border-t border-ink/10 pt-10">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-eyebrow text-muted">
+            Siste offentlige anbud
+          </h2>
+          <ul className="divide-y divide-ink/5 rounded-2xl bg-paper ring-1 ring-ink/5">
+            {latestTenders.map((t: any) => {
+              const days = t.deadline
+                ? Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86_400_000)
+                : null
+              return (
+                <li key={t.id}>
+                  <a
+                    href={t.doffinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-start justify-between gap-4 px-5 py-4 transition hover:bg-fog/50"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-ink transition group-hover:text-sea">
+                        {t.title}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted">
+                        {t.buyerName}
+                        {t.municipality && ` · ${t.municipality}`}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {t.deadline ? (
+                        <>
+                          <p className="text-xs text-muted">
+                            {new Date(t.deadline).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })}
+                          </p>
+                          {days !== null && days <= 14 && (
+                            <span className={`text-[10px] font-semibold ${days <= 7 ? 'text-red-600' : 'text-amber-600'}`}>
+                              {days === 0 ? 'I dag' : days === 1 ? '1 dag' : `${days} dager`}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-xs italic text-muted">Ingen frist</p>
+                      )}
+                    </div>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+          <div className="mt-3 text-right">
+            <Link href="/anbud" className="text-sm text-sea underline-offset-2 hover:underline">
+              Se alle Nordland-anbud →
+            </Link>
+          </div>
         </section>
       )}
     </div>

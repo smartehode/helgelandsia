@@ -1,11 +1,14 @@
 import { headers as getHeaders } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import Link from 'next/link'
 import { getPayloadClient } from '@/lib/getPayload'
 import { LogoutButton } from '@/components/LogoutButton'
 import { SubmissionTabs } from '@/components/SubmissionTabs'
+import { filtrerAktuelleAnbud } from '@/lib/doffin/match'
+import { getNoticeTypeLabel } from '@/lib/doffin/cpv'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Min side' }
@@ -64,6 +67,37 @@ export default async function MinSide({
 
   const verifiedBusinesses: any[] = ownedVerifiedRes.docs
   const pendingBusinesses: any[] = ownedPendingRes.docs
+
+  const toggleAnbudsvarsling = async () => {
+    'use server'
+    const p = await getPayloadClient()
+    await p.update({
+      collection: 'members',
+      id: user.id,
+      data: { anbudsvarsling: user.anbudsvarsling === false } as any,
+      overrideAccess: true,
+    })
+    revalidatePath('/min-side')
+    redirect('/min-side')
+  }
+
+  // Hent aktive anbud én gang — brukes til matching mot alle verifiserte bedrifter.
+  // NaN-guard: hopp over hvis ingen verifiserte bedrifter (unødvendig DB-kall).
+  let activeTenders: any[] = []
+  if (verifiedBusinesses.length > 0) {
+    const now = new Date()
+    const tendersRes: any = await payload.find({
+      collection: 'tenders' as any,
+      where: { status: { equals: 'ACTIVE' } },
+      limit: 200,
+      sort: 'deadline',
+      overrideAccess: true,
+    })
+    // Fjern anbud med passert frist (synken oppdateres daglig — kan ligge litt etter)
+    activeTenders = (tendersRes.docs as any[]).filter(
+      (t: any) => !t.deadline || new Date(t.deadline) > now,
+    )
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16">
@@ -128,6 +162,105 @@ export default async function MinSide({
           </ul>
         </section>
       )}
+
+      {verifiedBusinesses.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-4 font-serif text-xl font-semibold text-fjord">Varsler</h2>
+          <div className="rounded-2xl bg-paper px-5 py-4 ring-1 ring-ink/5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-medium text-ink">Anbudsvarsling</p>
+                <p className="mt-0.5 text-xs text-muted">
+                  Motta e-post ved nye offentlige anbud som kan passe for bedriften din.
+                </p>
+              </div>
+              <form action={toggleAnbudsvarsling} className="shrink-0">
+                <button
+                  type="submit"
+                  className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
+                    user.anbudsvarsling !== false
+                      ? 'bg-sea text-white hover:bg-fjord'
+                      : 'bg-fog text-ink/60 hover:bg-ink/10'
+                  }`}
+                >
+                  {user.anbudsvarsling !== false ? 'På' : 'Av'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {verifiedBusinesses.map((b: any) => {
+        const matched = filtrerAktuelleAnbud(activeTenders, b.naceKode, 10)
+        return (
+          <section key={`anbud-${b.id}`} className="mt-10">
+            <div className="mb-1 flex items-baseline gap-2">
+              <h2 className="font-serif text-xl font-semibold text-fjord">Aktuelle anbud</h2>
+              {verifiedBusinesses.length > 1 && (
+                <span className="text-sm text-muted">for {b.name}</span>
+              )}
+            </div>
+            <p className="mb-4 text-xs text-muted">
+              Basert på bedriftens bransje (NACE) og anbudenes kategorier (CPV).{' '}
+              <Link href="/anbud" className="underline underline-offset-2 hover:text-sea">
+                Se alle Nordland-anbud →
+              </Link>
+            </p>
+            {matched.length === 0 ? (
+              <div className="rounded-2xl bg-paper px-5 py-4 text-sm text-muted ring-1 ring-ink/5">
+                Ingen aktuelle anbud akkurat nå.
+              </div>
+            ) : (
+              <ul className="divide-y divide-ink/5 rounded-2xl bg-paper ring-1 ring-ink/5">
+                {matched.map((t: any) => {
+                  const days = t.deadline
+                    ? Math.ceil((new Date(t.deadline).getTime() - Date.now()) / 86_400_000)
+                    : null
+                  return (
+                    <li key={t.id}>
+                      <a
+                        href={t.doffinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-start justify-between gap-4 px-5 py-4 hover:bg-fog/50 transition"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-ink group-hover:text-sea transition">
+                            {t.title}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted">
+                            {t.buyerName}
+                            {t.municipality && ` · ${t.municipality}`}
+                            {' · '}
+                            {getNoticeTypeLabel(t.noticeType)}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          {t.deadline ? (
+                            <>
+                              <p className="text-xs text-muted">
+                                {format(new Date(t.deadline), 'd. MMM', { locale: nb })}
+                              </p>
+                              {days !== null && days <= 14 && (
+                                <span className={`text-[10px] font-semibold ${days <= 7 ? 'text-red-600' : 'text-amber-600'}`}>
+                                  {days === 0 ? 'I dag' : days === 1 ? '1 dag' : `${days} dager`}
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-xs text-muted italic">Ingen frist</p>
+                          )}
+                        </div>
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </section>
+        )
+      })}
 
       <section className="mt-10">
         <h2 className="mb-4 font-serif text-xl font-semibold text-fjord">Mine innsendinger</h2>

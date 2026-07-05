@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 import type { DoffinSearchHit, DoffinSearchResponse, DoffinNoticeDetail, SyncResult } from './types'
+import { sendTenderDigests } from '../email/tender-digest'
 
 const API_BASE = 'https://api.doffin.no/webclient/api/v2'
 const USER_AGENT = 'Helgelandsia/1.0 (helgelandsia.no)'
@@ -94,7 +95,8 @@ function deriveKommune(buyers: { name: string }[]): string | null {
 }
 
 export async function runDoffinSync(payload: Payload): Promise<SyncResult> {
-  const result: SyncResult = { created: 0, updated: 0, expired: 0, errors: 0, total: 0 }
+  const result: SyncResult = { created: 0, updated: 0, expired: 0, errors: 0, total: 0, notified: 0 }
+  const createdTenders: any[] = []
 
   // Hent alle aktive Nordland-kunngjøringer (paginert, 1-indeksert)
   const allHits = new Map<string, DoffinSearchHit>()
@@ -144,7 +146,7 @@ export async function runDoffinSync(payload: Payload): Promise<SyncResult> {
           result.errors++
         }
 
-        await payload.create({
+        const newDoc = await payload.create({
           collection: 'tenders' as any,
           data: {
             doffinId: hit.id,
@@ -166,6 +168,7 @@ export async function runDoffinSync(payload: Payload): Promise<SyncResult> {
           } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           overrideAccess: true,
         })
+        createdTenders.push(newDoc)
         result.created++
       } else {
         // Eksisterende — oppdater kun status/frist/synkdato
@@ -185,6 +188,21 @@ export async function runDoffinSync(payload: Payload): Promise<SyncResult> {
       payload.logger.error(`[Doffin] Feil ved upsert ${hit.id}: ${err}`)
       result.errors++
     }
+  }
+
+  // Send e-postvarsler om nye anbud — KUN når TENDER_DIGEST_ENABLED=true.
+  // Standard er av, slik at koden kan deployes og testes uten utilsiktet utsending.
+  // Aktiver bevisst i prod: sett TENDER_DIGEST_ENABLED=true i Docker Compose-env.
+  if (createdTenders.length > 0 && process.env.TENDER_DIGEST_ENABLED === 'true') {
+    try {
+      const { notified } = await sendTenderDigests(payload, createdTenders)
+      result.notified = notified
+      payload.logger.info(`[Doffin] E-postvarsler sendt: ${notified}`)
+    } catch (err) {
+      payload.logger.error(`[Doffin] sendTenderDigests feilet: ${err}`)
+    }
+  } else if (createdTenders.length > 0) {
+    payload.logger.info(`[Doffin] ${createdTenders.length} nye anbud — varsling deaktivert (TENDER_DIGEST_ENABLED ikke satt)`)
   }
 
   // Marker utgåtte: aktive i DB men ikke lenger i Doffin-resultatlisten

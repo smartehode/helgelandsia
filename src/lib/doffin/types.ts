@@ -50,4 +50,5 @@ export interface SyncResult {
   expired: number
   errors: number
   total: number
+  notified: number
 }

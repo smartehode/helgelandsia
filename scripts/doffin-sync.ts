@@ -33,7 +33,7 @@ async function main() {
   try {
     const result = await runDoffinSync(payload)
     payload.logger.info(
-      `[Doffin-synk] Ferdig — opprettet: ${result.created}, oppdatert: ${result.updated}, utgått: ${result.expired}, feil: ${result.errors}, totalt sett: ${result.total}`,
+      `[Doffin-synk] Ferdig — opprettet: ${result.created}, oppdatert: ${result.updated}, utgått: ${result.expired}, varsler sendt: ${result.notified}, feil: ${result.errors}, totalt sett: ${result.total}`,
     )
     process.exit(result.errors > 0 ? 1 : 0)
   } catch (err) {

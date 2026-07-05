@@ -59,6 +59,45 @@ export function forgotPasswordHtml(token: string): string {
   `)
 }
 
+export function tenderDigestHtml(params: {
+  name: string
+  entries: { businessName: string; tenders: { title: string; buyerName: string; deadline: string | null; doffinUrl: string }[] }[]
+}): string {
+  const { name, entries } = params
+  const totalCount = entries.reduce((s, e) => s + e.tenders.length, 0)
+
+  const entriesHtml = entries.map(({ businessName, tenders }) => {
+    const rows = tenders.map(t => {
+      const deadline = t.deadline
+        ? new Date(t.deadline).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })
+        : 'Ingen frist oppgitt'
+      return `
+<tr>
+<td style="padding:12px 16px;border-bottom:1px solid ${BORDER};">
+  <a href="${t.doffinUrl}" style="font-size:14px;font-weight:600;color:${SEA};text-decoration:none;">${t.title}</a>
+  <p style="margin:4px 0 0;font-size:12px;color:${MUTED};">${t.buyerName} &middot; Frist: ${deadline}</p>
+</td>
+</tr>`
+    }).join('')
+    return `
+<p style="font-size:14px;font-weight:bold;color:${FJORD};margin:20px 0 8px;">${businessName}</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+  style="border:1px solid ${BORDER};border-radius:8px;overflow:hidden;">
+${rows}
+</table>`
+  }).join('')
+
+  return wrap(`
+<h1 style="${h1}">Nye anbud som kan passe din bedrift</h1>
+<p style="${p}">Hei${name ? ' ' + name : ''},</p>
+<p style="${p}">Vi fant ${totalCount === 1 ? 'ett nytt anbud' : `${totalCount} nye anbud`} i Doffin som kan være aktuelle for din bedrift på Helgelandsia.</p>
+${entriesHtml}
+<p style="margin-top:24px;"><a href="${BASE_URL}/anbud" style="${btn}">Se alle Nordland-anbud</a></p>
+<p style="${sm}">Du mottar disse varslene fordi du har en verifisert bedriftsprofil på Helgelandsia.<br/>
+Du kan skru av varslingen på <a href="${BASE_URL}/min-side" style="color:${SEA};">Min side</a>.</p>
+  `)
+}
+
 export function submissionApprovedHtml(params: {
   name: string
   contentType: string

@@ -82,6 +82,7 @@ export interface Config {
     pages: Page;
     'brreg-sync-jobs': BrregSyncJob;
     tenders: Tender;
+    regnskap: Regnskap;
     members: Member;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -104,6 +105,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     'brreg-sync-jobs': BrregSyncJobsSelect<false> | BrregSyncJobsSelect<true>;
     tenders: TendersSelect<false> | TendersSelect<true>;
+    regnskap: RegnskapSelect<false> | RegnskapSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -370,6 +372,10 @@ export interface Member {
    * Hukes av av stab.
    */
   approved?: boolean | null;
+  /**
+   * Motta e-post når nye offentlige anbud kan passe for bedriften din.
+   */
+  anbudsvarsling?: boolean | null;
   sub?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -1042,6 +1048,25 @@ export interface Tender {
   createdAt: string;
 }
 /**
+ * Nøkkeltall fra Regnskapsregisteret — synkroniseres månedlig.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "regnskap".
+ */
+export interface Regnskap {
+  id: number;
+  orgnr: string;
+  aar: number;
+  omsetning?: number | null;
+  driftsresultat?: number | null;
+  aarsresultat?: number | null;
+  egenkapital?: number | null;
+  valuta?: string | null;
+  hentetDato: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1120,6 +1145,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tenders';
         value: number | Tender;
+      } | null)
+    | ({
+        relationTo: 'regnskap';
+        value: number | Regnskap;
       } | null)
     | ({
         relationTo: 'members';
@@ -1747,6 +1776,22 @@ export interface TendersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "regnskap_select".
+ */
+export interface RegnskapSelect<T extends boolean = true> {
+  orgnr?: T;
+  aar?: T;
+  omsetning?: T;
+  driftsresultat?: T;
+  aarsresultat?: T;
+  egenkapital?: T;
+  valuta?: T;
+  hentetDato?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "members_select".
  */
 export interface MembersSelect<T extends boolean = true> {
@@ -1755,6 +1800,7 @@ export interface MembersSelect<T extends boolean = true> {
   bio?: T;
   memberType?: T;
   approved?: T;
+  anbudsvarsling?: T;
   sub?: T;
   updatedAt?: T;
   createdAt?: T;

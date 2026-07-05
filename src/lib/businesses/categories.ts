@@ -24,7 +24,7 @@ export const BUSINESS_CATEGORIES: BusinessCategory[] = [
 ]
 
 // Oppslag: 2-sifret NACE-divisjon → kategori-id
-const NACE_PREFIX_MAP = new Map<string, string>()
+export const NACE_PREFIX_MAP = new Map<string, string>()
 for (const cat of BUSINESS_CATEGORIES) {
   for (const prefix of cat.nace) {
     NACE_PREFIX_MAP.set(prefix, cat.id)

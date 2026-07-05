@@ -681,7 +681,80 @@ Drift (2026-07-05):
 - CPV↔NACE-mapping klar i src/lib/doffin/cpv.ts (CPV_TO_NACE_SECTION) —
   fundament for matching bedrift↔anbud (neste trinn).
 
+### 2026-07-05 — tillegg: Anbud trinn 2 (matching)
+
+- "Aktuelle anbud for din bedrift" på Min side for verifiserte bedrifter.
+- src/lib/doffin/match.ts: SN2007-tabell (NACE-divisjon → seksjon A–U),
+  naceSeksjonFraKode (NaN-safe, regel 10), matching via CPV_TO_NACE_SECTION
+  mot anbudets hoved- + tilleggskoder. Maks 10, frist-guard, sortert på frist.
+- VIKTIG lærdom: NACE og CPV deler divisjonsnumre men IKKE betydning
+  (NACE 45 = bilhandel/G, CPV 45 = bygg/F) — aldri sammenlign koder direkte,
+  alltid via mappingtabellene.
+- Matching er på seksjonsnivå i v1 (grov, ærlig). Finkorning til
+  divisjonsnivå er kjent forbedring.
+
+### 2026-07-05 — Anbud utvidet + Regnskapstall-modul
+
+**Bedriftskatalog-utvidelser (frontend, ingen skjemaendring)**
+- «Siste offentlige anbud»-seksjon nederst på /bedrifter: 5 nyeste aktive anbud,
+  skjules om DB er tom.
+- Bransjegrid: antall aktive anbud per kategori som badge (bg-sea/10 text-sea).
+  Én query henter alle ~500 aktive anbud; in-memory telling via `kategorierForAnbud`.
+  `kategorierForAnbud` eksportert fra match.ts — oversetter CPV-divisjon til
+  NACE-seksjon → kategori-ID via prekomputert `SEKSJON_TO_CAT_IDS`-map.
+- «Nytt på Helgeland»-feed på /bedrifter: to-kolonnersgrид, venstre nyregistrerte
+  (siste 30 dager, brregEntityType=hovedenhet, registreringsdato-filter), høyre
+  opphørte (brregStatus in ['konkurs','underAvvikling']). Maks 10 per kolonne.
+  Fotnote: «Dato for statusendring lagres ikke» (opphørtdato finnes ikke i data).
+
+**Anbud trinn 3: E-postvarsling ved nye anbud**
+- `src/lib/email/tender-digest.ts` — `sendTenderDigests(payload, newTenders)`.
+  Henter alle verifiserte bedrifter med owner+naceKode. Bygger digest per eier
+  (én e-post per eier per synkkjøring, ikke én per anbud). NaN-guard: depth:0
+  → biz.owner er numerisk ID, sjekkes med typeof === 'number'.
+  Opt-out: `member.anbudsvarsling === false` → hopp over.
+- `src/lib/email/templates.ts` — `tenderDigestHtml(params)` lagt til.
+  Per-bedrift-seksjoner i samme e-post, opt-out-merknad med lenke til Min side.
+- `src/lib/doffin/sync.ts` — nye anbud samles i `createdTenders[]`; kaller
+  `sendTenderDigests` etter upsert-løkken. `notified` telles i SyncResult.
+- `src/collections/Members.ts` — felt `anbudsvarsling` (checkbox, default true).
+  **MIGRASJON MANGLER** — eieren kjører `npx payload migrate:create anbudsvarsling-members`
+  og verifiserer `ADD COLUMN IF NOT EXISTS "anbudsvarsling" boolean DEFAULT true`.
+- `src/app/(frontend)/min-side/page.tsx` — «Varsler»-seksjon med På/Av-toggle
+  (server action `toggleAnbudsvarsling`). Vises kun til eiere med verifisert bedrift.
+
+**Regnskapstall-modul (ny)**
+- `src/collections/Regnskap.ts` — ny collection (slug: `regnskap`, UTEN drafts).
+  Felt: orgnr (text, index), aar (number, index), omsetning, driftsresultat,
+  aarsresultat, egenkapital (alle number, nullable), valuta (text), hentetDato (date).
+  Ingen Payload-nivå unik constraint — håndteres i synkskript (find+upsert) og
+  migrasjonsindeks.
+- Registrert i payload.config.ts.
+- **MIGRASJON MANGLER** — eieren kjører `npx payload migrate:create regnskap`,
+  leser filen (regel 3), herder til idempotent (regel 8):
+  - `CREATE TABLE IF NOT EXISTS regnskap ...`
+  - `CREATE UNIQUE INDEX IF NOT EXISTS regnskap_orgnr_aar ON regnskap (orgnr, aar)`
+- `scripts/regnskap-sync.ts` — henter siste årsregnskap fra
+  `data.brreg.no/regnskapsregisteret/regnskap/{orgnr}`. Filtrerer: source=brreg,
+  brregEntityType=hovedenhet, organisasjonsform≠Enkeltpersonforetak.
+  Upsert på (orgnr, aar) — historikk akkumuleres over tid.
+  404 = skip (telles som hoppet over, ikke feil). 150 ms sleep mellom kall.
+  Per-100-batch-logging. Flagg: `--kommune NNNN`, `--limit N`.
+  `extractAmount()` håndterer { value: N }, { offentligVerdi: N } og flat tall.
+  `parseRegnskapsApiResponse()` prøver nøstet+flat struktur for alle fire felter.
+- `/bedrifter/[slug]` — regnskap hentes parallelt med underenheter. Vises som
+  «Nøkkeltall (ÅÅÅÅ)»-seksjon med strek i Registerdata-boksen. Negative tall
+  vises i text-red-600. Lenke «Fullstendig årsregnskap →» til virksomhet.brreg.no.
+  `fmtKr(n)` formatter med nb-NO-locale (1 234 567 kr).
+- **IKKE deployet** — lokal test FØR commit: `npx tsx scripts/regnskap-sync.ts --kommune 1833 --limit 50`
+
 ## GJENSTÅR
+- **MIGRASJON: anbudsvarsling-members** — kjør `npx payload migrate:create anbudsvarsling-members`,
+  verifiser `ADD COLUMN IF NOT EXISTS "anbudsvarsling" boolean DEFAULT true`
+- **MIGRASJON: regnskap** — kjør `npx payload migrate:create regnskap`, herd til idempotent
+  (IF NOT EXISTS + unik indeks på orgnr+aar), commit begge filer
+- **LOKAL TEST: regnskap-synk** — `npx tsx scripts/regnskap-sync.ts --kommune 1833 --limit 50`
+  → se output → ev. full Rana: `--kommune 1833` → deploy først etter vellykket test
 - CSP: observer Report-Only noen dager → bytt til enforced i Caddyfile
 - Rate limiting på skjemaer (claim, innsending, kontakt-endepunktet er
   førstekandidat)
@@ -689,11 +762,9 @@ Drift (2026-07-05):
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
 - applefavicon.png mangler i public/ (kosmetisk, spammer dev-logg)
-- Verifiser: /var/log/brreg-sync.log etter 04:30 (første automatiske kjøring)
 - Rette gjenværende «hoofdenhet»-kommentarer i sync.ts (kosmetisk)
-- Anbud trinn 2: matching på Min side («Aktuelle anbud for din bedrift»
-  via NACE↔CPV), evt. på fremhevede bedriftsprofiler
-- Anbud trinn 3: e-postvarsling ved nye matchende anbud (medlems-/
-  fremhevet-fordel, Resend)
+- Matching finkorning: divisjonsnivå + evt. vis på fremhevede profiler
 - Vurder langsiktig: Doffins offisielle subscription-API hvis webclient-
   API-et endrer seg
+- Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
+  akkumulert data over tid
