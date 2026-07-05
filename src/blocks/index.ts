@@ -1,8 +1,23 @@
-import type { Block } from 'payload'
+import type { Block, Field } from 'payload'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 
 // Gjenbrukbare layout-blokker for fleksible sider.
 // Redaktøren stabler disse i ønsket rekkefølge i adminpanelet.
+
+const breddeField: Field = {
+  name: 'bredde',
+  type: 'select',
+  label: 'Bredde i sonen',
+  defaultValue: '1',
+  admin: {
+    description: 'Hvor bredt elementet skal stå i sone-gridet.',
+  },
+  options: [
+    { label: '1 kolonne', value: '1' },
+    { label: '2 kolonner', value: '2' },
+    { label: 'Full bredde', value: 'full' },
+  ],
+}
 
 export const HeroBlock: Block = {
   slug: 'hero',
@@ -19,6 +34,7 @@ export const HeroBlock: Block = {
         { name: 'ctaUrl', type: 'text', label: 'Knappelenke', admin: { width: '50%' } },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -27,6 +43,7 @@ export const RichTextBlock: Block = {
   labels: { singular: 'Tekstseksjon', plural: 'Tekstseksjoner' },
   fields: [
     { name: 'content', type: 'richText', editor: lexicalEditor(), required: true },
+    breddeField,
   ],
 }
 
@@ -42,6 +59,7 @@ export const FeaturedPostsBlock: Block = {
       hasMany: true,
       label: 'Velg artikler',
     },
+    breddeField,
   ],
 }
 
@@ -57,6 +75,7 @@ export const BusinessListBlock: Block = {
       label: 'Filtrer på kategori (valgfritt)',
     },
     { name: 'limit', type: 'number', defaultValue: 6, label: 'Antall' },
+    breddeField,
   ],
 }
 
@@ -66,6 +85,7 @@ export const EventListBlock: Block = {
   fields: [
     { name: 'heading', type: 'text', label: 'Seksjonstittel' },
     { name: 'limit', type: 'number', defaultValue: 6, label: 'Antall' },
+    breddeField,
   ],
 }
 
@@ -77,6 +97,7 @@ export const CTABlock: Block = {
     { name: 'text', type: 'textarea' },
     { name: 'buttonLabel', type: 'text' },
     { name: 'buttonUrl', type: 'text' },
+    breddeField,
   ],
 }
 
@@ -108,6 +129,7 @@ export const PowerPricesBlock: Block = {
         { label: 'Kompakt – kun nåpris og min/maks', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -151,6 +173,7 @@ export const WeatherBlock: Block = {
         { label: 'Kompakt – kun nåværende vær', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -201,6 +224,7 @@ export const FlightsBlock: Block = {
         { label: 'Kompakt – kun tid, flightnummer og destinasjon', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -228,6 +252,7 @@ export const NavJobsBlock: Block = {
         { label: 'Kompakt – tittel og arbeidsgiver', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -267,6 +292,7 @@ export const NewsBlock: Block = {
         { label: 'Kompakt – tittel og kilde', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -293,6 +319,7 @@ export const BrregBlock: Block = {
         { label: 'Kompakt – navn og kommune', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -337,6 +364,7 @@ export const WebcamBlock: Block = {
         { label: 'Kompakt – kun kamera', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -368,6 +396,7 @@ export const CurrencyBlock: Block = {
         { label: 'Kompakt – kun pris', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -395,6 +424,7 @@ export const AnbudBlock: Block = {
         { label: 'Kompakt – tittel og frist', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -422,6 +452,7 @@ export const HolidaysBlock: Block = {
         { label: 'Kompakt – navn og dager til', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -449,6 +480,7 @@ export const HistorierBlock: Block = {
         { label: 'Kompakt – tittel og dato', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -467,6 +499,7 @@ export const SkipstrafikkBlock: Block = {
         { label: 'Lav – 300 px desktop', value: 'lav' },
       ],
     },
+    breddeField,
   ],
 }
 
@@ -494,6 +527,7 @@ export const ArrangementerBlock: Block = {
         { label: 'Kompakt – dato og tittel', value: 'kompakt' },
       ],
     },
+    breddeField,
   ],
 }
 

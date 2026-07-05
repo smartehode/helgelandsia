@@ -234,18 +234,25 @@ export default async function HomePage() {
         {/* Midten-sone: historier, arrangementer og andre admin-blokker */}
         <div>
           {widgetAreas?.midten?.length > 0 && (
-            <div className="space-y-10">
-              <RenderBlocks blocks={widgetAreas.midten} />
-            </div>
+            <RenderBlocks
+              blocks={widgetAreas.midten}
+              kolonner={(widgetAreas.midtenKolonner as '1' | '2' | '3' | '4') ?? '2'}
+              gap="gap-8"
+            />
           )}
         </div>
 
         {/* Sidefelt: admin-konfigurerte blokker, ellers webkamera som standard */}
-        <aside className="space-y-4 lg:sticky lg:top-6">
+        <aside className="lg:sticky lg:top-6">
           {widgetAreas?.sidefelt?.length > 0 ? (
-            <RenderBlocks blocks={widgetAreas.sidefelt} forceVariant="kompakt" />
+            <RenderBlocks
+              blocks={widgetAreas.sidefelt}
+              forceVariant="kompakt"
+              kolonner={(widgetAreas.sidefeltKolonner as '1' | '2' | '3' | '4') ?? '1'}
+              gap="gap-4"
+            />
           ) : (
-            <>
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-ink">Helgeland live</p>
                 <Link href="/nyttig" className="text-xs font-medium text-sea transition hover:underline">
@@ -253,18 +260,21 @@ export default async function HomePage() {
                 </Link>
               </div>
               <WebcamWeatherWidget title="" />
-            </>
+            </div>
           )}
         </aside>
 
       </div>
 
-      {/* Bunn-sone — kompakt, 3-kolonners grid */}
+      {/* Bunn-sone — kompakt, kolonnetall fra admin */}
       {widgetAreas?.bunn?.length > 0 && (
         <section className="border-t border-ink/10 py-12">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <RenderBlocks blocks={widgetAreas.bunn} forceVariant="kompakt" />
-          </div>
+          <RenderBlocks
+            blocks={widgetAreas.bunn}
+            forceVariant="kompakt"
+            kolonner={(widgetAreas.bunnKolonner as '1' | '2' | '3' | '4') ?? '3'}
+            gap="gap-4"
+          />
         </section>
       )}
 

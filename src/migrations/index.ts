@@ -24,6 +24,8 @@ import * as migration_20260705_175634_historier_arrangementer_blokker from './20
 import * as migration_20260705_175739_test_tom from './20260705_175739_test_tom';
 import * as migration_20260705_181403_skipstrafikk_blokk from './20260705_181403_skipstrafikk_blokk';
 import * as migration_20260705_181414_test_tom from './20260705_181414_test_tom';
+import * as migration_20260705_231004_widget_layout_control from './20260705_231004_widget_layout_control';
+import * as migration_20260705_231027_test_tom from './20260705_231027_test_tom';
 
 export const migrations = [
   {
@@ -154,6 +156,16 @@ export const migrations = [
   {
     up: migration_20260705_181414_test_tom.up,
     down: migration_20260705_181414_test_tom.down,
-    name: '20260705_181414_test_tom'
+    name: '20260705_181414_test_tom',
+  },
+  {
+    up: migration_20260705_231004_widget_layout_control.up,
+    down: migration_20260705_231004_widget_layout_control.down,
+    name: '20260705_231004_widget_layout_control',
+  },
+  {
+    up: migration_20260705_231027_test_tom.up,
+    down: migration_20260705_231027_test_tom.down,
+    name: '20260705_231027_test_tom'
   },
 ];

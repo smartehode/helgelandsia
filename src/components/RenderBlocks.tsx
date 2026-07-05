@@ -15,19 +15,41 @@ import { HistorierWidget } from '@/components/widgets/HistorierWidget'
 import { ArrangementerWidget } from '@/components/widgets/ArrangementerWidget'
 import { ShipTrafficWidget } from '@/components/widgets/ShipTrafficWidget'
 
+// All class strings must be complete literals — Tailwind cannot detect dynamically built names.
+const GRID_COLS: Record<string, string> = {
+  '1': 'grid-cols-1',
+  '2': 'grid-cols-1 sm:grid-cols-2',
+  '3': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+  '4': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+}
+
+const COL_SPAN: Record<string, string> = {
+  '1': '',
+  '2': 'sm:col-span-2',
+  'full': 'col-span-full',
+}
+
 interface RenderBlocksProps {
   blocks: any[]
   forceVariant?: WidgetVariant
+  kolonner?: '1' | '2' | '3' | '4'
+  gap?: 'gap-4' | 'gap-6' | 'gap-8' | 'gap-10'
 }
 
-export function RenderBlocks({ blocks, forceVariant }: RenderBlocksProps) {
+export function RenderBlocks({ blocks, forceVariant, kolonner = '1', gap = 'gap-6' }: RenderBlocksProps) {
   if (!blocks?.length) return null
+  const gridCols = GRID_COLS[kolonner] ?? 'grid-cols-1'
   return (
-    <>
-      {blocks.map((block, i) => (
-        <BlockSwitch key={block.id ?? i} block={block} forceVariant={forceVariant} />
-      ))}
-    </>
+    <div className={`grid ${gridCols} ${gap}`}>
+      {blocks.map((block, i) => {
+        const span = COL_SPAN[(block.bredde as string) ?? '1'] ?? ''
+        return (
+          <div key={block.id ?? i} className={span || undefined}>
+            <BlockSwitch block={block} forceVariant={forceVariant} />
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
