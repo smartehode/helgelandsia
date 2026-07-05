@@ -81,6 +81,7 @@ export interface Config {
     ads: Ad;
     pages: Page;
     'brreg-sync-jobs': BrregSyncJob;
+    tenders: Tender;
     members: Member;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -102,6 +103,7 @@ export interface Config {
     ads: AdsSelect<false> | AdsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     'brreg-sync-jobs': BrregSyncJobsSelect<false> | BrregSyncJobsSelect<true>;
+    tenders: TendersSelect<false> | TendersSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -968,6 +970,78 @@ export interface BrregSyncJob {
   createdAt: string;
 }
 /**
+ * Offentlige anskaffelser fra Doffin — synkroniseres automatisk daglig.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenders".
+ */
+export interface Tender {
+  id: number;
+  /**
+   * Unik Doffin-ID — settes av synkjobben og skal aldri endres manuelt.
+   */
+  doffinId: string;
+  title: string;
+  description?: string | null;
+  buyerName: string;
+  buyerOrgNr?: string | null;
+  /**
+   * Utledet fra oppdragsgivers navn — null for nasjonale/regionale ordninger.
+   */
+  municipality?: string | null;
+  /**
+   * Rå Doffin-kunngjøringstype (f.eks. ANNOUNCEMENT_OF_COMPETITION).
+   */
+  noticeType?: string | null;
+  status: 'ACTIVE' | 'EXPIRED' | 'AWARDED' | 'CANCELLED';
+  publicationDate?: string | null;
+  deadline?: string | null;
+  /**
+   * 8-sifret CPV-kode (directCpvCodes[0] fra Doffin).
+   */
+  cpvHovedkode?: string | null;
+  /**
+   * Array med alle direktetilknyttede CPV-koder (directCpvCodes fra Doffin).
+   */
+  cpvTilleggskoder?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * NUTS-regionkoder — f.eks. ["NO082"] for Nordland.
+   */
+  locationId?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Klartekst-leveringssteder (f.eks. ["Nordland"]).
+   */
+  placeOfPerformance?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  doffinUrl: string;
+  lastSynced: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -1042,6 +1116,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'brreg-sync-jobs';
         value: number | BrregSyncJob;
+      } | null)
+    | ({
+        relationTo: 'tenders';
+        value: number | Tender;
       } | null)
     | ({
         relationTo: 'members';
@@ -1640,6 +1718,30 @@ export interface BrregSyncJobsSelect<T extends boolean = true> {
   skipped?: T;
   errors?: T;
   errorMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenders_select".
+ */
+export interface TendersSelect<T extends boolean = true> {
+  doffinId?: T;
+  title?: T;
+  description?: T;
+  buyerName?: T;
+  buyerOrgNr?: T;
+  municipality?: T;
+  noticeType?: T;
+  status?: T;
+  publicationDate?: T;
+  deadline?: T;
+  cpvHovedkode?: T;
+  cpvTilleggskoder?: T;
+  locationId?: T;
+  placeOfPerformance?: T;
+  doffinUrl?: T;
+  lastSynced?: T;
   updatedAt?: T;
   createdAt?: T;
 }

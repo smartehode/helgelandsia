@@ -25,6 +25,7 @@ import { Ads } from './src/collections/Ads'
 import { Pages } from './src/collections/Pages'
 import { Members } from './src/collections/Members'
 import { BRREGSyncJobs } from './src/collections/BRREGSyncJobs'
+import { Tenders } from './src/collections/Tenders'
 import { googleOAuth } from './src/oauth/google'
 
 // Globals
@@ -52,6 +53,7 @@ const DEFAULT_NAV = [
   { label: 'Stillinger', url: '/stillinger' },
   { label: 'Pressemeldinger', url: '/pressemeldinger' },
   { label: 'Nyhetsbrev', url: '/nyhetsbrev' },
+  { label: 'Anbud', url: '/anbud' },
   { label: 'Min side', url: '/min-side' },
 ]
 
@@ -105,6 +107,7 @@ export default buildConfig({
     Ads,
     Pages,
     BRREGSyncJobs,
+    Tenders,
   ],
   globals: [SiteSettings, Hero, Header, Footer, WidgetAreas],
 

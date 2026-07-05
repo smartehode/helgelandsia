@@ -16,6 +16,7 @@ import * as migration_20260613_220725_brreg_extended_fields from './20260613_220
 import * as migration_20260615_000000_show_on_public_listing from './20260615_000000_show_on_public_listing';
 import * as migration_20260704_000000_entity_type_to_text from './20260704_000000_entity_type_to_text';
 import * as migration_20260704_005223 from './20260704_005223';
+import * as migration_20260705_061342_doffin_tenders from './20260705_061342_doffin_tenders';
 
 export const migrations = [
   {
@@ -106,6 +107,11 @@ export const migrations = [
   {
     up: migration_20260704_005223.up,
     down: migration_20260704_005223.down,
-    name: '20260704_005223'
+    name: '20260704_005223',
+  },
+  {
+    up: migration_20260705_061342_doffin_tenders.up,
+    down: migration_20260705_061342_doffin_tenders.down,
+    name: '20260705_061342_doffin_tenders'
   },
 ];
