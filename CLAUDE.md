@@ -665,6 +665,22 @@ Drift (2026-07-05):
   docker system prune -af. Logger: /var/log/brreg-sync.log og
   /var/log/docker-prune.log.
 
+### 2026-07-05 — Anbudsmodul (Doffin) v1
+
+- Ny collection Tenders (UTEN drafts — offisielle synk-data, ingen
+  godkjenningsflyt, dermed ingen versjonstabell). Migrasjon
+  20260705_061342_doffin_tenders.
+- Doffin-synk: scripts/doffin-sync.ts mot Doffins webclient-API (uoffisielt
+  — kan endres uten varsel; synken feiler da kontrollert med logg).
+  Søk gir IKKE CPV — detaljendepunktet kalles én gang per NYTT anbud.
+  Facet-format: objekt {location: {checkedItems}}, 1-indeksert "page",
+  sortBy: 'RELEVANCE'. Kunngjøringstyper oversettes til norsk før visning.
+- /anbud: offentlig liste, kun Nordland (NUTS-kode verifisert mot faktisk
+  respons — første forsøk NO082+NO072 dro inn Troms).
+- Cron 04:45 daglig → /var/log/doffin-sync.log.
+- CPV↔NACE-mapping klar i src/lib/doffin/cpv.ts (CPV_TO_NACE_SECTION) —
+  fundament for matching bedrift↔anbud (neste trinn).
+
 ## GJENSTÅR
 - CSP: observer Report-Only noen dager → bytt til enforced i Caddyfile
 - Rate limiting på skjemaer (claim, innsending, kontakt-endepunktet er
@@ -675,3 +691,9 @@ Drift (2026-07-05):
 - applefavicon.png mangler i public/ (kosmetisk, spammer dev-logg)
 - Verifiser: /var/log/brreg-sync.log etter 04:30 (første automatiske kjøring)
 - Rette gjenværende «hoofdenhet»-kommentarer i sync.ts (kosmetisk)
+- Anbud trinn 2: matching på Min side («Aktuelle anbud for din bedrift»
+  via NACE↔CPV), evt. på fremhevede bedriftsprofiler
+- Anbud trinn 3: e-postvarsling ved nye matchende anbud (medlems-/
+  fremhevet-fordel, Resend)
+- Vurder langsiktig: Doffins offisielle subscription-API hvis webclient-
+  API-et endrer seg
