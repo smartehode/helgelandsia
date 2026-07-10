@@ -531,6 +531,34 @@ export const ArrangementerBlock: Block = {
   ],
 }
 
+export const PolitiloggBlock: Block = {
+  slug: 'politilogg',
+  labels: { singular: 'Politiloggen Helgeland', plural: 'Politiloggen Helgeland' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall meldinger',
+      defaultValue: 5,
+      min: 1,
+      max: 20,
+      admin: { description: '1–20 siste politimeldinger fra Helgeland-kommunene.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – kategori, sted, tid og tekst (3 linjer)', value: 'full' },
+        { label: 'Kompakt – kategori, sted og tekst (1 linje)', value: 'kompakt' },
+      ],
+    },
+    breddeField,
+  ],
+}
+
 export const layoutBlocks = [
   HeroBlock,
   RichTextBlock,
@@ -551,6 +579,7 @@ export const layoutBlocks = [
   HistorierBlock,
   ArrangementerBlock,
   SkipstrafikkBlock,
+  PolitiloggBlock,
 ]
 
 export const widgetBlocks = [
@@ -567,4 +596,5 @@ export const widgetBlocks = [
   HistorierBlock,
   ArrangementerBlock,
   SkipstrafikkBlock,
+  PolitiloggBlock,
 ]

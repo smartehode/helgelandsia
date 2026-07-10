@@ -844,6 +844,54 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 - **SKJEMAENDRING** — eieren kjører `npx payload migrate:create historier-arrangementer-blokker`,
   leser filen (sjekk ingen DROP, legg til IF NOT EXISTS), committer med koden.
 
+### 2026-07-10 — WidgetAreas layoutkontroll + PolitiWidget
+
+**WidgetAreas layoutkontroll per sone og blokk**
+- `src/globals/Sidebar.ts` — 4 nye `kolonner`-felt (select 1/2/3/4) lagt til
+  rett før hvert blokk-felt: `fremhevetKolonner` (std 1), `sidefeltKolonner`
+  (std 1), `midtenKolonner` (std 2), `bunnKolonner` (std 3). Norske labels
+  og descriptions.
+- `src/blocks/index.ts` — felles `breddeField` (select: '1 kolonne'/'2 kolonner'/
+  'Full bredde', std '1') lagt til alle 19 blokker. Importerer `Field` fra 'payload'.
+- `src/components/RenderBlocks.tsx` — ny `GRID_COLS`- og `COL_SPAN`-mapping
+  (alle Tailwind-klasser skrevet komplett — ingen dynamisk bygging). `RenderBlocks`
+  wrapper nå i `<div className="grid ...">` med `kolonner`- og `gap`-props.
+  Hver blokk pakkes i `<div className={col-span ...}>`.
+- `src/app/(frontend)/page.tsx` — hardkodede grid-wrappers rundt sonene fjernet.
+  Alle tre soner sender `kolonner={widgetAreas.*Kolonner ?? default}` og `gap`
+  til `RenderBlocks`. Fallback-webkamera-wrapper bruker `space-y-4` lokalt.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create widget-layout-control`,
+  leser og herder (IF NOT EXISTS for alle ADD COLUMN), committer med koden.
+  Ny migrasjon kan inneholde mange tabeller (19 blokk-tabeller + sidefelt-global).
+
+**PolitiWidget (Politiloggen)**
+- `src/components/widgets/PolitiWidget.tsx` — async RSC.
+  API: `api.politiloggen.politiet.no/messages?Districts=Nordland&Take=50`,
+  `revalidate: 300`, `User-Agent: helgelandsia.no`.
+  Lisens: NLOD 2.0 — offisielt og åpent, ingen API-nøkkel kreves.
+  Filtrerer på 18 Helgeland-kommuner (lowercase-match, case-insensitiv).
+  Meløy (1837 = Salten) er bevisst UTELATT fra kommunelisten.
+  Dedup på `threadId` — beholder kun nyeste melding per hendelse (saksforløp).
+  Grønn prikk for pågående hendelser (isActive=true).
+  Kategorifargede badges (15 kategorier). Relativ tid < 24t, dato etter det.
+  Props: `title?`, `count? 1–20 (std 5)`, `variant? full|kompakt`.
+  Feil/tom liste → return null.
+  CSP: ingen endring i Caddyfile — henting skjer server-side (aldri browser).
+- `PolitiloggBlock` (slug: `politilogg`) lagt til i `layoutBlocks`, `widgetBlocks`
+  og `RenderBlocks` (case 'politilogg'). Har `breddeField` som alle andre.
+- **SKJEMAENDRING** — dekkes av `widget-layout-control`-migrasjonen over
+  (ny blokk-tabell for politilogg opprettes automatisk). Alternativt: eieren
+  kjører én samlet migrasjon etter begge sett med endringer.
+
+**Politiloggen API — tekniske funn (fra utforskning)**
+- Base-URL: `https://api.politiloggen.politiet.no`
+- Swagger-spec: `/swagger/v1/swagger.json` (OpenAPI 3.0)
+- Nordland-parameternavn: `Districts=Nordland` (ikke `Nordland politidistrikt`)
+- Maks `Take=50` per kall. `DateFrom`/`DateTo` støttet for historikk.
+- Volum Nordland: ~15 meldinger/dag, ~5–10 Helgeland/dag.
+- Rana alene: 28 meldinger over 10 dager (2–3/dag).
+- ThreadId-mekanisme: `id = <threadId>-<oppdatering>`, `isEdited=true` markerer oppdatering.
+
 ## GJENSTÅR
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
 - Bransje-percentiler Helgeland (SQL over regnskap per nace_category —
@@ -862,4 +910,6 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 - Matching finkorning: divisjonsnivå + evt. vis på fremhevede profiler
 - Vurder langsiktig: Doffins offisielle subscription-API hvis webclient-
   API-et endrer seg
-- Migrasjoner som gjenstår å kjøre: `fremhevet-sone`, `anbud-widget`
+- BrregWidget.tsx har bug: inkluderer 1837 (Meløy), mangler 1833 (Rana)
+- Migrasjoner som gjenstår å kjøre: `fremhevet-sone`, `anbud-widget`,
+  `widget-layout-control` (dekker også politilogg-blokk)

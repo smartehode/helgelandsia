@@ -1041,6 +1041,21 @@ export interface Page {
             blockName?: string | null;
             blockType: 'skipstrafikk';
           }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste politimeldinger fra Helgeland-kommunene.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'politilogg';
+          }
       )[]
     | null;
   meta?: {
@@ -1879,6 +1894,16 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        politilogg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -2430,6 +2455,21 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'skipstrafikk';
           }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste politimeldinger fra Helgeland-kommunene.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'politilogg';
+          }
       )[]
     | null;
   /**
@@ -2654,6 +2694,21 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'skipstrafikk';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste politimeldinger fra Helgeland-kommunene.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'politilogg';
           }
       )[]
     | null;
@@ -2880,6 +2935,21 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'skipstrafikk';
           }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste politimeldinger fra Helgeland-kommunene.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'politilogg';
+          }
       )[]
     | null;
   /**
@@ -3104,6 +3174,21 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'skipstrafikk';
+          }
+        | {
+            title?: string | null;
+            /**
+             * 1–20 siste politimeldinger fra Helgeland-kommunene.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'politilogg';
           }
       )[]
     | null;
@@ -3418,6 +3503,16 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        politilogg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   sidefeltKolonner?: T;
   sidefelt?:
@@ -3574,6 +3669,16 @@ export interface SidefeltSelect<T extends boolean = true> {
           | {
               title?: T;
               hoyde?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        politilogg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
               bredde?: T;
               id?: T;
               blockName?: T;
@@ -3738,6 +3843,16 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        politilogg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   bunnKolonner?: T;
   bunn?:
@@ -3894,6 +4009,16 @@ export interface SidefeltSelect<T extends boolean = true> {
           | {
               title?: T;
               hoyde?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        politilogg?:
+          | T
+          | {
+              title?: T;
+              count?: T;
+              variant?: T;
               bredde?: T;
               id?: T;
               blockName?: T;
