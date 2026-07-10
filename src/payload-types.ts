@@ -772,6 +772,10 @@ export interface Page {
               };
               [k: string]: unknown;
             };
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'richText';
@@ -779,6 +783,10 @@ export interface Page {
         | {
             heading?: string | null;
             posts?: (number | Post)[] | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'featuredPosts';
@@ -787,6 +795,10 @@ export interface Page {
             heading?: string | null;
             category?: (number | null) | Category;
             limit?: number | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'businessList';
@@ -794,6 +806,10 @@ export interface Page {
         | {
             heading?: string | null;
             limit?: number | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'eventList';
@@ -803,6 +819,10 @@ export interface Page {
             text?: string | null;
             buttonLabel?: string | null;
             buttonUrl?: string | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'cta';
@@ -811,6 +831,10 @@ export interface Page {
             title?: string | null;
             zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'powerPrices';
@@ -833,6 +857,10 @@ export interface Page {
              */
             days?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'weather';
@@ -846,6 +874,10 @@ export interface Page {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'flights';
@@ -857,6 +889,10 @@ export interface Page {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'navJobs';
@@ -868,6 +904,10 @@ export interface Page {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'anbud';
@@ -880,6 +920,10 @@ export interface Page {
             sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'news';
@@ -888,6 +932,10 @@ export interface Page {
             title?: string | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'brreg';
@@ -914,6 +962,10 @@ export interface Page {
                 }[]
               | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'webcam';
@@ -925,6 +977,10 @@ export interface Page {
              */
             show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'currency';
@@ -936,6 +992,10 @@ export interface Page {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'holidays';
@@ -947,6 +1007,10 @@ export interface Page {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'historier';
@@ -958,9 +1022,24 @@ export interface Page {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'arrangementer';
+          }
+        | {
+            title?: string | null;
+            hoyde?: ('normal' | 'lav') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'skipstrafikk';
           }
       )[]
     | null;
@@ -986,6 +1065,10 @@ export interface HeroBlock {
   image?: (number | null) | Media;
   ctaLabel?: string | null;
   ctaUrl?: string | null;
+  /**
+   * Hvor bredt elementet skal stå i sone-gridet.
+   */
+  bredde?: ('1' | '2' | 'full') | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'hero';
@@ -1598,6 +1681,7 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               content?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1606,6 +1690,7 @@ export interface PagesSelect<T extends boolean = true> {
           | {
               heading?: T;
               posts?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1615,6 +1700,7 @@ export interface PagesSelect<T extends boolean = true> {
               heading?: T;
               category?: T;
               limit?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1623,6 +1709,7 @@ export interface PagesSelect<T extends boolean = true> {
           | {
               heading?: T;
               limit?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1633,6 +1720,7 @@ export interface PagesSelect<T extends boolean = true> {
               text?: T;
               buttonLabel?: T;
               buttonUrl?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1642,6 +1730,7 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               zone?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1659,6 +1748,7 @@ export interface PagesSelect<T extends boolean = true> {
                   };
               days?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1670,6 +1760,7 @@ export interface PagesSelect<T extends boolean = true> {
               direction?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1679,6 +1770,7 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1688,6 +1780,7 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1698,6 +1791,7 @@ export interface PagesSelect<T extends boolean = true> {
               sources?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1707,6 +1801,7 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1731,6 +1826,7 @@ export interface PagesSelect<T extends boolean = true> {
                     id?: T;
                   };
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1740,6 +1836,7 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               show?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1749,6 +1846,7 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1758,6 +1856,7 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1767,6 +1866,16 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        skipstrafikk?:
+          | T
+          | {
+              title?: T;
+              hoyde?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -1792,6 +1901,7 @@ export interface HeroBlockSelect<T extends boolean = true> {
   image?: T;
   ctaLabel?: T;
   ctaUrl?: T;
+  bredde?: T;
   id?: T;
   blockName?: T;
 }
@@ -2018,13 +2128,17 @@ export interface Footer {
   createdAt?: string | null;
 }
 /**
- * Widgets som vises i tre soner på forsiden.
+ * Widgets og layout-soner på forsiden.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "sidefelt".
  */
 export interface Sidefelt {
   id: number;
+  /**
+   * Antall kolonner i fremhevet sone (desktop). Mobil er alltid 1, tablet maks 2.
+   */
+  fremhevetKolonner?: ('1' | '2' | '3' | '4') | null;
   /**
    * Full bredde under navigasjonskortene. Bruk «Fremhevede historier»-blokken til å plukke ut ekslusive artikler og saker.
    */
@@ -2047,6 +2161,10 @@ export interface Sidefelt {
               };
               [k: string]: unknown;
             };
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'richText';
@@ -2054,6 +2172,10 @@ export interface Sidefelt {
         | {
             heading?: string | null;
             posts?: (number | Post)[] | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'featuredPosts';
@@ -2062,6 +2184,10 @@ export interface Sidefelt {
             heading?: string | null;
             category?: (number | null) | Category;
             limit?: number | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'businessList';
@@ -2069,6 +2195,10 @@ export interface Sidefelt {
         | {
             heading?: string | null;
             limit?: number | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'eventList';
@@ -2078,6 +2208,10 @@ export interface Sidefelt {
             text?: string | null;
             buttonLabel?: string | null;
             buttonUrl?: string | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'cta';
@@ -2086,6 +2220,10 @@ export interface Sidefelt {
             title?: string | null;
             zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'powerPrices';
@@ -2108,6 +2246,10 @@ export interface Sidefelt {
              */
             days?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'weather';
@@ -2121,6 +2263,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'flights';
@@ -2132,6 +2278,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'navJobs';
@@ -2143,6 +2293,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'anbud';
@@ -2155,6 +2309,10 @@ export interface Sidefelt {
             sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'news';
@@ -2163,6 +2321,10 @@ export interface Sidefelt {
             title?: string | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'brreg';
@@ -2189,6 +2351,10 @@ export interface Sidefelt {
                 }[]
               | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'webcam';
@@ -2200,6 +2366,10 @@ export interface Sidefelt {
              */
             show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'currency';
@@ -2211,6 +2381,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'holidays';
@@ -2222,6 +2396,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'historier';
@@ -2233,12 +2411,31 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'arrangementer';
           }
+        | {
+            title?: string | null;
+            hoyde?: ('normal' | 'lav') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'skipstrafikk';
+          }
       )[]
     | null;
+  /**
+   * Antall kolonner i sidefeltet. Nesten alltid 1 — sidefeltet er smal (340 px).
+   */
+  sidefeltKolonner?: ('1' | '2' | '3' | '4') | null;
   /**
    * Kompakt variant. Vises i høyrespalten ved siden av innholdet på store skjermer.
    */
@@ -2248,6 +2445,10 @@ export interface Sidefelt {
             title?: string | null;
             zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'powerPrices';
@@ -2270,6 +2471,10 @@ export interface Sidefelt {
              */
             days?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'weather';
@@ -2283,6 +2488,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'flights';
@@ -2294,6 +2503,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'navJobs';
@@ -2305,6 +2518,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'anbud';
@@ -2317,6 +2534,10 @@ export interface Sidefelt {
             sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'news';
@@ -2325,6 +2546,10 @@ export interface Sidefelt {
             title?: string | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'brreg';
@@ -2351,6 +2576,10 @@ export interface Sidefelt {
                 }[]
               | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'webcam';
@@ -2362,6 +2591,10 @@ export interface Sidefelt {
              */
             show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'currency';
@@ -2373,6 +2606,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'holidays';
@@ -2384,6 +2621,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'historier';
@@ -2395,14 +2636,33 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'arrangementer';
           }
+        | {
+            title?: string | null;
+            hoyde?: ('normal' | 'lav') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'skipstrafikk';
+          }
       )[]
     | null;
   /**
-   * Full variant. Vises mellom "Fremhevede historier" og annonsen, i et 2-kolonners grid.
+   * Antall kolonner midt på forsiden. Standard 2 — historier og arrangementer side om side.
+   */
+  midtenKolonner?: ('1' | '2' | '3' | '4') | null;
+  /**
+   * Vises mellom «Fremhevet sone» og sidefeltet. Kolonnetall styres av feltet over.
    */
   midten?:
     | (
@@ -2410,6 +2670,10 @@ export interface Sidefelt {
             title?: string | null;
             zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'powerPrices';
@@ -2432,6 +2696,10 @@ export interface Sidefelt {
              */
             days?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'weather';
@@ -2445,6 +2713,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'flights';
@@ -2456,6 +2728,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'navJobs';
@@ -2467,6 +2743,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'anbud';
@@ -2479,6 +2759,10 @@ export interface Sidefelt {
             sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'news';
@@ -2487,6 +2771,10 @@ export interface Sidefelt {
             title?: string | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'brreg';
@@ -2513,6 +2801,10 @@ export interface Sidefelt {
                 }[]
               | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'webcam';
@@ -2524,6 +2816,10 @@ export interface Sidefelt {
              */
             show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'currency';
@@ -2535,6 +2831,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'holidays';
@@ -2546,6 +2846,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'historier';
@@ -2557,14 +2861,33 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'arrangementer';
           }
+        | {
+            title?: string | null;
+            hoyde?: ('normal' | 'lav') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'skipstrafikk';
+          }
       )[]
     | null;
   /**
-   * Kompakt variant. Vises som full-bredde stripe rett over footeren, i et 3-kolonners grid.
+   * Antall kolonner i bunnsonen. Standard 3 — kompakt stripe over footeren.
+   */
+  bunnKolonner?: ('1' | '2' | '3' | '4') | null;
+  /**
+   * Kompakt variant. Full-bredde stripe rett over footeren. Kolonnetall styres av feltet over.
    */
   bunn?:
     | (
@@ -2572,6 +2895,10 @@ export interface Sidefelt {
             title?: string | null;
             zone?: ('NO1' | 'NO2' | 'NO3' | 'NO4' | 'NO5') | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'powerPrices';
@@ -2594,6 +2921,10 @@ export interface Sidefelt {
              */
             days?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'weather';
@@ -2607,6 +2938,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'flights';
@@ -2618,6 +2953,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'navJobs';
@@ -2629,6 +2968,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'anbud';
@@ -2641,6 +2984,10 @@ export interface Sidefelt {
             sources?: ('BAnett' | 'Helgelendingen' | 'Helgelands Blad' | 'NRK Nordland')[] | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'news';
@@ -2649,6 +2996,10 @@ export interface Sidefelt {
             title?: string | null;
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'brreg';
@@ -2675,6 +3026,10 @@ export interface Sidefelt {
                 }[]
               | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'webcam';
@@ -2686,6 +3041,10 @@ export interface Sidefelt {
              */
             show?: ('usd' | 'eur' | 'btc' | 'brent')[] | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'currency';
@@ -2697,6 +3056,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'holidays';
@@ -2708,6 +3071,10 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'historier';
@@ -2719,9 +3086,24 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'arrangementer';
+          }
+        | {
+            title?: string | null;
+            hoyde?: ('normal' | 'lav') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'skipstrafikk';
           }
       )[]
     | null;
@@ -2829,6 +3211,7 @@ export interface FooterSelect<T extends boolean = true> {
  * via the `definition` "sidefelt_select".
  */
 export interface SidefeltSelect<T extends boolean = true> {
+  fremhevetKolonner?: T;
   fremhevet?:
     | T
     | {
@@ -2837,6 +3220,7 @@ export interface SidefeltSelect<T extends boolean = true> {
           | T
           | {
               content?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2845,6 +3229,7 @@ export interface SidefeltSelect<T extends boolean = true> {
           | {
               heading?: T;
               posts?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2854,6 +3239,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               heading?: T;
               category?: T;
               limit?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2862,6 +3248,7 @@ export interface SidefeltSelect<T extends boolean = true> {
           | {
               heading?: T;
               limit?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2872,6 +3259,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               text?: T;
               buttonLabel?: T;
               buttonUrl?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2881,6 +3269,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               zone?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2898,6 +3287,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                   };
               days?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2909,6 +3299,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               direction?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2918,6 +3309,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2927,6 +3319,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2937,6 +3330,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               sources?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2946,6 +3340,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2970,6 +3365,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                     id?: T;
                   };
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2979,6 +3375,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               show?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2988,6 +3385,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -2997,6 +3395,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3006,10 +3405,21 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        skipstrafikk?:
+          | T
+          | {
+              title?: T;
+              hoyde?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
       };
+  sidefeltKolonner?: T;
   sidefelt?:
     | T
     | {
@@ -3019,6 +3429,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               zone?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3036,6 +3447,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                   };
               days?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3047,6 +3459,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               direction?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3056,6 +3469,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3065,6 +3479,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3075,6 +3490,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               sources?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3084,6 +3500,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3108,6 +3525,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                     id?: T;
                   };
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3117,6 +3535,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               show?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3126,6 +3545,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3135,6 +3555,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3144,10 +3565,21 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        skipstrafikk?:
+          | T
+          | {
+              title?: T;
+              hoyde?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
       };
+  midtenKolonner?: T;
   midten?:
     | T
     | {
@@ -3157,6 +3589,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               zone?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3174,6 +3607,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                   };
               days?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3185,6 +3619,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               direction?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3194,6 +3629,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3203,6 +3639,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3213,6 +3650,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               sources?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3222,6 +3660,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3246,6 +3685,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                     id?: T;
                   };
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3255,6 +3695,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               show?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3264,6 +3705,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3273,6 +3715,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3282,10 +3725,21 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        skipstrafikk?:
+          | T
+          | {
+              title?: T;
+              hoyde?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
       };
+  bunnKolonner?: T;
   bunn?:
     | T
     | {
@@ -3295,6 +3749,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               zone?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3312,6 +3767,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                   };
               days?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3323,6 +3779,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               direction?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3332,6 +3789,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3341,6 +3799,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3351,6 +3810,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               sources?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3360,6 +3820,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3384,6 +3845,7 @@ export interface SidefeltSelect<T extends boolean = true> {
                     id?: T;
                   };
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3393,6 +3855,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               show?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3402,6 +3865,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3411,6 +3875,7 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
@@ -3420,6 +3885,16 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        skipstrafikk?:
+          | T
+          | {
+              title?: T;
+              hoyde?: T;
+              bredde?: T;
               id?: T;
               blockName?: T;
             };
