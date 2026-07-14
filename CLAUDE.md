@@ -928,7 +928,6 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
   genereres ved månedlig synk, tydelig merket som KI + kildeår)
 - Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
   akkumulert data over tid
-- CSP: observer Report-Only noen dager → bytt til enforced i Caddyfile
 - Rate limiting: skjemaer (claim, innsending, kontakt-endepunktet) OG
   /api/sok (er offentlig, ingen autentisering — bør ha IP-basert throttle)
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)

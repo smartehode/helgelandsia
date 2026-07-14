@@ -22,27 +22,39 @@
         -Server
 
         # -----------------------------------------------------------------------
-        # Content-Security-Policy-Report-Only
+        # Content-Security-Policy (ENFORCED)
         #
-        # Kjøres i observasjonsmodus — ingenting blokkeres, men brudd rapporteres
-        # til nettleserkonsollen (og evt. report-uri). Bytt til
-        # Content-Security-Policy når vi er trygge på at ingenting knekker.
-        #
-        # Treff å forvente (og som er akseptert):
+        # Treff akseptert av design:
         #   script-src 'unsafe-inline'  — Next.js __NEXT_DATA__ hydration
         #   style-src  'unsafe-inline'  — Payload-admin + ev. inline styles
         #
         # Klientside img-src utenom 'self':
-        #   Webkameraene i WebcamWeatherWidget (6 faste domener)
+        #   Webkamera (6 domener, WebcamWeatherClient):
+        #     weathercam.herokuapp.com    — Brønnøysunds Avis
+        #     webcam.havbrukssenter.no    — Norsk Havbrukssenter
+        #     www.velfjordferie.no        — Velfjordferie
+        #     ftp.hald-ikt.no             — Alstahaug / Båtforeningen
+        #     kamera.atlas.vegvesen.no    — Vegvesenet
+        #     infohelgeland.no            — Mosjøen Båtforening
+        #   Nyhetsbilder (NewsWidget/NewsCarousel — servert via <img> i browser):
+        #     vcdn.polarismedia.no        — BAnett artikkelbilder (Polaris CDN)
+        #     www.hblad.no                — Helgelands Blad (WordPress)
+        #     gfx.nrk.no                  — NRK artikkelbilder
+        #     static.nrk.no               — NRK statiske bilder
         #
         # Klientside connect-src utenom 'self':
-        #   api.open-meteo.com  — vær (WebcamWeatherClient)
-        #   date.nager.at       — helligdager (CalendarClient)
+        #   api.open-meteo.com  — vær (WebcamWeatherClient, 30 min klient-cache)
+        #   date.nager.at       — helligdager (CalendarClient, ved månedsskifte)
+        #
+        # Politilogg, anbud, regnskap, BRREG, NAV, Avinor, strøm, valuta —
+        # alle hentes server-side (async RSC). Ingen CSP-kilde nødvendig.
+        #
+        # ForsideSearch: kaller /api/sok = 'self'. OK.
         #
         # frame-src:
         #   www.openstreetmap.org  — kart-iframe på /bedrifter/[slug]
-        #   nais.kystverket.no     — skipstrafikk-widget på forsiden
+        #   nais.kystverket.no     — skipstrafikk-widget
         # -----------------------------------------------------------------------
-        Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://weathercam.herokuapp.com https://webcam.havbrukssenter.no https://www.velfjordferie.no https://ftp.hald-ikt.no https://kamera.atlas.vegvesen.no https://infohelgeland.no; connect-src 'self' https://api.open-meteo.com https://date.nager.at; frame-src https://www.openstreetmap.org https://nais.kystverket.no; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://weathercam.herokuapp.com https://webcam.havbrukssenter.no https://www.velfjordferie.no https://ftp.hald-ikt.no https://kamera.atlas.vegvesen.no https://infohelgeland.no https://vcdn.polarismedia.no https://www.hblad.no https://gfx.nrk.no https://static.nrk.no; connect-src 'self' https://api.open-meteo.com https://date.nager.at; frame-src https://www.openstreetmap.org https://nais.kystverket.no; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
     }
 }
