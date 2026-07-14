@@ -80,6 +80,13 @@ i admin før publisering.
     (Hendelse 2026-07-05: tender-digest bygget uten bestilling; neste
     nattlige cron ville sendt e-post til medlemmer. Oppdaget via git status
     før commit. Fikset med TENDER_DIGEST_ENABLED-brems.)
+18. DEPLOY-SJEKKLISTE — obligatorisk før HVER git push:
+    a) `npx payload migrate:create` MÅ svare «No schema changes detected».
+       Sier den noe annet: generer migrasjonen, les den, herd med
+       IF NOT EXISTS på alle ADD COLUMN, commit SAMMEN med koden.
+    b) Svar N på «blank migration?» — aldri la tom test_tom-fil havne i repo.
+    (Bakgrunn: widget-globalen har knekt prod FIRE ganger av samme årsak —
+    kode med schemaendring deployet uten migrasjon. Sist: politilogg 2026-07-14.)
 
 ## Drift — nødkommandoer
 
@@ -892,6 +899,27 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 - Rana alene: 28 meldinger over 10 dager (2–3/dag).
 - ThreadId-mekanisme: `id = <threadId>-<oppdatering>`, `isEdited=true` markerer oppdatering.
 
+### 2026-07-15 — Favicon-oppsett
+
+**Favicon og apple-touch-icon (ingen skjemaendring)**
+- `src/app/icon.tsx` — 32×32 «H» på fjord-bakgrunn via `ImageResponse`. Servert av
+  Next.js App Router som `/icon.png`; `<link rel="icon">` settes automatisk i `<head>`.
+- `src/app/apple-icon.tsx` — 180×180 versjon for iOS/Safari. Servert som `/apple-icon.png`;
+  `<link rel="apple-touch-icon">` settes automatisk i `<head>`.
+- `src/app/applefavicon.png/route.ts` — 301-redirect til `/apple-icon.png`.
+  Årsak: noe (browser-utvidelse eller Next.js DevTools) sender `GET /applefavicon.png`
+  til dev-serveren; filen fantes ikke → 404 i dev-loggen. Ingen referanse ble funnet
+  i kodebasen — kilden er browser-side, ikke server-side.
+
+### 2026-07-14 — PolitiWidget i prod + deploy-lærdom
+
+- PolitiWidget deployet og fungerer i prod. Migrasjon `20260714_194716`
+  ble glemt ved første deploy → widget-globalen svarte not-found i prod;
+  migrasjonen ble ettersendt. Incident dokumentert som grunn for REGEL 18.
+- Lokal PC vs. server-forveksling notert to ganger denne økta:
+  `PS D:\` = lokalt (kode, commit, push); `root@helgelandsia` = server
+  (pull, build, logs). Aldri rediger filer på serveren — kun via git.
+
 ## GJENSTÅR
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
 - Bransje-percentiler Helgeland (SQL over regnskap per nace_category —
@@ -906,7 +934,6 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
-- applefavicon.png mangler i public/ (kosmetisk, spammer dev-logg)
 - Matching finkorning: divisjonsnivå + evt. vis på fremhevede profiler
 - Vurder langsiktig: Doffins offisielle subscription-API hvis webclient-
   API-et endrer seg
