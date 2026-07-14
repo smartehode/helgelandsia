@@ -62,7 +62,7 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
                     {event.title}
                   </p>
                   {variant === 'full' && event.location && (
-                    <p className="mt-0.5 truncate text-[11px] text-muted">{event.location}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted">{event.location}</p>
                   )}
                 </div>
               </Link>

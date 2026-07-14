@@ -67,11 +67,11 @@ export async function AnbudWidget({
                   {t.title}
                 </p>
                 {variant === 'full' && t.buyerName && (
-                  <p className="mt-0.5 truncate text-[11px] text-muted">{t.buyerName}</p>
+                  <p className="mt-0.5 truncate text-xs text-muted">{t.buyerName}</p>
                 )}
               </div>
               {t.deadline && (
-                <span className="shrink-0 whitespace-nowrap tabular-nums text-[10px] text-muted">
+                <span className="shrink-0 whitespace-nowrap tabular-nums text-[11px] text-muted">
                   {format(new Date(t.deadline), 'd. MMM', { locale: nb })}
                 </span>
               )}

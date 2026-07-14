@@ -247,7 +247,6 @@ export default async function HomePage() {
           {widgetAreas?.sidefelt?.length > 0 ? (
             <RenderBlocks
               blocks={widgetAreas.sidefelt}
-              forceVariant="kompakt"
               kolonner={(widgetAreas.sidefeltKolonner as '1' | '2' | '3' | '4') ?? '1'}
               gap="gap-4"
             />
@@ -271,7 +270,6 @@ export default async function HomePage() {
         <section className="border-t border-ink/10 py-12">
           <RenderBlocks
             blocks={widgetAreas.bunn}
-            forceVariant="kompakt"
             kolonner={(widgetAreas.bunnKolonner as '1' | '2' | '3' | '4') ?? '3'}
             gap="gap-4"
           />
