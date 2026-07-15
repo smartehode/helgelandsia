@@ -85,6 +85,12 @@ i admin før publisering.
        Sier den noe annet: generer migrasjonen, les den, herd med
        IF NOT EXISTS på alle ADD COLUMN, commit SAMMEN med koden.
     b) Svar N på «blank migration?» — aldri la tom test_tom-fil havne i repo.
+    c) `npm run build` LOKALT må fullføre rent (exit 0) før push.
+       Docker-bygget i prod har ingen Payload-secret og krasjer ved prerender.
+    d) ALLE nye sider/ruter under src/app/(frontend)/ MÅ ha
+       `export const dynamic = 'force-dynamic'` — uten dette prøver Next.js
+       å prerendere siden ved build, noe som feiler i Docker (ingen secret).
+       Tre hendelser som lærte oss dette: /om, sitemap.ts, /historier-redirect.
     (Bakgrunn: widget-globalen har knekt prod FIRE ganger av samme årsak —
     kode med schemaendring deployet uten migrasjon. Sist: politilogg 2026-07-14.)
 
