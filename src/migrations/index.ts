@@ -28,7 +28,7 @@ import * as migration_20260705_231004_widget_layout_control from './20260705_231
 import * as migration_20260705_231027_test_tom from './20260705_231027_test_tom';
 import * as migration_20260714_194716_politilogg_blokk from './20260714_194716_politilogg_blokk';
 import * as migration_20260715_013907_ferge_slider from './20260715_013907_ferge_slider';
-import * as migration_20260715_092949__ from './20260715_092949__';
+import * as migration_20260715_092949_kunngjoringer_widget from './20260715_092949_kunngjoringer_widget';
 
 export const migrations = [
   {
@@ -182,8 +182,8 @@ export const migrations = [
     name: '20260715_013907_ferge_slider',
   },
   {
-    up: migration_20260715_092949__.up,
-    down: migration_20260715_092949__.down,
-    name: '20260715_092949__'
+    up: migration_20260715_092949_kunngjoringer_widget.up,
+    down: migration_20260715_092949_kunngjoringer_widget.down,
+    name: '20260715_092949_kunngjoringer_widget',
   },
 ];
