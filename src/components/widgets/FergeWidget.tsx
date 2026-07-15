@@ -43,7 +43,11 @@ function buildQuery(stopId: string, count: number): string {
       ) {
         aimedDepartureTime
         cancellation
-        serviceJourney { line { publicCode transportMode } }
+        quay { publicCode }
+        serviceJourney {
+          situations { summary { value } }
+          line { name publicCode transportMode transportSubmode }
+        }
         destinationDisplay { frontText }
       }
     }
@@ -73,12 +77,22 @@ async function fetchStop(stop: StopInput, count: number): Promise<StopData | nul
         new Date(c.aimedDepartureTime) > now &&
         c.serviceJourney?.line?.transportMode === 'water',
       )
-      .map((c: any) => ({
-        aimedTime: c.aimedDepartureTime,
-        cancelled: c.cancellation === true,
-        destination: c.destinationDisplay?.frontText ?? '—',
-        lineCode: c.serviceJourney?.line?.publicCode ?? '',
-      }))
+      .map((c: any) => {
+        const sxMsgs: string[] = (c.serviceJourney?.situations ?? [])
+          .flatMap((s: any) => s.summary ?? [])
+          .map((s: any) => s.value as string)
+          .filter(Boolean)
+        return {
+          aimedTime: c.aimedDepartureTime,
+          cancelled: c.cancellation === true,
+          destination: c.destinationDisplay?.frontText ?? '—',
+          lineCode: c.serviceJourney?.line?.publicCode ?? '',
+          lineName: c.serviceJourney?.line?.name ?? undefined,
+          submode: c.serviceJourney?.line?.transportSubmode ?? undefined,
+          situations: sxMsgs.length ? sxMsgs : undefined,
+          quayCode: c.quay?.publicCode ?? undefined,
+        }
+      })
 
     if (!departures.length) return null
     return { stopName: stop.name, shortName: stop.shortName, departures }
