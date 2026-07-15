@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getPayloadClient } from '@/lib/getPayload'
 import { BedriftRedigerForm } from '@/components/BedriftRedigerForm'
+import { bizUrl } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -178,7 +179,7 @@ export default async function RedigerPage({ params }: { params: Promise<{ slug: 
       <nav className="mb-6 text-sm text-muted">
         <Link href="/min-side" className="hover:text-sea">Min side</Link>
         <span className="mx-2">›</span>
-        <Link href={`/bedrifter/${slug}`} className="hover:text-sea">{b.name}</Link>
+        <Link href={bizUrl(b)} className="hover:text-sea">{b.name}</Link>
         <span className="mx-2">›</span>
         <span>Rediger</span>
       </nav>

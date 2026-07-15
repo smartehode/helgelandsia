@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/getPayload'
+import { bizUrl } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -135,7 +136,7 @@ export async function GET(req: NextRequest) {
     businesses: (biz?.docs ?? []).map((b: any) => ({
       id: b.id,
       title: normalizeBizName(b.name),
-      url: `/bedrifter/${b.slug}`,
+      url: bizUrl(b),
       meta: b.kommunenavn ?? undefined,
     })),
     events: (events?.docs ?? []).map((e: any) => ({

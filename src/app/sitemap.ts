@@ -1,19 +1,21 @@
 import type { MetadataRoute } from 'next'
 import { getPayloadClient } from '@/lib/getPayload'
+import { bizUrl } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
 const BASE = 'https://helgelandsia.no'
 
 type SitemapEntry = MetadataRoute.Sitemap[0]
+type SitemapDoc = { slug: string; updatedAt: string; name?: string; orgnr?: string | null }
 
 async function fetchSlugs(
   payload: any,
   collection: string,
   where: Record<string, any>,
-): Promise<Array<{ slug: string; updatedAt: string }>> {
+): Promise<SitemapDoc[]> {
   const PAGE_SIZE = 1000
-  const all: Array<{ slug: string; updatedAt: string }> = []
+  const all: SitemapDoc[] = []
   let page = 1
   let hasMore = true
   while (hasMore) {
@@ -26,7 +28,7 @@ async function fetchSlugs(
       overrideAccess: true,
     })
     for (const d of result.docs) {
-      if (d.slug) all.push({ slug: d.slug, updatedAt: d.updatedAt ?? '' })
+      if (d.slug) all.push({ slug: d.slug, updatedAt: d.updatedAt ?? '', name: d.name, orgnr: d.orgnr ?? null })
     }
     hasMore = result.hasNextPage ?? false
     page++
@@ -91,7 +93,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // TODO: når bedrifter > 50k, bruk generateSitemaps() + id-parameter for splitting.
   return [
     ...staticUrls,
-    ...toEntries(biz,   'bedrifter',       'weekly',  0.6),
+    ...biz.map(d => ({
+      url: `${BASE}${bizUrl({ orgnr: d.orgnr, name: d.name ?? d.slug, slug: d.slug })}`,
+      lastModified: d.updatedAt ? new Date(d.updatedAt) : undefined,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    })),
     ...toEntries(art,   'historier',       'monthly', 0.7),
     ...toEntries(evt,   'arrangementer',   'weekly',  0.7),
     ...toEntries(job,   'stillinger',      'weekly',  0.6),

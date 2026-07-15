@@ -1000,6 +1000,48 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
   til dev-serveren; filen fantes ikke → 404 i dev-loggen. Ingen referanse ble funnet
   i kodebasen — kilden er browser-side, ikke server-side.
 
+### 2026-07-15 — SEO, sitemap, PolitiWidget-forbedring
+
+**SEO Fase 1 — fullstendig grunnmur**
+- `src/app/sitemap.ts` — dynamisk sitemap (force-dynamic), paginert 1000-vis for ~25k bedrifter,
+  Promise.allSettled for 6 collections. Ny URL-form for bedrifter (se under).
+- `src/app/robots.ts` — blokkerer /admin, /min-side, /api.
+- `src/app/opengraph-image.tsx` — 1200×630 ImageResponse, fjord-bakgrunn, «H» i sun, edge runtime.
+- `src/app/(frontend)/layout.tsx` — metadataBase hardkodet til `https://helgelandsia.no`
+  (env-var kan være localhost i Docker-bygg). title-template `%s | Helgelandsia`.
+- generateMetadata med canonical + OG + twitter på alle 6 detaljsider.
+- JSON-LD (Schema.org) på forside (Organization + WebSite med SearchAction), bedrift
+  (LocalBusiness), stilling (JobPosting), arrangement (Event).
+- `src/app/(frontend)/om/page.tsx` — ny «Om Helgelandsia»-side, dynamisk antall bedrifter.
+  Lenker i footer og FALLBACK_NAV.
+
+**Bedrifts-URL: /bedrifter/{orgnr}/{navneslug}**
+- `src/lib/slug.ts` — `nameToSlug()` (æøå→aeoa, fjern tegn, bindestreker) og `bizUrl()`.
+- Ny rutestruktur under `bedrifter/[orgnr]/`:
+  - `page.tsx` — 301 redirect fra gammel form `/bedrifter/{orgnr}` til full URL.
+  - `[slug]/page.tsx` — detaljside (oppslag kun på orgnr-felt, 301 ved feil navneslug).
+  - `overta/page.tsx` — claim-flyt (statisk «overta» slår dynamisk `[slug]` — ingen konflikt).
+- Gammel `bedrifter/[slug]/` slettet. BRREG-synken setter fortsatt `slug = orgnr` — bakoverkompatibelt.
+- Alle interne lenker oppdatert med `bizUrl()`: listesider, kategorisider, søk-API,
+  historier/[slug], min-side, rediger-siden.
+- `KontaktReveal` og `/api/bedrift/[slug]/kontakt`: uendret — bruker `b.slug` (= orgnr) internt.
+- Ingen skjemaendringer. `npm run build` rent.
+
+**PolitiWidget — ekspandering og historikk**
+- `src/components/widgets/PolitiList.tsx` — ny klientkomponent ('use client').
+  Mottar `PoliceThread[]` fra server-delen (samme mønster som FergeSlider).
+  Eksporterer typene `PoliceMsg` og `PoliceThread` (importeres med `import type` i PolitiWidget).
+  Ekspander/kollaps per melding: klikk på `<li>` → full tekst inline.
+  `useEffect` måler `scrollHeight > clientHeight + 2` — «vis mer»-indikator vises KUN
+  når teksten faktisk er kappet (ikke på korte meldinger).
+  Historikk: eldre oppdateringer på samme tråd vises kronologisk (eldst først) ved ekspandering.
+  «politiet.no ↗»-lenke ved ekspandert visning. Stopper propagasjon på lenke-klikk.
+  Kompakt-variant: `line-clamp-1` + liten ▾-pil. Full-variant: `line-clamp-3` + «vis mer ▾».
+- `src/components/widgets/PolitiWidget.tsx` — server-delen gruppert om:
+  Samler nå ALLE meldinger per threadId (ikke bare nyeste) → `PoliceThread` med `latest` + `history`.
+  API leverer nyeste meldinger først — `msgs.slice(1).reverse()` gir historikk eldst→nyest.
+- Ingen skjemaendringer. `npm run build` rent.
+
 ### 2026-07-14 — PolitiWidget i prod + deploy-lærdom
 
 - PolitiWidget deployet og fungerer i prod. Migrasjon `20260714_194716`

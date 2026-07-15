@@ -9,6 +9,7 @@ import { ShareButtons } from '@/components/ShareButtons'
 import { getPostBySlug } from '@/lib/queries'
 import { getPayloadClient } from '@/lib/getPayload'
 import { SITE, abs } from '@/lib/og'
+import { bizUrl } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -109,7 +110,7 @@ export default async function StoryPage({
               {p.relatedBusinesses.map((b: any) => (
                 <Card
                   key={b.id}
-                  href={`/bedrifter/${b.slug}`}
+                  href={bizUrl(b)}
                   title={b.name}
                   excerpt={b.tagline}
                   imageUrl={mediaUrl(b.logo, 'card')}

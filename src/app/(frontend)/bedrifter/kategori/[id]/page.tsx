@@ -7,6 +7,7 @@ import { getPayloadClient } from '@/lib/getPayload'
 import { getCategoryById, getCategoryById as getcat, BUSINESS_CATEGORIES, publicListingWhere, SHOW_ON_PUBLIC_LISTING_FILTER } from '@/lib/businesses/categories'
 import BedrifterFilters from '@/components/BedrifterFilters'
 import { SITE } from '@/lib/og'
+import { bizUrl } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,7 +34,7 @@ function BizCard({ b }: { b: any }) {
   const logo = mediaUrl(b.logo)
   return (
     <Link
-      href={`/bedrifter/${b.slug}`}
+      href={bizUrl(b)}
       className="group flex flex-col overflow-hidden rounded-2xl bg-paper ring-1 ring-ink/5 transition hover:-translate-y-1 hover:shadow-[0_14px_44px_-16px_rgba(12,39,51,0.3)]"
     >
       {logo && (

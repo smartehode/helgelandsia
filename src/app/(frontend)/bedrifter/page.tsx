@@ -5,6 +5,7 @@ import { getPayloadClient } from '@/lib/getPayload'
 import { BUSINESS_CATEGORIES, getCategoryById, publicListingWhere, SHOW_ON_PUBLIC_LISTING_FILTER } from '@/lib/businesses/categories'
 import { kategorierForAnbud } from '@/lib/doffin/match'
 import BedrifterFilters from '@/components/BedrifterFilters'
+import { bizUrl } from '@/lib/slug'
 import type { Where } from 'payload'
 
 export const dynamic = 'force-dynamic'
@@ -23,7 +24,7 @@ function BusinessCard({ b }: { b: any }) {
 
   return (
     <Link
-      href={`/bedrifter/${b.slug}`}
+      href={bizUrl(b)}
       className="group flex flex-col overflow-hidden rounded-2xl bg-paper ring-1 ring-ink/5 transition duration-300 hover:-translate-y-1 hover:shadow-[0_14px_44px_-16px_rgba(12,39,51,0.3)]"
     >
       {logo && (
@@ -342,7 +343,7 @@ export default async function BedrifterPage({
                     return (
                       <li key={b.id}>
                         <Link
-                          href={`/bedrifter/${b.slug}`}
+                          href={bizUrl(b)}
                           className="group flex items-start justify-between gap-3 px-5 py-3 transition hover:bg-fog/50"
                         >
                           <div className="min-w-0">
@@ -377,7 +378,7 @@ export default async function BedrifterPage({
                     return (
                       <li key={b.id}>
                         <Link
-                          href={`/bedrifter/${b.slug}`}
+                          href={bizUrl(b)}
                           className="group flex items-start justify-between gap-3 px-5 py-3 transition hover:bg-fog/50"
                         >
                           <div className="min-w-0">

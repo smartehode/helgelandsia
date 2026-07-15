@@ -9,6 +9,7 @@ import { LogoutButton } from '@/components/LogoutButton'
 import { SubmissionTabs } from '@/components/SubmissionTabs'
 import { filtrerAktuelleAnbud } from '@/lib/doffin/match'
 import { getNoticeTypeLabel } from '@/lib/doffin/cpv'
+import { bizUrl } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Min side' }
@@ -134,7 +135,7 @@ export default async function MinSide({
                 </div>
                 <div className="flex items-center gap-3">
                   <Link
-                    href={`/bedrifter/${b.slug}`}
+                    href={bizUrl(b)}
                     className="text-xs text-muted underline-offset-2 hover:text-sea hover:underline"
                   >
                     Se profil

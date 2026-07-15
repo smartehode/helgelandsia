@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -9,6 +9,7 @@ import { getPayloadClient } from '@/lib/getPayload'
 import { SITE, abs } from '@/lib/og'
 import { getCategoryById } from '@/lib/businesses/categories'
 import { getPercentilerForBusiness } from '@/lib/regnskap/percentiler'
+import { nameToSlug } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,43 +27,54 @@ function fmtKr(n: number | null | undefined): string {
   return new Intl.NumberFormat('nb-NO', { maximumFractionDigits: 0 }).format(n) + ' kr'
 }
 
-async function getBusiness(slug: string) {
+async function getBusiness(orgnr: string) {
   const payload = await getPayloadClient()
   const { docs } = await payload.find({
     collection: 'businesses',
-    where: { slug: { equals: slug }, _status: { equals: 'published' } },
+    where: {
+      and: [
+        { orgnr: { equals: orgnr } },
+        { _status: { equals: 'published' } },
+      ],
+    },
     limit: 1,
     depth: 2,
   })
   return docs[0] ?? null
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params
-  const b: any = await getBusiness(slug)
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ orgnr: string; slug: string }>
+}): Promise<Metadata> {
+  const { orgnr } = await params
+  const b: any = await getBusiness(orgnr)
   if (!b) return {}
   const meta = b.meta ?? {}
   const img = abs(mediaUrl(meta.image ?? b.logo, 'hero') ?? mediaUrl(meta.image ?? b.logo))
-  // "[Navn] – [nace kort] i [kommune]" — unik per bedrift, aldri identisk
   const shortNace = b.naceBeskrivelse
-    ? b.naceBeskrivelse.split(',')[0].slice(0, 45).trimEnd() + (b.naceBeskrivelse.split(',')[0].length > 45 ? '…' : '')
+    ? b.naceBeskrivelse.split(',')[0].slice(0, 45).trimEnd() +
+      (b.naceBeskrivelse.split(',')[0].length > 45 ? '…' : '')
     : null
   const title = meta.title ?? [
     b.name,
     shortNace ? `– ${shortNace}` : null,
     b.kommunenavn ? `i ${b.kommunenavn}` : null,
   ].filter(Boolean).join(' ')
-  const description = meta.description
-    ?? b.tagline
-    ?? [b.naceBeskrivelse, b.kommunenavn ? `i ${b.kommunenavn}` : null].filter(Boolean).join(' ')
+  const description =
+    meta.description ??
+    b.tagline ??
+    [b.naceBeskrivelse, b.kommunenavn ? `i ${b.kommunenavn}` : null].filter(Boolean).join(' ')
+  const canonicalUrl = `${SITE}/bedrifter/${b.orgnr}/${nameToSlug(b.name)}`
   return {
     title,
     description,
-    alternates: { canonical: `${SITE}/bedrifter/${slug}` },
+    alternates: { canonical: canonicalUrl },
     openGraph: {
       title,
       description,
-      url: `${SITE}/bedrifter/${slug}`,
+      url: canonicalUrl,
       images: img ? [{ url: img }] : undefined,
       type: 'website',
     },
@@ -74,16 +86,24 @@ const DAYS: Record<string, string> = {
   mon: 'Man', tue: 'Tir', wed: 'Ons', thu: 'Tor', fri: 'Fre', sat: 'Lør', sun: 'Søn',
 }
 
-export default async function BusinessPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const b: any = await getBusiness(slug)
+export default async function BusinessPage({
+  params,
+}: {
+  params: Promise<{ orgnr: string; slug: string }>
+}) {
+  const { orgnr, slug } = await params
+  const b: any = await getBusiness(orgnr)
   if (!b) notFound()
 
-  const payload = await getPayloadClient()
+  // Redirect til korrekt navneslug ved navnebytte eller gammel lenke
+  const expectedSlug = nameToSlug(b.name)
+  if (slug !== expectedSlug) {
+    permanentRedirect(`/bedrifter/${orgnr}/${expectedSlug}`)
+  }
 
+  const payload = await getPayloadClient()
   const cat = b.naceCategory ? getCategoryById(b.naceCategory) : null
 
-  // Hent underenheter, regnskap og percentiler parallelt
   const [subunitsResult, regnskapResult, percentilResult] = await Promise.all([
     b.orgnr
       ? payload.find({
@@ -114,6 +134,8 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
   const percentil = percentilResult
   const isBrreg = b.source === 'brreg'
 
+  const canonicalUrl = `${SITE}/bedrifter/${orgnr}/${expectedSlug}`
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -122,7 +144,6 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
       identifier: { '@type': 'PropertyValue', name: 'Organisasjonsnummer', value: b.orgnr },
     }),
     ...(b.tagline && { description: b.tagline }),
-    // Nettside er synlig på siden — OK å inkludere. Telefon/e-post holdes bak KontaktReveal.
     ...(b.website && { url: b.website }),
     ...(b.kommunenavn && {
       address: { '@type': 'PostalAddress', addressLocality: b.kommunenavn, addressCountry: 'NO' },
@@ -286,7 +307,6 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
                     )}
                   </dl>
 
-                  {/* Percentil-badger — kun topp 25 % vises, stille ellers */}
                   {percentil && (percentil.omsetningLabel || percentil.driftsmarginLabel) && (
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {percentil.omsetningLabel && (
@@ -334,7 +354,7 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
             <div className="rounded-2xl border border-dashed border-ink/20 p-5 text-center">
               <p className="text-sm text-muted">Er dette din bedrift?</p>
               <Link
-                href={`/bedrifter/${slug}/overta`}
+                href={`/bedrifter/${orgnr}/overta`}
                 className="mt-2 inline-block rounded-xl bg-fog px-4 py-2 text-sm font-medium text-sea hover:bg-sea hover:text-white transition-colors"
               >
                 Ta over oppføringen
@@ -352,7 +372,8 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
               {[b.city || b.kommunenavn, b.county, b.country].filter(Boolean).join(', ')}
             </p>
           )}
-          <KontaktReveal slug={slug} hasPhone={Boolean(b.phone)} hasEmail={Boolean(b.email)} />
+          {/* KontaktReveal bruker b.slug (= orgnr for BRREG-bedrifter) for API-oppslaget */}
+          <KontaktReveal slug={b.slug} hasPhone={Boolean(b.phone)} hasEmail={Boolean(b.email)} />
           {b.website && (
             <p className="text-sm">🔗 <a className="text-sea hover:underline" href={b.website} target="_blank" rel="noopener">Nettside</a></p>
           )}

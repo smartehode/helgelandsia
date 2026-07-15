@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getPayloadClient } from '@/lib/getPayload'
+import { nameToSlug } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,10 +16,10 @@ export default async function OvertaPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ orgnr: string }>
   searchParams: Promise<Record<string, string>>
 }) {
-  const { slug } = await params
+  const { orgnr } = await params
   const sp = await searchParams
   const sendt = sp.sendt === '1'
 
@@ -26,29 +27,34 @@ export default async function OvertaPage({
 
   const { docs } = await payload.find({
     collection: 'businesses',
-    where: { slug: { equals: slug }, _status: { equals: 'published' } },
+    where: {
+      and: [
+        { orgnr: { equals: orgnr } },
+        { _status: { equals: 'published' } },
+      ],
+    },
     limit: 1,
     depth: 0,
   })
   const b: any = docs[0]
   if (!b) notFound()
 
+  const bizDetailUrl = `/bedrifter/${orgnr}/${nameToSlug(b.name)}`
+
   const { user }: any = await payload.auth({ headers: await getHeaders() })
   const member = user?.collection === 'members' ? user : null
 
   const claimStatus: string = b.claimStatus ?? 'unclaimed'
 
-  // Server Action — setter owner + claimStatus = 'pending'
   async function submitClaim() {
     'use server'
     const pl = await getPayloadClient()
     const { user: u }: any = await pl.auth({ headers: await getHeaders() })
     if (!u || u.collection !== 'members') return
 
-    // Re-hent for å unngå race condition
     const { docs: fresh } = await pl.find({
       collection: 'businesses',
-      where: { slug: { equals: slug } },
+      where: { orgnr: { equals: orgnr } },
       limit: 1,
       depth: 0,
       overrideAccess: true,
@@ -62,12 +68,12 @@ export default async function OvertaPage({
       data: { owner: u.id, claimStatus: 'pending' } as any,
       overrideAccess: true,
     })
-    redirect(`/bedrifter/${slug}/overta?sendt=1`)
+    redirect(`/bedrifter/${orgnr}/overta?sendt=1`)
   }
 
   return (
     <div className="mx-auto max-w-xl px-4 py-20">
-      <Link href={`/bedrifter/${slug}`} className="text-sm text-muted hover:text-sea">
+      <Link href={bizDetailUrl} className="text-sm text-muted hover:text-sea">
         ← {b.name}
       </Link>
 
@@ -82,7 +88,7 @@ export default async function OvertaPage({
             Redaksjonen godkjenner den snart — du får beskjed når det er gjort.
           </p>
           <Link
-            href={`/bedrifter/${slug}`}
+            href={bizDetailUrl}
             className="mt-4 inline-block text-sm text-sea hover:underline"
           >
             Tilbake til oppføringen
@@ -97,7 +103,7 @@ export default async function OvertaPage({
             Du må være innlogget som medlem for å ta over en oppføring.
           </p>
           <Link
-            href={`/logg-inn?returnTo=/bedrifter/${slug}/overta`}
+            href={`/logg-inn?returnTo=/bedrifter/${orgnr}/overta`}
             className="mt-4 inline-block rounded-xl bg-sea px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-fjord"
           >
             Logg inn
