@@ -77,35 +77,82 @@ async function fetchHeroPower(): Promise<number | null> {
 // ─── Ikoner (Heroicons outline, MIT) ────────────────────────────────────────
 
 const IconBuilding = () => (
-  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5" aria-hidden>
+  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4" aria-hidden>
     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
   </svg>
 )
 
 const IconDocument = () => (
-  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5" aria-hidden>
+  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4" aria-hidden>
     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
   </svg>
 )
 
 const IconBriefcase = () => (
-  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5" aria-hidden>
+  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4" aria-hidden>
     <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z" />
   </svg>
 )
 
 const IconCalendar = () => (
-  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5" aria-hidden>
+  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4" aria-hidden>
     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
   </svg>
 )
 
 const NAV_CARDS = [
-  { href: '/bedrifter',      icon: <IconBuilding />,   title: 'Bedrifter',       desc: 'Finn bedrifter i alle 18 Helgeland-kommuner' },
-  { href: '/anbud',          icon: <IconDocument />,   title: 'Anbud',           desc: 'Offentlige anbud og konkurranser i Nordland' },
-  { href: '/stillinger',     icon: <IconBriefcase />,  title: 'Stillinger',      desc: 'Ledige stillinger ute i regionen' },
-  { href: '/arrangementer',  icon: <IconCalendar />,   title: 'Arrangementer',   desc: 'Hva skjer i Helgeland fremover' },
+  { href: '/bedrifter',     icon: <IconBuilding />,   title: 'Bedrifter',     desc: 'Finn bedrifter i alle 18 Helgeland-kommuner', hintKey: 'bedrifter' },
+  { href: '/anbud',         icon: <IconDocument />,   title: 'Anbud',         desc: 'Offentlige anbud og konkurranser i Nordland',  hintKey: 'anbud' },
+  { href: '/stillinger',    icon: <IconBriefcase />,  title: 'Stillinger',    desc: 'Ledige stillinger ute i regionen',             hintKey: 'stillinger' },
+  { href: '/arrangementer', icon: <IconCalendar />,   title: 'Arrangementer', desc: 'Hva skjer i Helgeland fremover',               hintKey: 'arrangementer' },
 ]
+
+// ─── Live-data til inngangskort ──────────────────────────────────────────────
+
+interface LiveHint { label: string; text: string }
+interface CardHints { bedrifter: LiveHint | null; anbud: LiveHint | null; stillinger: LiveHint | null; arrangementer: LiveHint | null }
+
+async function fetchCardHints(payload: any): Promise<CardHints> {
+  const now = new Date().toISOString()
+  const [bRes, aRes, jRes, eRes] = await Promise.allSettled([
+    payload.find({ collection: 'businesses', sort: '-registreringsdato', limit: 1, depth: 0, overrideAccess: true }),
+    payload.find({ collection: 'tenders', where: { and: [{ status: { equals: 'ACTIVE' } }, { deadline: { greater_than: now } }] }, sort: '-createdAt', limit: 1, depth: 0, overrideAccess: true }),
+    payload.find({ collection: 'jobs', where: { _status: { equals: 'published' } }, sort: '-createdAt', limit: 1, depth: 0 }),
+    payload.find({ collection: 'events', where: { and: [{ _status: { equals: 'published' } }, { startDate: { greater_than_equal: now } }] }, sort: 'startDate', limit: 1, depth: 0 }),
+  ])
+
+  const bedrifter = (() => {
+    if (bRes.status !== 'fulfilled') return null
+    const b = bRes.value.docs?.[0]
+    if (!b) return null
+    return { label: 'Nyeste', text: `Ny: ${[b.name, b.kommunenavn].filter(Boolean).join(', ')}` }
+  })()
+
+  const anbud = (() => {
+    if (aRes.status !== 'fulfilled') return null
+    const a = aRes.value.docs?.[0]
+    if (!a) return null
+    const frist = a.deadline ? format(new Date(a.deadline), 'd. MMM', { locale: nb }) : null
+    return { label: 'Nyeste', text: frist ? `${a.title} · frist ${frist}` : a.title }
+  })()
+
+  const stillinger = (() => {
+    if (jRes.status !== 'fulfilled') return null
+    const j = jRes.value.docs?.[0]
+    if (!j) return null
+    return { label: 'Nyeste', text: [j.title, j.employer].filter(Boolean).join(' · ') }
+  })()
+
+  const arrangementer = (() => {
+    if (eRes.status !== 'fulfilled') return null
+    const e = eRes.value.docs?.[0]
+    if (!e) return null
+    const dato = e.startDate ? format(new Date(e.startDate), 'd. MMM', { locale: nb }) : null
+    return { label: 'Neste', text: dato ? `${e.title} · ${dato}` : e.title }
+  })()
+
+  return { bedrifter, anbud, stillinger, arrangementer }
+}
 
 // ─── Seksjonsoverskrift ──────────────────────────────────────────────────────
 
@@ -125,10 +172,11 @@ function SecHeader({ label, href }: { label: string; href: string }) {
 export default async function HomePage() {
   const payload = await getPayloadClient()
 
-  const [widgetAreasRes, weather, power] = await Promise.all([
+  const [widgetAreasRes, weather, power, hints] = await Promise.all([
     payload.findGlobal({ slug: 'sidefelt', depth: 1 }).catch(() => null),
     fetchHeroWeather(),
     fetchHeroPower(),
+    fetchCardHints(payload).catch(() => ({ bedrifter: null, anbud: null, stillinger: null, arrangementer: null } as CardHints)),
   ])
 
   const widgetAreas: any = widgetAreasRes
@@ -159,21 +207,26 @@ export default async function HomePage() {
       {/* ── 2. INNGANGSKORT ─────────────────────────────────────────────── */}
       <section className="border-t border-ink/10 py-8">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {NAV_CARDS.map(card => (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="group flex flex-col gap-3 rounded-xl border border-ink/10 bg-white p-5 transition hover:border-sea/50 hover:shadow-sm"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-fog text-sea transition group-hover:bg-sea/10">
-                {card.icon}
-              </span>
-              <div>
-                <p className="font-serif font-semibold text-ink">{card.title}</p>
-                <p className="mt-0.5 text-xs leading-snug text-muted">{card.desc}</p>
-              </div>
-            </Link>
-          ))}
+          {NAV_CARDS.map(card => {
+            const hint = hints[card.hintKey as keyof CardHints]
+            return (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="group flex flex-col gap-1.5 rounded-xl border border-ink/10 bg-white p-4 transition hover:border-sea/50 hover:shadow-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sea">{card.icon}</span>
+                  <p className="text-sm font-semibold text-fjord">{card.title}</p>
+                </div>
+                <p className="truncate text-xs leading-snug text-muted">
+                  {hint ? (
+                    <><span className="font-medium text-muted/50">{hint.label}: </span>{hint.text}</>
+                  ) : card.desc}
+                </p>
+              </Link>
+            )
+          })}
         </div>
       </section>
 
