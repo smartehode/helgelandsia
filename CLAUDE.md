@@ -899,6 +899,89 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
 - Rana alene: 28 meldinger over 10 dager (2–3/dag).
 - ThreadId-mekanisme: `id = <threadId>-<oppdatering>`, `isEdited=true` markerer oppdatering.
 
+### 2026-07-15 — FergeWidget (Entur) + CSP-hørding + widgetfikser
+
+**CSP: Report-Only → ENFORCED (Caddyfile)**
+- `Content-Security-Policy-Report-Only` byttet til `Content-Security-Policy`.
+- Fire nye `img-src`-domener lagt til etter live RSS-sjekk:
+  `vcdn.polarismedia.no` (BAnett), `www.hblad.no` (Helgelands Blad),
+  `gfx.nrk.no` og `static.nrk.no` (NRK). Hentes av browser via
+  `<img>` i NewsWidget/NewsCarousel — krever CSP selv om RSC henter RSS.
+- Politilogg/anbud/regnskap henter server-side → ingen CSP-kilder nødvendig.
+- **Eieren kjører `docker compose restart caddy` etter deploy (regel 14).**
+
+**Bug: variant full/kompakt hadde ingen effekt i sidefelt og bunn**
+- Rot: `forceVariant="kompakt"` i `page.tsx` short-circuited
+  `forceVariant ?? block.variant`-uttrykket → blokk-varianten fra admin
+  ble aldri evaluert. Fjernet `forceVariant`-prop fra sidefelt- og bunn-sonen.
+- Alle blokker i alle soner bruker nå sin admin-konfigurerte variant.
+- **NB:** Eksisterende blokker i sidefelt/bunn vil vise 'full' (defaultValue)
+  etter deploy — eieren setter ønsket variant manuelt i admin.
+
+**PolitiWidget kompakt-variant redesignet**
+- To tette linjer per melding (linje 1: kategori + sted + tid, linje 2: tekst)
+  med tynne skillelinjer i stedet for kortbokser.
+- Mål nådd: 5 meldinger i kompakt ≈ høyde av 2 meldinger i full.
+- `CAT_TEXT`-map (text-only, ingen bakgrunn) for kompakt badges.
+- Relativ tid forkortet: «for X min siden» → «X min».
+
+**Typografi løftet i AnbudWidget og ArrangementerWidget**
+- `text-[11px]` → `text-xs` på metadata (oppdragsgiver, sted).
+
+**FergeWidget (Entur JourneyPlanner)**
+- `src/components/widgets/FergeWidget.tsx` — async RSC.
+  API: Entur JourneyPlanner GraphQL (`api.entur.io/journey-planner/v3/graphql`).
+  Header: `ET-Client-Name: helgelandsia.no`. Lisens: NLOD 2.0.
+  Henter vannvei-avganger (whiteListed: water) for 24-timers vindu.
+  `Promise.allSettled` per kai — én feilet kai tar ikke ned resten.
+  `revalidate: 300`. `return null` hvis alle kaier feiler/er tomme.
+  `realtime: false` for alle Helgeland-vannruter (planlagte tider, ikke
+  sanntid) — merket eksplisitt i krediteringslinjen «ikke sanntid».
+  Kansellering (Torghatten SX-varsler) vises rødt med stryking.
+  Tidssone: `Intl.DateTimeFormat` med `timeZone: 'Europe/Oslo'`.
+  «i morgen kl. HH:MM» vises for neste dags avganger.
+  Default: Sandnessjøen hurtigbåtkai (49452) + ferjekai (47666).
+  Props: `title?`, `stops?: {stopId, stopName}[]`, `count? 1–10 (std 5)`,
+  `variant? full|kompakt`.
+  Full: per kai → avgangsliste (tid, destinasjon, linjekode). Innstilt
+  vises rødt med stryking.
+  Kompakt: neste avgang per kai på én linje (kai · tid · destinasjon).
+  CSP: ingen endring — henting skjer server-side.
+- Verifiserte NSR-ID-er for Helgeland dokumentert i widget-toppen.
+- `FergeBlock` (slug: `ferge`) lagt til i `layoutBlocks`, `widgetBlocks`
+  og `RenderBlocks.tsx` (case 'ferge'). Redesignet i samme økt:
+  `stops`-array (fritekst NSR-ID) erstattet av `stops` multi-select
+  med hardkodede Helgeland-kaier som alternativer. Slider-mønster.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create ferge-widget`,
+  leser og herder med IF NOT EXISTS, committer med koden.
+
+**FergeWidget redesignet — slider mellom kaier (2026-07-15)**
+- `src/components/widgets/FergeSlider.tsx` — ny klient-komponent ('use client').
+  Mottar `StopData[]` fra serveren, renderer slider. Auto-rotasjon 10 sek,
+  fade-overgang (200 ms, opacity), pause ved hover og skjult fane
+  (visibilitychange). Pil-navigasjon (‹/›) + prikkindikator med klikk.
+  Full: opptil `count` avganger. Kompakt: alltid 3 avganger, tettere linjer.
+  Innstilt avgang vises rødt med stryking.
+- `src/components/widgets/FergeWidget.tsx` — refaktorert server-komponent.
+  `ALL_STOPS`-liste (9 kaier) er eneste kilde til NSR-ID-er.
+  `stops`-prop er nå `stopIds?: string[]` (fra multi-select) — tom/undefined
+  = alle kaier. Kaier uten avganger filtreres ut før slider mottar data
+  (`fetchStop` returnerer `null` for tomme kaier). `return null` hvis ingen
+  kaier gir data.
+- `src/blocks/index.ts` — FergeBlock: `stops`-array fjernet, erstattet av
+  `stops` multi-select med 9 navngitte alternativ. `count`-felt beholdt.
+  **SKJEMAENDRING** — old sub-table for array fjernes, ny struktur for
+  select hasMany. Migrasjon `ferge-widget` dekker begge endringer.
+- `src/components/RenderBlocks.tsx` — case 'ferge' oppdatert:
+  `block.stops` er nå `string[]`, ikke objekt-array. Debug-logger fjernet.
+
+**Samferdsel-utforskning (ikke bygget)**
+- Entur: åpent, ingen nøkkel, NLOD 2.0. Alle Helgeland-vannruter har
+  `realtime: false` — ingen operatører sender live-data til Entur.
+- Vegvesen: alle kjente API-endepunkter for sanntids veimeldinger er
+  fjernet eller bak lukket DNS. VeimeldingWidget er ikke mulig med
+  åpne API-er.
+
 ### 2026-07-15 — Favicon-oppsett
 
 **Favicon og apple-touch-icon (ingen skjemaendring)**
@@ -938,4 +1021,7 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
   API-et endrer seg
 - BrregWidget.tsx har bug: inkluderer 1837 (Meløy), mangler 1833 (Rana)
 - Migrasjoner som gjenstår å kjøre: `fremhevet-sone`, `anbud-widget`,
-  `widget-layout-control` (dekker også politilogg-blokk)
+  `widget-layout-control` (dekker også politilogg-blokk),
+  **`ferge-widget`** (eieren oppretter etter lokal test)
+- FergeWidget: etter deploy — sett ønsket variant på blokker i sidefelt/bunn
+  (de bruker nå 'full' som defaultValue etter variant-bugfiksen)

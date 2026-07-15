@@ -531,6 +531,52 @@ export const ArrangementerBlock: Block = {
   ],
 }
 
+export const FergeBlock: Block = {
+  slug: 'ferge',
+  labels: { singular: 'Ferger og hurtigbåt', plural: 'Ferger og hurtigbåt' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'stops',
+      type: 'select',
+      hasMany: true,
+      label: 'Kaier som vises',
+      admin: { description: 'La stå tomt for alle Helgeland-kaier.' },
+      options: [
+        { label: 'Sandnessjøen hurtigbåtkai', value: 'NSR:StopPlace:49452' },
+        { label: 'Sandnessjøen ferjekai',     value: 'NSR:StopPlace:47666' },
+        { label: 'Nesna kai',                 value: 'NSR:StopPlace:59239' },
+        { label: 'Tjøtta kai',                value: 'NSR:StopPlace:63216' },
+        { label: 'Levang ferjekai',           value: 'NSR:StopPlace:47674' },
+        { label: 'Herøy ferjekai',            value: 'NSR:StopPlace:47440' },
+        { label: 'Brønnøysund hurtigbåtkai',  value: 'NSR:StopPlace:48835' },
+        { label: 'Træna hurtigbåtkai',        value: 'NSR:StopPlace:50291' },
+        { label: 'Træna ferjekai',            value: 'NSR:StopPlace:47694' },
+      ],
+    },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Avganger per kai',
+      defaultValue: 5,
+      min: 1,
+      max: 10,
+      admin: { description: '1–10 avganger per kai (full), alltid maks 3 i kompakt.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – slider med avgangsliste (5 avganger)', value: 'full' },
+        { label: 'Kompakt – slider med tettere linjer (3 avganger)', value: 'kompakt' },
+      ],
+    },
+    breddeField,
+  ],
+}
+
 export const PolitiloggBlock: Block = {
   slug: 'politilogg',
   labels: { singular: 'Politiloggen Helgeland', plural: 'Politiloggen Helgeland' },
@@ -580,6 +626,7 @@ export const layoutBlocks = [
   ArrangementerBlock,
   SkipstrafikkBlock,
   PolitiloggBlock,
+  FergeBlock,
 ]
 
 export const widgetBlocks = [
@@ -597,4 +644,5 @@ export const widgetBlocks = [
   ArrangementerBlock,
   SkipstrafikkBlock,
   PolitiloggBlock,
+  FergeBlock,
 ]

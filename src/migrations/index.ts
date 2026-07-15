@@ -27,6 +27,7 @@ import * as migration_20260705_181414_test_tom from './20260705_181414_test_tom'
 import * as migration_20260705_231004_widget_layout_control from './20260705_231004_widget_layout_control';
 import * as migration_20260705_231027_test_tom from './20260705_231027_test_tom';
 import * as migration_20260714_194716_politilogg_blokk from './20260714_194716_politilogg_blokk';
+import * as migration_20260715_013907_ferge_slider from './20260715_013907_ferge_slider';
 
 export const migrations = [
   {
@@ -172,6 +173,11 @@ export const migrations = [
   {
     up: migration_20260714_194716_politilogg_blokk.up,
     down: migration_20260714_194716_politilogg_blokk.down,
-    name: '20260714_194716_politilogg_blokk'
+    name: '20260714_194716_politilogg_blokk',
+  },
+  {
+    up: migration_20260715_013907_ferge_slider.up,
+    down: migration_20260715_013907_ferge_slider.down,
+    name: '20260715_013907_ferge_slider'
   },
 ];

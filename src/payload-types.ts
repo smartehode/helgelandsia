@@ -1056,6 +1056,37 @@ export interface Page {
             blockName?: string | null;
             blockType: 'politilogg';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle Helgeland-kaier.
+             */
+            stops?:
+              | (
+                  | 'NSR:StopPlace:49452'
+                  | 'NSR:StopPlace:47666'
+                  | 'NSR:StopPlace:59239'
+                  | 'NSR:StopPlace:63216'
+                  | 'NSR:StopPlace:47674'
+                  | 'NSR:StopPlace:47440'
+                  | 'NSR:StopPlace:48835'
+                  | 'NSR:StopPlace:50291'
+                  | 'NSR:StopPlace:47694'
+                )[]
+              | null;
+            /**
+             * 1–10 avganger per kai (full), alltid maks 3 i kompakt.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'ferge';
+          }
       )[]
     | null;
   meta?: {
@@ -1904,6 +1935,17 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        ferge?:
+          | T
+          | {
+              title?: T;
+              stops?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -2470,6 +2512,37 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'politilogg';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle Helgeland-kaier.
+             */
+            stops?:
+              | (
+                  | 'NSR:StopPlace:49452'
+                  | 'NSR:StopPlace:47666'
+                  | 'NSR:StopPlace:59239'
+                  | 'NSR:StopPlace:63216'
+                  | 'NSR:StopPlace:47674'
+                  | 'NSR:StopPlace:47440'
+                  | 'NSR:StopPlace:48835'
+                  | 'NSR:StopPlace:50291'
+                  | 'NSR:StopPlace:47694'
+                )[]
+              | null;
+            /**
+             * 1–10 avganger per kai (full), alltid maks 3 i kompakt.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'ferge';
+          }
       )[]
     | null;
   /**
@@ -2709,6 +2782,37 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'politilogg';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle Helgeland-kaier.
+             */
+            stops?:
+              | (
+                  | 'NSR:StopPlace:49452'
+                  | 'NSR:StopPlace:47666'
+                  | 'NSR:StopPlace:59239'
+                  | 'NSR:StopPlace:63216'
+                  | 'NSR:StopPlace:47674'
+                  | 'NSR:StopPlace:47440'
+                  | 'NSR:StopPlace:48835'
+                  | 'NSR:StopPlace:50291'
+                  | 'NSR:StopPlace:47694'
+                )[]
+              | null;
+            /**
+             * 1–10 avganger per kai (full), alltid maks 3 i kompakt.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'ferge';
           }
       )[]
     | null;
@@ -2950,6 +3054,37 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'politilogg';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle Helgeland-kaier.
+             */
+            stops?:
+              | (
+                  | 'NSR:StopPlace:49452'
+                  | 'NSR:StopPlace:47666'
+                  | 'NSR:StopPlace:59239'
+                  | 'NSR:StopPlace:63216'
+                  | 'NSR:StopPlace:47674'
+                  | 'NSR:StopPlace:47440'
+                  | 'NSR:StopPlace:48835'
+                  | 'NSR:StopPlace:50291'
+                  | 'NSR:StopPlace:47694'
+                )[]
+              | null;
+            /**
+             * 1–10 avganger per kai (full), alltid maks 3 i kompakt.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'ferge';
+          }
       )[]
     | null;
   /**
@@ -3189,6 +3324,37 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'politilogg';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle Helgeland-kaier.
+             */
+            stops?:
+              | (
+                  | 'NSR:StopPlace:49452'
+                  | 'NSR:StopPlace:47666'
+                  | 'NSR:StopPlace:59239'
+                  | 'NSR:StopPlace:63216'
+                  | 'NSR:StopPlace:47674'
+                  | 'NSR:StopPlace:47440'
+                  | 'NSR:StopPlace:48835'
+                  | 'NSR:StopPlace:50291'
+                  | 'NSR:StopPlace:47694'
+                )[]
+              | null;
+            /**
+             * 1–10 avganger per kai (full), alltid maks 3 i kompakt.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'ferge';
           }
       )[]
     | null;
@@ -3513,6 +3679,17 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        ferge?:
+          | T
+          | {
+              title?: T;
+              stops?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   sidefeltKolonner?: T;
   sidefelt?:
@@ -3677,6 +3854,17 @@ export interface SidefeltSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        ferge?:
+          | T
+          | {
+              title?: T;
+              stops?: T;
               count?: T;
               variant?: T;
               bredde?: T;
@@ -3853,6 +4041,17 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        ferge?:
+          | T
+          | {
+              title?: T;
+              stops?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   bunnKolonner?: T;
   bunn?:
@@ -4017,6 +4216,17 @@ export interface SidefeltSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        ferge?:
+          | T
+          | {
+              title?: T;
+              stops?: T;
               count?: T;
               variant?: T;
               bredde?: T;
