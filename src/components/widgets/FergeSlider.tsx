@@ -9,6 +9,7 @@ export interface Departure {
   destination: string
   lineCode: string
   lineName?: string
+  operator?: string
   submode?: string      // 'localCarFerry' | 'highSpeedPassengerService' | ...
   situations?: string[]
   quayCode?: string
@@ -23,6 +24,58 @@ export interface StopData {
 interface Props {
   stops: StopData[]
   variant: WidgetVariant
+}
+
+// ── Ikoner ────────────────────────────────────────────────────────────────────
+// h-5 w-5 = 20 px display, viewBox 24×24, strokeWidth 1.5 (Heroicons-stil)
+
+const IconFerry = () => (
+  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
+    className="h-5 w-5 shrink-0" aria-hidden="true">
+    {/* Flatt skrog */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2 18h20v-4H2z" />
+    {/* Bil på dekk: karosseri-trapesoid + kabintak */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 14l2-4h8l2 4" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 10l1.5-2h3l1.5 2" />
+  </svg>
+)
+
+const IconSpeedboat = () => (
+  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
+    className="h-5 w-5 shrink-0" aria-hidden="true">
+    {/*
+      Slank skrog — hekken starter ved x=7 slik at fartsstrekene
+      (x=2–5) er tydelig til venstre for skroget og ikke overlapper.
+      Bow peker mot høyre til (23,14).
+    */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7 18h13l3-4-3-4h-9L7 18z" />
+    {/* Bro/kahytt */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M11 10V8h7v2" />
+    {/* Fartsstrek — klar luft til venstre for hekken */}
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2 12h4M2 14h4M2 16h3" />
+  </svg>
+)
+
+function getVesselType(submode?: string): 'ferry' | 'speedboat' | null {
+  if (!submode) return null
+  return submode === 'localCarFerry' ? 'ferry' : 'speedboat'
+}
+
+// Ikon + tekstlabel som én udelelig enhet (nowrap, fjord-farge)
+// compact=true: kun ikon, ingen tekst
+function VesselBadge({ submode, compact }: { submode?: string; compact?: boolean }) {
+  const type = getVesselType(submode)
+  if (!type) return null
+  return (
+    <span className="flex shrink-0 items-center gap-1 whitespace-nowrap text-fjord">
+      {type === 'ferry' ? <IconFerry /> : <IconSpeedboat />}
+      {!compact && (
+        <span className="text-xs font-medium">
+          {type === 'ferry' ? 'Bilferge' : 'Hurtigbåt'}
+        </span>
+      )}
+    </span>
+  )
 }
 
 // ── Tid ──────────────────────────────────────────────────────────────────────
@@ -56,8 +109,8 @@ function groupByDay(deps: Departure[]): { label: string; deps: Departure[] }[] {
   const today = todayStr()
   const tomorrow = tomorrowStr()
   const raw = [
-    { label: 'I dag',                            deps: deps.filter(d => osloDay(d.aimedTime) === today) },
-    { label: `I morgen · ${tomorrowWeekday()}`,   deps: deps.filter(d => osloDay(d.aimedTime) === tomorrow) },
+    { label: 'I dag',                          deps: deps.filter(d => osloDay(d.aimedTime) === today) },
+    { label: `I morgen · ${tomorrowWeekday()}`, deps: deps.filter(d => osloDay(d.aimedTime) === tomorrow) },
     { label: (() => {
         const later = deps.filter(d => osloDay(d.aimedTime) !== today && osloDay(d.aimedTime) !== tomorrow)
         if (!later.length) return ''
@@ -73,22 +126,18 @@ function groupByDay(deps: Departure[]): { label: string; deps: Departure[] }[] {
 
 // ── Linje-info ────────────────────────────────────────────────────────────────
 
-interface LineInfo { name?: string; code: string; submode?: string }
+interface LineInfo { name?: string; code: string; submode?: string; operator?: string }
 
-// Returnerer felles linje-info hvis ALLE avganger deler samme linjekode
 function sharedLine(deps: Departure[]): LineInfo | null {
   if (!deps.length) return null
   const first = deps[0]
   if (!deps.every(d => d.lineCode === first.lineCode)) return null
-  return { name: first.lineName, code: first.lineCode, submode: first.submode }
+  return { name: first.lineName, code: first.lineCode, submode: first.submode, operator: first.operator }
 }
 
 function lineLabel(l: LineInfo): string {
-  return l.name ? `${l.name} (${l.code})` : l.code
-}
-
-function isFerge(submode?: string): boolean {
-  return submode === 'localCarFerry'
+  const nameCode = l.name ? `${l.name} (${l.code})` : l.code
+  return l.operator ? `${l.operator} · ${nameCode}` : nameCode
 }
 
 // ── Komponent ─────────────────────────────────────────────────────────────────
@@ -132,7 +181,6 @@ export function FergeSlider({ stops, variant }: Props) {
 
   const shownDeps = isKompakt ? current.departures.slice(0, 3) : current.departures
   const groups = groupByDay(shownDeps)
-  // Felles linje: sjekk mot ALLE avganger (ikke bare vist utvalg)
   const shared = sharedLine(current.departures)
 
   return (
@@ -161,9 +209,7 @@ export function FergeSlider({ stops, variant }: Props) {
         </div>
         {/* Felles linjeinformasjon — vises én gang her når alle avganger har samme linje */}
         {shared && !isKompakt && (
-          <p className="mt-0.5 text-xs text-muted">
-            {lineLabel(shared)}{isFerge(shared.submode) ? ' · ⛴ Bilferge' : ''}
-          </p>
+          <p className="mt-0.5 text-xs text-muted">{lineLabel(shared)}</p>
         )}
       </div>
 
@@ -178,32 +224,34 @@ export function FergeSlider({ stops, variant }: Props) {
               {group.deps.map((d, j) => (
                 <li key={j} className={isKompakt ? 'py-1.5' : 'py-2'}>
                   {d.cancelled ? (
-                    /* Innstilt */
-                    <div className="flex items-baseline gap-2 text-sm">
-                      <span className="w-14 shrink-0 font-medium text-red-600">Innstilt</span>
-                      <span className="tabular-nums text-xs text-muted line-through">{fmtTimeOnly(d.aimedTime)}</span>
-                      <span className="min-w-0 flex-1 truncate text-xs text-muted">Til {d.destination}</span>
+                    /* Innstilt — tid overstreket, "Innstilt" i rødt */
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm">
+                      <span className="w-12 shrink-0 tabular-nums text-muted line-through">
+                        {fmtTimeOnly(d.aimedTime)}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate font-medium text-red-600">Innstilt</span>
+                      <VesselBadge submode={d.submode} compact={isKompakt} />
                     </div>
                   ) : (
                     <>
-                      {/* Primærlinje: tid · destinasjon · ferge-badge */}
-                      <div className="flex items-baseline gap-2 text-sm">
+                      {/*
+                        Primærlinje: tid · destinasjon · type-merke
+                        flex-wrap: merket viker til neste linje på smal skjerm
+                        whitespace-nowrap på merket sikrer at "Bilferge" aldri kappes
+                      */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm">
                         <span className="w-12 shrink-0 tabular-nums font-semibold text-fjord">
                           {fmtTimeOnly(d.aimedTime)}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-ink">
                           Til {d.destination}
                         </span>
-                        {isFerge(d.submode) && (
-                          <span className="shrink-0 whitespace-nowrap rounded bg-sea/10 px-1.5 py-0.5 text-[10px] font-medium text-sea">
-                            {isKompakt ? '⛴' : 'Ferge'}
-                          </span>
-                        )}
+                        <VesselBadge submode={d.submode} compact={isKompakt} />
                       </div>
-                      {/* Sekundærlinje: linje + kai (full variant, kun når linjene varierer) */}
+                      {/* Sekundærlinje: linje + kai (full variant) */}
                       {!isKompakt && !shared && (d.lineName || d.lineCode) && (
                         <p className="mt-0.5 text-xs text-muted">
-                          {lineLabel({ name: d.lineName, code: d.lineCode, submode: d.submode })}
+                          {lineLabel({ name: d.lineName, code: d.lineCode, submode: d.submode, operator: d.operator })}
                           {d.quayCode && ` · Kai ${d.quayCode}`}
                         </p>
                       )}
@@ -212,8 +260,8 @@ export function FergeSlider({ stops, variant }: Props) {
                       )}
                     </>
                   )}
-                  {/* SX-avvik */}
-                  {d.situations?.[0] && (
+                  {/* SX-avvik (full variant) */}
+                  {!isKompakt && d.situations?.[0] && (
                     <p className="mt-0.5 truncate text-[11px] text-amber-600">⚠ {d.situations[0]}</p>
                   )}
                 </li>

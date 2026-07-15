@@ -46,7 +46,7 @@ function buildQuery(stopId: string, count: number): string {
         quay { publicCode }
         serviceJourney {
           situations { summary { value } }
-          line { name publicCode transportMode transportSubmode }
+          line { name publicCode transportMode transportSubmode operator { name } }
         }
         destinationDisplay { frontText }
       }
@@ -88,6 +88,7 @@ async function fetchStop(stop: StopInput, count: number): Promise<StopData | nul
           destination: c.destinationDisplay?.frontText ?? '—',
           lineCode: c.serviceJourney?.line?.publicCode ?? '',
           lineName: c.serviceJourney?.line?.name ?? undefined,
+          operator: c.serviceJourney?.line?.operator?.name ?? undefined,
           submode: c.serviceJourney?.line?.transportSubmode ?? undefined,
           situations: sxMsgs.length ? sxMsgs : undefined,
           quayCode: c.quay?.publicCode ?? undefined,
