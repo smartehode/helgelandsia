@@ -9,7 +9,7 @@ const sans = Hanken_Grotesk({ subsets: ['latin'], variable: '--font-sans', displ
 const serif = Fraunces({ subsets: ['latin'], variable: '--font-serif', display: 'swap' })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SERVER_URL || 'https://helgelandsia.no'),
+  metadataBase: new URL('https://helgelandsia.no'),
   title: {
     default: 'Helgelandsia – bedrifter, stillinger, anbud og arrangementer på Helgeland',
     template: '%s | Helgelandsia',

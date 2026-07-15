@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { getPayloadClient } from '@/lib/getPayload'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 const BASE = 'https://helgelandsia.no'
 
