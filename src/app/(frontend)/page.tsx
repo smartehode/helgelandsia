@@ -6,6 +6,7 @@ import { HeroStrip } from '@/components/HeroStrip'
 import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
 import { RenderBlocks } from '@/components/RenderBlocks'
 import { getPayloadClient } from '@/lib/getPayload'
+import { SITE } from '@/lib/og'
 
 export const dynamic = 'force-dynamic'
 
@@ -182,7 +183,36 @@ export default async function HomePage() {
   const widgetAreas: any = widgetAreasRes
   const weatherItems = weather.map(w => ({ label: `${w.emoji} ${w.name}:`, value: `${w.temp}°C` }))
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${SITE}/#organization`,
+        name: 'Helgelandsia',
+        url: SITE,
+        logo: { '@type': 'ImageObject', url: `${SITE}/opengraph-image` },
+        areaServed: { '@type': 'Place', name: 'Helgeland' },
+        description: 'Regional portal for Helgeland — bedrifter, stillinger, anbud og arrangementer fra 18 kommuner.',
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE}/#website`,
+        url: SITE,
+        name: 'Helgelandsia',
+        publisher: { '@id': `${SITE}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: { '@type': 'EntryPoint', urlTemplate: `${SITE}/api/sok?q={search_term_string}` },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  }
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     <div className="mx-auto w-full max-w-[1200px] px-4">
 
       {/* ── 1. HERO ─────────────────────────────────────────────────────── */}
@@ -356,5 +386,6 @@ export default async function HomePage() {
       </section>
 
     </div>
+    </>
   )
 }

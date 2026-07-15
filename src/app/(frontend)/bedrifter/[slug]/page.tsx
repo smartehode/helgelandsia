@@ -43,11 +43,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!b) return {}
   const meta = b.meta ?? {}
   const img = abs(mediaUrl(meta.image ?? b.logo, 'hero') ?? mediaUrl(meta.image ?? b.logo))
-  const title = meta.title ?? b.name
-  const description = meta.description ?? b.tagline ?? b.naceBeskrivelse
+  // "[Navn] – [nace kort] i [kommune]" — unik per bedrift, aldri identisk
+  const shortNace = b.naceBeskrivelse
+    ? b.naceBeskrivelse.split(',')[0].slice(0, 45).trimEnd() + (b.naceBeskrivelse.split(',')[0].length > 45 ? '…' : '')
+    : null
+  const title = meta.title ?? [
+    b.name,
+    shortNace ? `– ${shortNace}` : null,
+    b.kommunenavn ? `i ${b.kommunenavn}` : null,
+  ].filter(Boolean).join(' ')
+  const description = meta.description
+    ?? b.tagline
+    ?? [b.naceBeskrivelse, b.kommunenavn ? `i ${b.kommunenavn}` : null].filter(Boolean).join(' ')
   return {
     title,
     description,
+    alternates: { canonical: `${SITE}/bedrifter/${slug}` },
     openGraph: {
       title,
       description,
@@ -103,7 +114,27 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
   const percentil = percentilResult
   const isBrreg = b.source === 'brreg'
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: b.name,
+    ...(b.orgnr && {
+      identifier: { '@type': 'PropertyValue', name: 'Organisasjonsnummer', value: b.orgnr },
+    }),
+    ...(b.tagline && { description: b.tagline }),
+    // Nettside er synlig på siden — OK å inkludere. Telefon/e-post holdes bak KontaktReveal.
+    ...(b.website && { url: b.website }),
+    ...(b.kommunenavn && {
+      address: { '@type': 'PostalAddress', addressLocality: b.kommunenavn, addressCountry: 'NO' },
+    }),
+    ...(b.lat && b.lng && {
+      geo: { '@type': 'GeoCoordinates', latitude: b.lat, longitude: b.lng },
+    }),
+  }
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     <div className="mx-auto max-w-4xl px-4 py-12">
       {/* Tittel-seksjon */}
       <div className="flex items-start gap-4">
@@ -363,5 +394,6 @@ export default async function BusinessPage({ params }: { params: Promise<{ slug:
         </aside>
       </div>
     </div>
+    </>
   )
 }

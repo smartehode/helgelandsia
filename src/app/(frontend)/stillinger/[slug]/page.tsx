@@ -29,16 +29,32 @@ async function getJob(slug: string) {
   return docs[0] ?? null
 }
 
+const JOB_TYPE_SCHEMA: Record<string, string> = {
+  'full-time': 'FULL_TIME',
+  'part-time': 'PART_TIME',
+  'temp': 'TEMPORARY',
+  'contract': 'CONTRACTOR',
+  'seasonal': 'TEMPORARY',
+  'apprentice': 'INTERN',
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const j: any = await getJob(slug)
   if (!j) return {}
-  const title = `${j.title} — ${j.employer}`
-  const description = [j.employer, j.locationName, j.jobType ? JOB_TYPE[j.jobType] : undefined]
-    .filter(Boolean).join(' · ')
+  // "[Tittel] – [arbeidsgiver] i [sted]" for unik og informativ tittel
+  const titleParts = [j.title, j.employer ? `– ${j.employer}` : null, j.locationName ? `i ${j.locationName}` : null]
+  const title = titleParts.filter(Boolean).join(' ')
+  const description = [
+    j.employer,
+    j.locationName,
+    j.jobType ? JOB_TYPE[j.jobType] : undefined,
+    j.deadline ? `Frist ${new Date(j.deadline).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })}` : undefined,
+  ].filter(Boolean).join(' · ')
   return {
     title,
     description,
+    alternates: { canonical: `${SITE}/stillinger/${slug}` },
     openGraph: { title, description, url: `${SITE}/stillinger/${slug}`, type: 'article' },
     twitter: { card: 'summary' },
   }
@@ -49,7 +65,22 @@ export default async function StillingPage({ params }: { params: Promise<{ slug:
   const j: any = await getJob(slug)
   if (!j) notFound()
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: j.title,
+    hiringOrganization: { '@type': 'Organization', name: j.employer },
+    ...(j.locationName && {
+      jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: j.locationName, addressCountry: 'NO' } },
+    }),
+    ...(j.createdAt && { datePosted: j.createdAt }),
+    ...(j.deadline && { validThrough: j.deadline }),
+    ...(j.jobType && { employmentType: JOB_TYPE_SCHEMA[j.jobType] ?? 'OTHER' }),
+  }
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     <div className="mx-auto max-w-4xl px-4 py-12">
 
       {/* Overskrift */}
@@ -115,5 +146,6 @@ export default async function StillingPage({ params }: { params: Promise<{ slug:
         )}
       </aside>
     </div>
+    </>
   )
 }

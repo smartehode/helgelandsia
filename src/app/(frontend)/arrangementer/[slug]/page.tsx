@@ -36,6 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title,
     description,
+    alternates: { canonical: `${SITE}/arrangementer/${slug}` },
     openGraph: {
       title,
       description,
@@ -54,7 +55,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
   const heroUrl = mediaUrl(e.image, 'hero')
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: e.title,
+    startDate: e.startDate,
+    ...(e.endDate && { endDate: e.endDate }),
+    ...(e.locationName && { location: { '@type': 'Place', name: e.locationName } }),
+    eventStatus: 'https://schema.org/EventScheduled',
+    url: `${SITE}/arrangementer/${slug}`,
+    ...(heroUrl && { image: abs(heroUrl) }),
+  }
+
   return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     <div className="mx-auto max-w-3xl px-4 py-12">
       {heroUrl && (
         <div className="relative mb-8 aspect-[16/9] overflow-hidden rounded-2xl">
@@ -81,5 +96,6 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         </a>
       )}
     </div>
+    </>
   )
 }

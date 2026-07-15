@@ -9,10 +9,19 @@ const sans = Hanken_Grotesk({ subsets: ['latin'], variable: '--font-sans', displ
 const serif = Fraunces({ subsets: ['latin'], variable: '--font-serif', display: 'swap' })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'),
-  title: { default: 'Helgelandsia', template: '%s · Helgelandsia' },
-  description: 'Lokale historier, næringsliv, kultur og opplevelser fra Helgeland.',
-  openGraph: { type: 'website', locale: 'nb_NO' },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SERVER_URL || 'https://helgelandsia.no'),
+  title: {
+    default: 'Helgelandsia – bedrifter, stillinger, anbud og arrangementer på Helgeland',
+    template: '%s | Helgelandsia',
+  },
+  description: 'Helgelandsia samler alt som skjer på Helgeland på ett sted: bedrifter, stillinger, anbud, arrangementer, høringer, fergetider og lokale nyheter — fra 18 kommuner, oppdatert hver dag.',
+  openGraph: {
+    type: 'website',
+    locale: 'nb_NO',
+    siteName: 'Helgelandsia',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Helgelandsia' }],
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 export default function FrontendLayout({ children }: { children: React.ReactNode }) {
