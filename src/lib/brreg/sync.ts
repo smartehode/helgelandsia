@@ -5,14 +5,10 @@ import { mapNaceToCategory } from '../businesses/categories'
 const USER_AGENT = 'Helgelandsia/1.0 (helgelandsia.no)'
 const BRREG_API = 'https://data.brreg.no/enhetsregisteret/api'
 
-// 19 Helgeland-kommuner i Nordland.
-// 1833 = Rana (Mo i Rana). 5046 = Bindal (nytt kommunenummer etter reform).
-// OBS: 1837 = Meløy (Salten) — IKKE Helgeland, og skal IKKE være her.
-export const HELGELAND_KOMMUNENUMRE = new Set([
-  '1811', '1812', '1813', '1815', '1816', '1818', '1820', '1822',
-  '1824', '1825', '1826', '1827', '1828', '1832', '1833', '1834',
-  '1835', '1836', '5046',
-])
+// Énkildes sannhet for kommunenumre bor i src/lib/helgeland/kommuner.ts.
+// 1837 = Meløy (Salten) — IKKE Helgeland, aldri legg til.
+import { KOMMUNENUMRE as HELGELAND_KOMMUNENUMRE } from '../helgeland/kommuner'
+export { HELGELAND_KOMMUNENUMRE }
 
 // ---------------------------------------------------------------------------
 // Hjelpefunksjoner

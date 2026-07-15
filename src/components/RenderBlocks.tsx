@@ -16,6 +16,7 @@ import { ArrangementerWidget } from '@/components/widgets/ArrangementerWidget'
 import { ShipTrafficWidget } from '@/components/widgets/ShipTrafficWidget'
 import { PolitiWidget } from '@/components/widgets/PolitiWidget'
 import { FergeWidget } from '@/components/widgets/FergeWidget'
+import { KunngjoringerWidget } from '@/components/widgets/KunngjoringerWidget'
 
 // All class strings must be complete literals — Tailwind cannot detect dynamically built names.
 const GRID_COLS: Record<string, string> = {
@@ -198,6 +199,15 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
           title={block.title || undefined}
           stopIds={block.stops?.length ? (block.stops as string[]) : undefined}
           count={block.count ?? 5}
+          variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+        />
+      )
+    case 'kunngjoringer':
+      return (
+        <KunngjoringerWidget
+          title={block.title || undefined}
+          kommuner={block.kommuner?.length ? (block.kommuner as string[]) : undefined}
+          count={block.count ?? 8}
           variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
         />
       )

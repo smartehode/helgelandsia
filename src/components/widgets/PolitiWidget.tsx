@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import type { WidgetVariant } from './PowerPriceWidget'
+import { KOMMUNENAVN_LC } from '@/lib/helgeland/kommuner'
 
 interface Props {
   title?: string
@@ -21,15 +22,9 @@ interface PoliceMsg {
   isEdited: boolean
 }
 
-// Lowercase for case-insensitiv match mot API-verdier.
-// Meløy (1837) er Salten — IKKE Helgeland, og er bevisst utelatt.
-const HELGELAND_KOMMUNER = new Set([
-  'brønnøy', 'sømna', 'bindal', 'vevelstad',
-  'herøy', 'alstahaug', 'dønna', 'leirfjord',
-  'vefsn', 'grane', 'hattfjelldal',
-  'hemnes', 'rana', 'nesna',
-  'lurøy', 'rødøy', 'træna', 'vega',
-])
+// Hentes fra src/lib/helgeland/kommuner.ts — énkildes sannhet.
+// Meløy (1837 = Salten) er bevisst utelatt i kildefilen.
+const HELGELAND_KOMMUNER = KOMMUNENAVN_LC
 
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime()

@@ -472,12 +472,18 @@ monetiseres. Verdi før pris — bedrifter skal VILLE være der.
   `registreringsdato`, `avregistreringsdato`, `antallAnsatte`.
 - BRREG-felter er `readOnly` i admin (oppdateres kun av sync-jobben).
 
-**Helgeland-geografi — 19 kommunenumre**
-- 1811, 1812, 1813, 1815, 1816, 1818, 1820, 1822, 1824, 1825, 1826, 1827,
-  1828, 1832, 1833, 1834, 1835, 1836, 5046.
+**Helgeland-geografi — 18 kommuner**
+- 1811 (Bindal), 1812 (Sømna), 1813 (Brønnøy), 1815 (Vega), 1816 (Vevelstad),
+  1818 (Herøy), 1820 (Alstahaug), 1822 (Leirfjord), 1824 (Vefsn), 1825 (Grane),
+  1826 (Hattfjelldal), 1827 (Dønna), 1828 (Nesna), 1832 (Hemnes), 1833 (Rana),
+  1834 (Lurøy), 1835 (Træna), 1836 (Rødøy).
+- **Énkildes sannhet:** `src/lib/helgeland/kommuner.ts` — all kode
+  importerer herfra. Ikke dupliser kommunelister andre steder.
 - **VIKTIG:** 1833 = Rana (Helgelands største by). 1837 = Meløy (Salten,
   IKKE Helgeland) — skal ALDRI være i listen.
-- 5046 = Bindal (nytt kommunenummer etter kommunereform).
+- 5046 = Høylandet (Trøndelag) — IKKE Helgeland. Var feilaktig inkludert
+  fra start; fjernet 2026-07-15 (~600 Høylandet-enheter ryddes fra DB).
+- Træna (1835) er i kommunelisten men ikke Norkart-kunde (ikke i arealplaner.no).
 
 **Etter første synk og opprydding**
 - 1 943 Meløy-poster (kommunenummer 1837) slettet manuelt.

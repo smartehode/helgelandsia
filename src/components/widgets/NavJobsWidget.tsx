@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import type { WidgetVariant } from './PowerPriceWidget'
+import { KOMMUNENAVN_UC } from '@/lib/helgeland/kommuner'
 
 interface Props {
   title?: string
@@ -9,14 +10,10 @@ interface Props {
   variant?: WidgetVariant
 }
 
-// NAV-API returnerer kommunenavn som store bokstaver, f.eks. "BRØNNØY"
-const HELGELAND_KOMMUNER = new Set([
-  'BRØNNØY', 'VEGA', 'VEVELSTAD', 'BINDAL', 'SØMNA',
-  'GRANE', 'HATTFJELLDAL',
-  'ALSTAHAUG', 'LEIRFJORD', 'VEFSN', 'HERØY', 'DØNNA',
-  'NESNA', 'HEMNES', 'RANA',
-  'RØDØY', 'LURØY', 'TRÆNA', 'MELØY',
-])
+// NAV-API returnerer kommunenavn som store bokstaver, f.eks. "BRØNNØY".
+// Hentes fra src/lib/helgeland/kommuner.ts — énkildes sannhet.
+// MELØY (Salten) er fjernet; var feilaktig inkludert.
+const HELGELAND_KOMMUNER = KOMMUNENAVN_UC
 
 interface NavLocation {
   municipal?: string

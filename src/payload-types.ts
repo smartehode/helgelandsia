@@ -1087,6 +1087,25 @@ export interface Page {
             blockName?: string | null;
             blockType: 'ferge';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle tilgjengelige kommuner (Rana, Hemnes, Alstahaug).
+             */
+            kommuner?: ('rana' | 'hemnes' | 'alstahaug')[] | null;
+            /**
+             * 1–20 saker, sortert nyest først på tvers av kommuner.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'kunngjoringer';
+          }
       )[]
     | null;
   meta?: {
@@ -1946,6 +1965,17 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        kunngjoringer?:
+          | T
+          | {
+              title?: T;
+              kommuner?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -2543,6 +2573,25 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'ferge';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle tilgjengelige kommuner (Rana, Hemnes, Alstahaug).
+             */
+            kommuner?: ('rana' | 'hemnes' | 'alstahaug')[] | null;
+            /**
+             * 1–20 saker, sortert nyest først på tvers av kommuner.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'kunngjoringer';
+          }
       )[]
     | null;
   /**
@@ -2813,6 +2862,25 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'ferge';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle tilgjengelige kommuner (Rana, Hemnes, Alstahaug).
+             */
+            kommuner?: ('rana' | 'hemnes' | 'alstahaug')[] | null;
+            /**
+             * 1–20 saker, sortert nyest først på tvers av kommuner.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'kunngjoringer';
           }
       )[]
     | null;
@@ -3085,6 +3153,25 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'ferge';
           }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle tilgjengelige kommuner (Rana, Hemnes, Alstahaug).
+             */
+            kommuner?: ('rana' | 'hemnes' | 'alstahaug')[] | null;
+            /**
+             * 1–20 saker, sortert nyest først på tvers av kommuner.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'kunngjoringer';
+          }
       )[]
     | null;
   /**
@@ -3355,6 +3442,25 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'ferge';
+          }
+        | {
+            title?: string | null;
+            /**
+             * La stå tomt for alle tilgjengelige kommuner (Rana, Hemnes, Alstahaug).
+             */
+            kommuner?: ('rana' | 'hemnes' | 'alstahaug')[] | null;
+            /**
+             * 1–20 saker, sortert nyest først på tvers av kommuner.
+             */
+            count?: number | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'kunngjoringer';
           }
       )[]
     | null;
@@ -3690,6 +3796,17 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        kunngjoringer?:
+          | T
+          | {
+              title?: T;
+              kommuner?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   sidefeltKolonner?: T;
   sidefelt?:
@@ -3865,6 +3982,17 @@ export interface SidefeltSelect<T extends boolean = true> {
           | {
               title?: T;
               stops?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        kunngjoringer?:
+          | T
+          | {
+              title?: T;
+              kommuner?: T;
               count?: T;
               variant?: T;
               bredde?: T;
@@ -4052,6 +4180,17 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        kunngjoringer?:
+          | T
+          | {
+              title?: T;
+              kommuner?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   bunnKolonner?: T;
   bunn?:
@@ -4227,6 +4366,17 @@ export interface SidefeltSelect<T extends boolean = true> {
           | {
               title?: T;
               stops?: T;
+              count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        kunngjoringer?:
+          | T
+          | {
+              title?: T;
+              kommuner?: T;
               count?: T;
               variant?: T;
               bredde?: T;

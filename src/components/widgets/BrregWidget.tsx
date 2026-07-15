@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { WidgetVariant } from './PowerPriceWidget'
+import { KOMMUNENUMRE_STR } from '@/lib/helgeland/kommuner'
 
 interface Props {
   title?: string
@@ -15,8 +16,8 @@ interface Enhet {
   organisasjonsform?: { beskrivelse?: string }
 }
 
-const KOMMUNENUMMER =
-  '1811,1812,1813,1815,1816,1818,1820,1822,1824,1825,1826,1827,1828,1832,1834,1835,1836,1837'
+// Hentes fra src/lib/helgeland/kommuner.ts — énkildes sannhet.
+const KOMMUNENUMMER = KOMMUNENUMRE_STR
 
 function fmtDate(iso?: string): string {
   if (!iso) return ''

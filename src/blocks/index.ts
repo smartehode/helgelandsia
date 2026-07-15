@@ -605,6 +605,46 @@ export const PolitiloggBlock: Block = {
   ],
 }
 
+export const KunngjoringerBlock: Block = {
+  slug: 'kunngjoringer',
+  labels: { singular: 'Kunngjøringer og høringer', plural: 'Kunngjøringer og høringer' },
+  fields: [
+    { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
+    {
+      name: 'kommuner',
+      type: 'select',
+      hasMany: true,
+      label: 'Kommuner',
+      admin: { description: 'La stå tomt for alle tilgjengelige kommuner (Rana, Hemnes, Alstahaug).' },
+      options: [
+        { label: 'Rana', value: 'rana' },
+        { label: 'Hemnes', value: 'hemnes' },
+        { label: 'Alstahaug', value: 'alstahaug' },
+      ],
+    },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall saker',
+      defaultValue: 8,
+      min: 1,
+      max: 20,
+      admin: { description: '1–20 saker, sortert nyest først på tvers av kommuner.' },
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – dato, kommune og tittel', value: 'full' },
+        { label: 'Kompakt – én linje per sak', value: 'kompakt' },
+      ],
+    },
+    breddeField,
+  ],
+}
+
 export const layoutBlocks = [
   HeroBlock,
   RichTextBlock,
@@ -627,6 +667,7 @@ export const layoutBlocks = [
   SkipstrafikkBlock,
   PolitiloggBlock,
   FergeBlock,
+  KunngjoringerBlock,
 ]
 
 export const widgetBlocks = [
@@ -645,4 +686,5 @@ export const widgetBlocks = [
   SkipstrafikkBlock,
   PolitiloggBlock,
   FergeBlock,
+  KunngjoringerBlock,
 ]
