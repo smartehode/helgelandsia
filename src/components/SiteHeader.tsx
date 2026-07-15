@@ -11,6 +11,7 @@ const FALLBACK_NAV = [
   { url: '/nyhetsbrev', label: 'Nyhetsbrev' },
   { url: '/anbud', label: 'Anbud' },
   { url: '/nyttig', label: 'Nyttig' },
+  { url: '/om', label: 'Om' },
   { url: '/min-side', label: 'Min side' },
 ]
 

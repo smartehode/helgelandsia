@@ -22,6 +22,10 @@ export async function SiteFooter() {
         ))}
       </div>
       <div className="border-t border-white/10 py-4 text-center text-xs text-white/60">
+        <div className="mb-2 flex justify-center gap-5">
+          <Link href="/om" className="hover:text-white">Om Helgelandsia</Link>
+          <Link href="/min-side" className="hover:text-white">Min side</Link>
+        </div>
         {footer?.copyright ?? `© ${new Date().getFullYear()} Helgeland-portalen`}
       </div>
     </footer>
