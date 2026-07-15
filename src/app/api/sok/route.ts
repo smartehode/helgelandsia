@@ -156,7 +156,7 @@ export async function GET(req: NextRequest) {
     posts: (posts?.docs ?? []).map((p: any) => ({
       id: p.id,
       title: p.title,
-      url: `/historier/${p.slug}`,
+      url: `/leserinnlegg/${p.slug}`,
       meta: undefined,
     })),
     tenders: (tenders?.docs ?? []).map((t: any) => ({

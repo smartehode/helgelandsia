@@ -1003,7 +1003,7 @@ export interface Page {
         | {
             title?: string | null;
             /**
-             * 1–20 siste publiserte historier.
+             * 1–20 siste publiserte leserinnlegg.
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
@@ -2489,7 +2489,7 @@ export interface Sidefelt {
         | {
             title?: string | null;
             /**
-             * 1–20 siste publiserte historier.
+             * 1–20 siste publiserte leserinnlegg.
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
@@ -2779,7 +2779,7 @@ export interface Sidefelt {
         | {
             title?: string | null;
             /**
-             * 1–20 siste publiserte historier.
+             * 1–20 siste publiserte leserinnlegg.
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
@@ -3069,7 +3069,7 @@ export interface Sidefelt {
         | {
             title?: string | null;
             /**
-             * 1–20 siste publiserte historier.
+             * 1–20 siste publiserte leserinnlegg.
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
@@ -3359,7 +3359,7 @@ export interface Sidefelt {
         | {
             title?: string | null;
             /**
-             * 1–20 siste publiserte historier.
+             * 1–20 siste publiserte leserinnlegg.
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;

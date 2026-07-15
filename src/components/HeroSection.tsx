@@ -14,7 +14,7 @@ export async function HeroSection() {
   const videoUrl = mediaUrl(hero?.video)
   const overlay = typeof hero?.overlay === 'number' ? hero.overlay : 45
   const ctas: any[] = hero?.ctas?.length ? hero.ctas : [
-    { label: 'Les historier', url: '/historier', style: 'primary' },
+    { label: 'Leserinnlegg', url: '/leserinnlegg', style: 'primary' },
     { label: 'Hva skjer?', url: '/arrangementer', style: 'secondary' },
   ]
   return (

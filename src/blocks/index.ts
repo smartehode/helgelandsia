@@ -49,7 +49,7 @@ export const RichTextBlock: Block = {
 
 export const FeaturedPostsBlock: Block = {
   slug: 'featuredPosts',
-  labels: { singular: 'Fremhevede historier', plural: 'Fremhevede historier' },
+  labels: { singular: 'Fremhevede leserinnlegg', plural: 'Fremhevede leserinnlegg' },
   fields: [
     { name: 'heading', type: 'text', label: 'Seksjonstittel' },
     {
@@ -458,17 +458,17 @@ export const HolidaysBlock: Block = {
 
 export const HistorierBlock: Block = {
   slug: 'historier',
-  labels: { singular: 'Siste historier', plural: 'Siste historier' },
+  labels: { singular: 'Siste leserinnlegg', plural: 'Siste leserinnlegg' },
   fields: [
     { name: 'title', type: 'text', label: 'Tittel (valgfritt)' },
     {
       name: 'count',
       type: 'number',
-      label: 'Antall historier',
+      label: 'Antall leserinnlegg',
       defaultValue: 3,
       min: 1,
       max: 20,
-      admin: { description: '1–20 siste publiserte historier.' },
+      admin: { description: '1–20 siste publiserte leserinnlegg.' },
     },
     {
       name: 'variant',

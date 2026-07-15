@@ -11,15 +11,14 @@ import { afterChangeApproved } from '../lib/email/submission-approved'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
-  labels: { singular: 'Artikkel', plural: 'Historier & artikler' },
+  labels: { singular: 'Leserinnlegg', plural: 'Leserinnlegg' },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', 'author', '_status', 'publishedAt'],
     group: 'Innhold',
-    // Live-forhåndsvisning av artikkelen mens du redigerer
     livePreview: {
       url: ({ data }) =>
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/historier/${data?.slug ?? ''}`,
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/leserinnlegg/${data?.slug ?? ''}`,
     },
   },
   // Utkast/versjonering – innhold publiseres bevisst

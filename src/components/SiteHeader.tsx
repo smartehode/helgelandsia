@@ -4,7 +4,7 @@ import { MobileNav } from '@/components/MobileNav'
 
 const FALLBACK_NAV = [
   { url: '/arrangementer', label: 'Arrangementer' },
-  { url: '/historier', label: 'Historier' },
+  { url: '/leserinnlegg', label: 'Leserinnlegg' },
   { url: '/bedrifter', label: 'Bedrifter' },
   { url: '/stillinger', label: 'Stillinger' },
   { url: '/pressemeldinger', label: 'Pressemeldinger' },

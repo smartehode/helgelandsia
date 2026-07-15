@@ -23,7 +23,7 @@ const GROUPS: { key: keyof SearchResults; label: string }[] = [
   { key: 'businesses', label: 'Bedrifter' },
   { key: 'events',     label: 'Arrangementer' },
   { key: 'jobs',       label: 'Stillinger' },
-  { key: 'posts',      label: 'Artikler' },
+  { key: 'posts',      label: 'Leserinnlegg' },
   { key: 'tenders',    label: 'Anbud' },
 ]
 

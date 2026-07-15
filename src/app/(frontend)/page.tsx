@@ -221,7 +221,7 @@ export default async function HomePage() {
           Alt om Helgeland, samlet på ett sted
         </h1>
         <p className="mx-auto mt-3 max-w-md text-base text-muted">
-          Næringsliv, stillinger, arrangementer og historier fra hele regionen.
+          Næringsliv, stillinger, arrangementer og leserinnlegg fra hele regionen.
         </p>
         <ForsideSearch />
         {(weatherItems.length > 0 || power != null) && (
@@ -269,14 +269,14 @@ export default async function HomePage() {
               if (!blockPosts.length) return null
               return (
                 <div key={block.id ?? i}>
-                  {block.heading && <SecHeader label={block.heading} href="/historier" />}
+                  {block.heading && <SecHeader label={block.heading} href="/leserinnlegg" />}
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {blockPosts.map((post: any) => {
                       const img = mediaUrl(post.heroImage, 'card') ?? mediaUrl(post.heroImage)
                       return (
                         <Link
                           key={post.id}
-                          href={`/historier/${post.slug}`}
+                          href={`/leserinnlegg/${post.slug}`}
                           className="group overflow-hidden rounded-xl border border-ink/10 bg-white transition hover:shadow-sm"
                         >
                           <div className="aspect-[3/2] overflow-hidden bg-fog">
