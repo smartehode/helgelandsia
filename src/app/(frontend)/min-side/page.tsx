@@ -70,6 +70,7 @@ export default async function MinSide({
   const verifiedBusinesses: any[] = ownedVerifiedRes.docs
   const pendingBusinesses: any[] = ownedPendingRes.docs
   const hasBusinesses = verifiedBusinesses.length > 0 || pendingBusinesses.length > 0
+  const tenderDigestEnabled = process.env.TENDER_DIGEST_ENABLED === 'true'
 
   const toggleAnbudsvarsling = async () => {
     'use server'
@@ -197,15 +198,22 @@ export default async function MinSide({
           {/* 2. Varsler */}
           {verifiedBusinesses.length > 0 && (
             <div className="rounded-xl border border-ink/10 bg-white">
-              <div className="border-b border-ink/5 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-ink/5 px-4 py-3">
                 <h2 className="text-sm font-semibold text-fjord">Varsler</h2>
+                {!tenderDigestEnabled && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                    Kommer snart
+                  </span>
+                )}
               </div>
               <div className="px-4 py-3">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-medium text-ink">Anbudsvarsling</p>
                     <p className="mt-0.5 text-xs text-muted">
-                      Motta e-post ved nye offentlige anbud som kan passe bedriften din.
+                      {tenderDigestEnabled
+                        ? 'Motta e-post ved nye offentlige anbud som kan passe bedriften din.'
+                        : 'Lanseres snart — velg preferanse nå, og du er klar den dagen tjenesten åpner.'}
                     </p>
                   </div>
                   <form action={toggleAnbudsvarsling} className="shrink-0">
