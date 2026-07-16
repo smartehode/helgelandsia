@@ -9,9 +9,25 @@ interface Props {
   variant?: 'full' | 'kompakt'
 }
 
+function osloTodayMidnight(): Date {
+  const osloDate = new Date().toLocaleDateString('sv', { timeZone: 'Europe/Oslo' })
+  const utcMidnight = new Date(osloDate + 'T00:00:00Z')
+  const osloOffsetHours = +new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Oslo', hour: 'numeric', hour12: false,
+  }).format(utcMidnight)
+  return new Date(utcMidnight.getTime() - osloOffsetHours * 3_600_000)
+}
+
+function isOngoing(e: any): boolean {
+  if (!e.startDate || new Date(e.startDate) > new Date()) return false
+  if (e.endDate) return new Date(e.endDate) > new Date()
+  return true
+}
+
 export async function ArrangementerWidget({ title = 'Kommende arrangementer', count = 5, variant = 'full' }: Props) {
   const payload = await getPayloadClient()
-  const now = new Date().toISOString()
+  const nowISO = new Date().toISOString()
+  const todayISO = osloTodayMidnight().toISOString()
   let events: any[] = []
   try {
     const res = await payload.find({
@@ -19,14 +35,23 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
       where: {
         and: [
           { _status: { equals: 'published' } },
-          { startDate: { greater_than_equal: now } },
+          { or: [
+            { startDate: { greater_than_equal: todayISO } },
+            { endDate: { greater_than_equal: nowISO } },
+          ]},
         ],
       },
       sort: 'startDate',
-      limit: count,
+      limit: count * 2, // fetch extra for featured sort
       depth: 0,
     })
     events = res.docs
+      .sort((a: any, b: any) => {
+        if (a.featured && !b.featured) return -1
+        if (!a.featured && b.featured) return 1
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      })
+      .slice(0, count)
   } catch { }
   if (!events.length) return null
 
@@ -41,6 +66,7 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
       <ul className="divide-y divide-ink/5">
         {events.map((event: any) => {
           const startDt = event.startDate ? new Date(event.startDate) : null
+          const ongoing = isOngoing(event)
           return (
             <li key={event.id}>
               <Link
@@ -61,10 +87,16 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
                   <p className="truncate text-sm font-medium text-ink transition group-hover:text-sea">
                     {event.title}
                   </p>
-                  {variant === 'full' && event.location && (
-                    <p className="mt-0.5 truncate text-xs text-muted">{event.location}</p>
+                  {variant === 'full' && event.locationName && (
+                    <p className="mt-0.5 truncate text-xs text-muted">{event.locationName}</p>
                   )}
                 </div>
+                {ongoing && (
+                  <span className="ml-auto shrink-0 flex items-center gap-1 text-[10px] font-semibold text-sea">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-sea" />
+                    Nå
+                  </span>
+                )}
               </Link>
             </li>
           )

@@ -188,6 +188,12 @@ export function EventForm() {
         </div>
       </div>
 
+      {((startDate && new Date(startDate) < new Date()) || (endDate && new Date(endDate) < new Date())) && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          ⚠ Arrangementet ser ut til å ha vært — er datoen riktig?
+        </p>
+      )}
+
       <div>
         <label className={lbl}>Sted (f.eks. Kulturhuset)</label>
         <input value={locationName} onChange={e => setLocationName(e.target.value)} className={inp} />
