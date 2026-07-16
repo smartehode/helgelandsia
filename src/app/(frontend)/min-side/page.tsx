@@ -31,6 +31,7 @@ export default async function MinSide({
 }) {
   const sp = await searchParams
   const redigert = sp.redigert === '1'
+  const type = sp.type ?? ''
 
   const payload = await getPayloadClient()
   const { user }: any = await payload.auth({ headers: await getHeaders() })
@@ -141,7 +142,7 @@ export default async function MinSide({
               <h2 className="text-sm font-semibold text-fjord">Send inn innhold</h2>
             </div>
             <div className="p-5">
-              <SubmissionTabs />
+              <SubmissionTabs initialTab={type} />
             </div>
           </div>
         </section>

@@ -18,8 +18,9 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]['id']
 
-export function SubmissionTabs() {
-  const [active, setActive] = useState<TabId>('artikkel')
+export function SubmissionTabs({ initialTab }: { initialTab?: string }) {
+  const defaultTab = tabs.find(t => t.id === initialTab)?.id ?? 'artikkel'
+  const [active, setActive] = useState<TabId>(defaultTab)
   return (
     <div>
       <div className="mb-5 grid grid-cols-3 gap-1 rounded-2xl bg-ink/5 p-1 text-sm font-medium">
