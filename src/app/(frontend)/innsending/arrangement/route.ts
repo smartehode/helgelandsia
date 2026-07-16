@@ -29,6 +29,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Tittel og starttidspunkt må fylles ut.' }, { status: 400 })
   }
 
+  // Image: prefer uploaded file, fall back to imported image id
   let imageId: number | undefined
   const file = fd.get('image') as File | null
   if (file && typeof file === 'object' && file.size > 0) {
@@ -40,9 +41,14 @@ export async function POST(req: Request) {
       file: { data: Buffer.from(await file.arrayBuffer()), name: file.name, mimetype: file.type, size: file.size },
     })
     imageId = media.id
+  } else {
+    const importedId = parseInt(String(fd.get('importedImageId') || ''), 10)
+    if (!isNaN(importedId)) imageId = importedId
   }
 
   const desc = String(fd.get('description') || '').trim()
+  const sourceUrl = String(fd.get('sourceUrl') || '').trim() || undefined
+
   try {
     const doc = await payload.create({
       collection: 'events',
@@ -58,6 +64,7 @@ export async function POST(req: Request) {
         price: String(fd.get('price') || '') || undefined,
         description: desc ? toLexical(desc) : undefined,
         image: imageId,
+        sourceUrl,
         submittedBy: user.id,
         _status: 'draft',
       },

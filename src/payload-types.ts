@@ -585,6 +585,10 @@ export interface Event {
   startDate: string;
   endDate?: string | null;
   locationName?: string | null;
+  /**
+   * Originallenke (fylles ut automatisk ved import fra lenke)
+   */
+  sourceUrl?: string | null;
   organizer?: (number | null) | Business;
   ticketUrl?: string | null;
   free?: boolean | null;
@@ -1636,6 +1640,7 @@ export interface EventsSelect<T extends boolean = true> {
   startDate?: T;
   endDate?: T;
   locationName?: T;
+  sourceUrl?: T;
   organizer?: T;
   ticketUrl?: T;
   free?: T;

@@ -1057,6 +1057,71 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
   `PS D:\` = lokalt (kode, commit, push); `root@helgelandsia` = server
   (pull, build, logs). Aldri rediger filer på serveren — kun via git.
 
+### 2026-07-16 — Min side redesign, Leserinnlegg, Bidra-knapper, Importer arrangement
+
+**Min side redesignet — to-kolonne NAV-stil**
+- `src/app/(frontend)/min-side/page.tsx` fullstendig omskrevet.
+  Venstre: «Send inn innhold» (SubmissionTabs i kort). Høyre sidekolonne (~380px):
+  Mine bedrifter, Varsler (anbud), Aktuelle anbud (matching), Mine innsendinger.
+- `max-w-5xl`, `lg:grid-cols-[1fr_380px]`. Stables til én kolonne på mobil.
+- `SubmissionTabs` mottar `initialTab`-prop (valideres mot kjente tab-id-er).
+- `?type=X`-param fra URL leses og sendes til SubmissionTabs som initialTab.
+- Varsler-seksjon: viser «Kommer snart»-badge og passiv tekst når
+  `TENDER_DIGEST_ENABLED` ikke er 'true'. Bytter automatisk til aktiv
+  toggle ved lansering (null manuelle steg).
+
+**Historier & artikler → Leserinnlegg**
+- `src/collections/Posts.ts` — labels oppdatert, slug 'posts' uendret.
+- Ny rute `/leserinnlegg` + `/leserinnlegg/[slug]`. Gammel `/historier`
+  og `/historier/[slug]` → 301-redirect (begge med force-dynamic).
+- SiteHeader, HistorierWidget, FeaturedPostsBlock, ForsideSearch, sitemap
+  og sok-API oppdatert med ny URL/tekst. Block-slug 'historier' uendret
+  (lagret i admin-databasen, endring ville brutt eksisterende plasseringer).
+
+**Regel 18 utvidet**
+- Punkt c: `npm run build` lokalt må fullføre rent (exit 0) før push.
+- Punkt d: ALLE nye sider/ruter under src/app/(frontend)/ MÅ ha
+  `export const dynamic = 'force-dynamic'` — prerender i Docker feiler
+  uten Payload-secret. (Tre hendelser: /om, sitemap.ts, /historier-redirect.)
+
+**Redirect-flyt gjennom innlogging**
+- `/logg-inn` leser `?fra=`-param (validert: må starte med `/`, ikke `//`).
+  Videresender allerede-innloggede brukere til `fra ?? '/min-side'`.
+- `AuthForm` tar `fra`-prop: e-postinnlogging → `router.push(fra ?? '/min-side')`.
+  Google OAuth: `handleGoogleLogin()` lagrer `fra` i `sessionStorage` FØR
+  OAuth-redirect; `/innlogget`-JS leser, validerer og rydder sessionStorage.
+
+**Bidra-knapper på brukerdrevne listesider**
+Alle 5 sider (/leserinnlegg, /arrangementer, /stillinger, /pressemeldinger,
+/nyhetsbrev) har fått:
+- Diskret «+ [handling]»-knapp i header ved siden av H1.
+- Tom liste: dashed-border invitasjonskort med stor blå knapp.
+- Ikke-tom liste: subtil «→»-lenke nederst.
+Mål: `/logg-inn?fra=%2Fmin-side%3Ftype%3DX` — sender brukeren til riktig
+fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
+
+**Importer arrangement fra lenke**
+- `src/collections/Events.ts` — nytt felt `sourceUrl` (text, sidebar).
+  **SKJEMAENDRING** — eieren kjører `npx payload migrate:create arrangement-import`,
+  leser filen (sjekk kun ADD COLUMN på events og _events_v, ingen DROP),
+  committer med koden.
+- `src/app/api/arrangement-import/route.ts` — POST, kun innloggede members.
+  SSRF-vern: assertSafe() sjekker DNS-oppløst IP mot private ranges
+  (10/8, 172.16-31/12, 192.168/16, 169.254/16, 127/8, ::1, fc00::/7)
+  ved hvert redirect-hopp (maks 3). Timeout 10s, HTML-grense 3MB.
+  Parser OG-tags (regex) + JSON-LD Event (script-blokker).
+  Laster ned og lagrer og:image til media-collection (SSRF-sjekket, maks 8MB).
+  Returner {tittel, beskrivelse, startdato, sluttdato, sted, bildeId, bildeUrl, hints}.
+  Facebook: tittel/bilde virker, dato/sted mangler typisk → hints forteller det.
+  JSON-LD-sider (kulturhus etc.): alle felt inkl. dato/sted.
+- `src/app/(frontend)/innsending/arrangement/route.ts` — håndterer nå
+  `importedImageId` (brukes hvis ingen fil ble lastet opp) og `sourceUrl`.
+- `src/components/EventForm.tsx` — omskrevet som kontrollert komponent.
+  Import-seksjon øverst: URL-input + «Hent info»-knapp. Pre-fyller kun
+  tomme felt (lar eksisterende innhold stå). Bildehåndtering: forhåndsvisning
+  av importert bilde med «Fjern»-knapp; filvalg overstyrer automatisk.
+  Hints fra API vises i gult under import-suksessmelding.
+
 ## GJENSTÅR
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
 - Bransje-percentiler Helgeland (SQL over regnskap per nace_category —
@@ -1065,8 +1130,9 @@ andre utadrettede handlinger skal ALLTID bak env-brems i første runde.
   genereres ved månedlig synk, tydelig merket som KI + kildeår)
 - Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
   akkumulert data over tid
-- Rate limiting: skjemaer (claim, innsending, kontakt-endepunktet) OG
-  /api/sok (er offentlig, ingen autentisering — bør ha IP-basert throttle)
+- Rate limiting: skjemaer (claim, innsending, kontakt-endepunktet),
+  /api/sok (offentlig, ingen auth) OG /api/arrangement-import (SSRF-
+  beskyttet, men bør ha IP-basert throttle per innlogget member)
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
