@@ -29,6 +29,7 @@ import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c08
 import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { default as default_c5837c5f21a4988c20a1627d8447a3e1 } from '@/components/admin/ClaimStatusCell'
 import { default as default_866fc536fe7b68b5209e8a1253f81319 } from '@/components/admin/FeaturedCell'
+import { default as default_e42159e56bc88e46b84dc86ac36df97b } from '@/components/admin/EventsImportLink'
 import { default as default_3ce4483939625d091323118a66aad069 } from '@/components/admin/PendingOverview'
 import { default as default_f95a5e211107d7db8049950421d3e575 } from '@/components/admin/PendingNavBadges'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
@@ -66,6 +67,7 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#PreviewComponent": PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@/components/admin/ClaimStatusCell#default": default_c5837c5f21a4988c20a1627d8447a3e1,
   "@/components/admin/FeaturedCell#default": default_866fc536fe7b68b5209e8a1253f81319,
+  "@/components/admin/EventsImportLink#default": default_e42159e56bc88e46b84dc86ac36df97b,
   "@/components/admin/PendingOverview#default": default_3ce4483939625d091323118a66aad069,
   "@/components/admin/PendingNavBadges#default": default_f95a5e211107d7db8049950421d3e575,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1

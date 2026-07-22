@@ -11,6 +11,9 @@ export const Events: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'startDate', 'place', '_status'],
     group: 'Innhold',
+    components: {
+      beforeList: ['@/components/admin/EventsImportLink'],
+    },
   },
   versions: { drafts: true },
   hooks: {

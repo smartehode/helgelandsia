@@ -39,7 +39,7 @@ export async function assertSafe(urlStr: string): Promise<void> {
 // Fetch with SSRF guard, manual redirect following, timeout and size limit.
 export async function safeFetch(
   startUrl: string,
-  opts: { maxRedirects?: number; maxBytes?: number } = {},
+  opts: { maxRedirects?: number; maxBytes?: number; headers?: Record<string, string> } = {},
 ): Promise<{ buffer: Buffer; contentType: string; finalUrl: string }> {
   const maxRedirects = opts.maxRedirects ?? 3
   const maxBytes = opts.maxBytes ?? 10 * 1024 * 1024
@@ -53,7 +53,7 @@ export async function safeFetch(
       res = await fetch(current, {
         redirect: 'manual',
         signal: ctrl.signal,
-        headers: { 'User-Agent': 'helgelandsia.no' },
+        headers: { 'User-Agent': 'helgelandsia.no', ...(opts.headers ?? {}) },
       })
     } finally { clearTimeout(timer) }
     if (res.status >= 300 && res.status < 400) {

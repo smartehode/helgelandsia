@@ -9,7 +9,8 @@ export interface ParsedIcsEvent {
   end: Date
   location?: string
   description?: string
-  url?: string
+  url?: string        // URL property (event page, e.g. Facebook)
+  attachUrl?: string  // ATTACH image URL if present
   isAllDay: boolean
 }
 
@@ -237,6 +238,17 @@ export function parseIcs(content: string, now = new Date()): ParsedIcsEvent[] {
 
     const url = props['URL']?.[0]?.value?.trim() || undefined
 
+    // ATTACH — image URL if FMTTYPE is image/* or URL has an image extension
+    let attachUrl: string | undefined
+    const attachProp = props['ATTACH']?.[0]
+    if (attachProp) {
+      const fmttype = attachProp.params['FMTTYPE'] ?? ''
+      const val = attachProp.value.trim()
+      if (val.startsWith('http') && (fmttype.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(val))) {
+        attachUrl = val
+      }
+    }
+
     // EXDATE
     const exdates = new Set<string>()
     for (const exdateProp of props['EXDATE'] ?? []) {
@@ -256,11 +268,11 @@ export function parseIcs(content: string, now = new Date()): ParsedIcsEvent[] {
       if (rule) {
         const occs = expandRrule(start, durationMs, rule, exdates, maxDate)
         for (const occ of occs) {
-          results.push({ uid, occurrenceId: `${uid}_${occ.occurrenceId}`, summary, start: occ.start, end: occ.end, location, description, url, isAllDay })
+          results.push({ uid, occurrenceId: `${uid}_${occ.occurrenceId}`, summary, start: occ.start, end: occ.end, location, description, url, attachUrl, isAllDay })
         }
       }
     } else {
-      results.push({ uid, occurrenceId: uid, summary, start, end, location, description, url, isAllDay })
+      results.push({ uid, occurrenceId: uid, summary, start, end, location, description, url, attachUrl, isAllDay })
     }
   }
 

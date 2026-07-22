@@ -1139,19 +1139,26 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   (f.eks. `1MO` = første mandag) fallback til enkel MONTHLY (ikke implementert — gir
   litt feil dag men riktig uke; finkorning kan gjøres ved behov).
   Returnerer `ParsedIcsEvent[]`: uid, occurrenceId, summary, start, end, location,
-  description (strip HTML, maks 2000 tegn), url, isAllDay. Max 3 måneder frem.
+  description (strip HTML, maks 2000 tegn), url, attachUrl (ATTACH med bilde-URL),
+  isAllDay. Filtrerer kun vekk arrangementer eldre enn 30 dager.
 - `src/app/api/admin/ics-import/route.ts` — POST, kun `users` (admin-collection).
-  FormData → preview: henter/leser ICS, parser, batch-sjekker eksisterende icsUid.
-  JSON → import: oppretter events med overrideAccess:true, status draft/published.
-  Returnerer {imported, skipped, errors}.
+  3 handlinger:
+  - FormData → preview: fil eller limt innhold; parser; batch-sjekker icsUid;
+    returnerer events med existing/past/hasImage-flagg.
+  - JSON `{action:'import', events, status, skipPast, update, fetchImages}` →
+    import: per event: skip ferdige (skipPast), match icsUid (update/skip_dup),
+    bildehenting (ATTACH → og:image → media), create/update med overrideAccess.
+    Returnerer {results: [{occurrenceId, summary, status, error?}], counts}.
+  - JSON `{action:'fetch-images'}` → henter og:image fra sourceUrl for
+    publiserte arrangementer uten bilde. Maks 20 per kjøring.
 - `src/app/(frontend)/admin-verktoy/ics-import/page.tsx` — server-komponent,
   redirect til /admin hvis ikke users-innlogget. force-dynamic (regel 18d).
 - `src/components/admin/IcsImportClient.tsx` — klient-komponent.
-  Steg 1: URL-felt + filupplasting → «Analyser kalender».
-  Steg 2: tabell med alle arrangementer: tittel, dato, sted, finnes-badge, passert-badge.
-  Fremtidige uten duplicate: forhåndskrysset av. Fortidige og duplicates: avkrysset av.
-  Velg alle / fjern valg-koblinger. Status-toggle (Utkast / Publiser direkte).
-  «Importer valgte (N)»-knapp.
+  Steg 1: filopplasting ELLER tekstlim (BEGIN:VCALENDAR...) + Facebook-tips.
+  Steg 2: 4 valg (skipPast, update, fetchImages, status) + forhåndsvisningstable
+    med checkboxer (future/non-dup forvalgt), Finnes/Passert/Bilde-badges.
+  Steg 3: per-rad-resultat (✓ Opprettet / ↻ Oppdatert / → Hoppet over / ✗ Feil).
+  Alltid tilgjengelig: «Hent manglende bilder»-knapp (etterslep-import).
   URL: `/admin-verktoy/ics-import` — naviger dit direkte i nettleseren.
 
 ## GJENSTÅR
