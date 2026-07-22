@@ -30,6 +30,7 @@ import * as migration_20260714_194716_politilogg_blokk from './20260714_194716_p
 import * as migration_20260715_013907_ferge_slider from './20260715_013907_ferge_slider';
 import * as migration_20260715_092949_kunngjoringer_widget from './20260715_092949_kunngjoringer_widget';
 import * as migration_20260716_011758 from './20260716_011758';
+import * as migration_20260722_065046_ics_import from './20260722_065046_ics_import';
 
 export const migrations = [
   {
@@ -190,6 +191,11 @@ export const migrations = [
   {
     up: migration_20260716_011758.up,
     down: migration_20260716_011758.down,
-    name: '20260716_011758'
+    name: '20260716_011758',
+  },
+  {
+    up: migration_20260722_065046_ics_import.up,
+    down: migration_20260722_065046_ics_import.down,
+    name: '20260722_065046_ics_import'
   },
 ];

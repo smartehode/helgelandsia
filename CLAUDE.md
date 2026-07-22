@@ -1102,9 +1102,6 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
 
 **Importer arrangement fra lenke**
 - `src/collections/Events.ts` — nytt felt `sourceUrl` (text, sidebar).
-  **SKJEMAENDRING** — eieren kjører `npx payload migrate:create arrangement-import`,
-  leser filen (sjekk kun ADD COLUMN på events og _events_v, ingen DROP),
-  committer med koden.
 - `src/app/api/arrangement-import/route.ts` — POST, kun innloggede members.
   SSRF-vern: assertSafe() sjekker DNS-oppløst IP mot private ranges
   (10/8, 172.16-31/12, 192.168/16, 169.254/16, 127/8, ::1, fc00::/7)
@@ -1121,6 +1118,41 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   tomme felt (lar eksisterende innhold stå). Bildehåndtering: forhåndsvisning
   av importert bilde med «Fjern»-knapp; filvalg overstyrer automatisk.
   Hints fra API vises i gult under import-suksessmelding.
+
+### 2026-07-21 — ICS-kalenderimport (kun admin)
+
+**ICS-import: nytt felt + felles SSRF-bibliotek + admin-verktøy**
+- `src/collections/Events.ts` — nytt felt `icsUid` (text, sidebar, readOnly).
+  Lagrer full occurrenceId (uid for enkelt-arrangementer, `uid_YYYYMMDD` for RRULE-
+  forekomster). Brukes som dublettnøkkel ved re-import.
+  **SKJEMAENDRING** — dekker `sourceUrl` (forrige økt) og `icsUid` (denne økt).
+  Eieren kjører `npx payload migrate:create ics-import`, leser filen (sjekk at
+  begge felt legges til events OG _events_v med ADD COLUMN IF NOT EXISTS, ingen DROP).
+- `src/lib/ssrf.ts` — delt SSRF-bibliotek: `assertSafe(url)` og `safeFetch(url, opts)`.
+  Deles mellom arrangement-import og ics-import. arrangement-import/route.ts har
+  fortsatt inline-kopi (fungerer, ingen grunn til å røre den som virker).
+- `src/lib/ics/parse.ts` — egendefinert ICS-parser, ingen ny dependency.
+  Håndterer: linje-unfolding, DTSTART/DTEND med TZID eller Z (timezone via `Intl`-
+  triks: tzLocalToUtc bruker `sv`-locale for å finne offset), DATE-only, DURATION.
+  RRULE-ekspansjon: DAILY, WEEKLY+BYDAY (sorterte dager, ukentlig iterasjon), MONTHLY,
+  YEARLY; INTERVAL, UNTIL, COUNT. EXDATE (kommaseparerte datoer). Posisjonell BYDAY
+  (f.eks. `1MO` = første mandag) fallback til enkel MONTHLY (ikke implementert — gir
+  litt feil dag men riktig uke; finkorning kan gjøres ved behov).
+  Returnerer `ParsedIcsEvent[]`: uid, occurrenceId, summary, start, end, location,
+  description (strip HTML, maks 2000 tegn), url, isAllDay. Max 3 måneder frem.
+- `src/app/api/admin/ics-import/route.ts` — POST, kun `users` (admin-collection).
+  FormData → preview: henter/leser ICS, parser, batch-sjekker eksisterende icsUid.
+  JSON → import: oppretter events med overrideAccess:true, status draft/published.
+  Returnerer {imported, skipped, errors}.
+- `src/app/(frontend)/admin-verktoy/ics-import/page.tsx` — server-komponent,
+  redirect til /admin hvis ikke users-innlogget. force-dynamic (regel 18d).
+- `src/components/admin/IcsImportClient.tsx` — klient-komponent.
+  Steg 1: URL-felt + filupplasting → «Analyser kalender».
+  Steg 2: tabell med alle arrangementer: tittel, dato, sted, finnes-badge, passert-badge.
+  Fremtidige uten duplicate: forhåndskrysset av. Fortidige og duplicates: avkrysset av.
+  Velg alle / fjern valg-koblinger. Status-toggle (Utkast / Publiser direkte).
+  «Importer valgte (N)»-knapp.
+  URL: `/admin-verktoy/ics-import` — naviger dit direkte i nettleseren.
 
 ## GJENSTÅR
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
@@ -1140,8 +1172,10 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
 - Vurder langsiktig: Doffins offisielle subscription-API hvis webclient-
   API-et endrer seg
 - BrregWidget.tsx har bug: inkluderer 1837 (Meløy), mangler 1833 (Rana)
+- ICS-import posisjonell BYDAY (f.eks. «1MO» = første mandag i måneden)
+  gir enkelt MONTHLY-fallback — kan finkornes om det trengs
 - Migrasjoner som gjenstår å kjøre: `fremhevet-sone`, `anbud-widget`,
   `widget-layout-control` (dekker også politilogg-blokk),
-  **`ferge-widget`** (eieren oppretter etter lokal test)
+  **`ferge-widget`**, **`ics-import`** (dekker sourceUrl + icsUid på events)
 - FergeWidget: etter deploy — sett ønsket variant på blokker i sidefelt/bunn
   (de bruker nå 'full' som defaultValue etter variant-bugfiksen)

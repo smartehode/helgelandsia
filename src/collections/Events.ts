@@ -52,6 +52,7 @@ export const Events: CollectionConfig = {
     },
     { name: 'locationName', type: 'text', label: 'Stedsnavn (f.eks. Kulturhuset)' },
     { name: 'sourceUrl', type: 'text', label: 'Kilde-URL', admin: { position: 'sidebar', description: 'Originallenke (fylles ut automatisk ved import fra lenke)' } },
+    { name: 'icsUid', type: 'text', label: 'ICS UID (dublettvern)', admin: { position: 'sidebar', readOnly: true, description: 'Satt automatisk ved ICS-import' } },
     {
       name: 'organizer',
       type: 'relationship',

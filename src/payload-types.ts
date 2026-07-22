@@ -589,6 +589,10 @@ export interface Event {
    * Originallenke (fylles ut automatisk ved import fra lenke)
    */
   sourceUrl?: string | null;
+  /**
+   * Satt automatisk ved ICS-import
+   */
+  icsUid?: string | null;
   organizer?: (number | null) | Business;
   ticketUrl?: string | null;
   free?: boolean | null;
@@ -1641,6 +1645,7 @@ export interface EventsSelect<T extends boolean = true> {
   endDate?: T;
   locationName?: T;
   sourceUrl?: T;
+  icsUid?: T;
   organizer?: T;
   ticketUrl?: T;
   free?: T;
