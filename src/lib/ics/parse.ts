@@ -73,7 +73,13 @@ function unescapeIcs(s: string): string {
 }
 
 function stripHtml(s: string): string {
-  return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  return s
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/[ \t]+/g, ' ')     // kollapser kun horisontal whitespace, ikke nylinje
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 function parseDurationMs(s: string): number {
@@ -184,8 +190,9 @@ function expandRrule(
 // ── Main parser ───────────────────────────────────────────────────────────────
 
 export function parseIcs(content: string, now = new Date()): ParsedIcsEvent[] {
-  // Unfold: remove line-folding (CRLF/LF + space or tab)
-  const unfolded = content.replace(/\r\n([ \t])/g, '$1').replace(/\n([ \t])/g, '$1')
+  // RFC 5545 unfolding: CRLF (or LF) + ett whitespace-tegn fjernes helt — ingen erstatning.
+  // $1-mønsteret beholdt whitespace og ga "Ar ctic" — fjernet.
+  const unfolded = content.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '')
 
   const maxDate = new Date(now.getTime() + 90 * 24 * 86400_000)  // 3 months
   const results: ParsedIcsEvent[] = []

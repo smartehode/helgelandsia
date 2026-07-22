@@ -283,7 +283,7 @@ export function IcsImportClient() {
               <input type="checkbox" checked={options.fetchImages} onChange={e => opt('fetchImages', e.target.checked)} className="mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-medium text-ink">Hent cover-bilde</p>
-                <p className="text-xs text-muted">Prøver ATTACH-URL i ICS, deretter og:image fra arrangement-siden</p>
+                <p className="text-xs text-muted">Prøver: 1) ATTACH-URL i ICS → 2) Facebook-cover (lookaside) → 3) og:image fra kilde-URL</p>
               </div>
             </div>
             <div className={chk}>
@@ -457,11 +457,24 @@ export function IcsImportClient() {
         </div>
       )}
 
+      {/* ── Repair text (always available) ── */}
+      <div className="border-t border-ink/10 pt-8">
+        <h2 className="mb-1 font-serif text-base font-semibold text-ink">Reparer beskrivelser</h2>
+        <p className="mb-1 text-sm text-muted">
+          Arrangementer importert før 22. juli 2026 kan ha ødelagt tekst (f.eks. «Ar ctic», «sept ember»)
+          fordi linjefoldingen i ICS-filer ble utfoldet feil.
+        </p>
+        <p className="text-sm text-muted">
+          <strong className="font-semibold text-ink">Slik reparerer du:</strong> Last opp .ics-filen på nytt øverst
+          og aktiver «Oppdater hvis samme UID finnes fra før» — beskrivelsene overskrives da med korrekt tekst.
+        </p>
+      </div>
+
       {/* ── Fetch missing images (always available) ── */}
       <div className="border-t border-ink/10 pt-8">
         <h2 className="mb-1 font-serif text-base font-semibold text-ink">Hent manglende bilder</h2>
         <p className="mb-4 text-sm text-muted">
-          Kjører bildehenting (og:image) for alle arrangementer som har en kilde-URL men mangler bilde.
+          Kjører bildehenting (Facebook-cover, og:image) for alle arrangementer som har en kilde-URL men mangler bilde.
           Maks 20 per kjøring.
         </p>
         <button
