@@ -152,6 +152,9 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
         <CalendarWidget
           title={block.title}
           variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+          showEvents={block.showEvents ?? true}
+          showTenders={block.showTenders ?? true}
+          showJobs={block.showJobs ?? true}
         />
       )
     case 'anbud':

@@ -1,30 +1,196 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, getISOWeek, isSameMonth, isToday,
-  addMonths, subMonths, format,
+  addMonths, subMonths, format, parseISO,
 } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import type { WidgetVariant } from './PowerPriceWidget'
 
 export type HolidayMap = Record<number, Record<string, string>>
 
+// These types are mirrored in src/lib/kalender.ts (server-only). Keep shapes in sync.
+export interface KalenderArrangement {
+  tittel: string
+  startIso: string
+  sluttIso: string
+  slug: string
+}
+
+export interface KalenderAnbud {
+  tittel: string
+  oppdragsgiver: string
+  fristIso: string
+  url: string
+}
+
+export interface KalenderStilling {
+  tittel: string
+  arbeidsgiver: string
+  fristIso: string
+  slug: string
+}
+
+export interface KalenderData {
+  maned: string
+  arrangementer: KalenderArrangement[]
+  anbud: KalenderAnbud[]
+  stillinger: KalenderStilling[]
+}
+
+interface DayEntries {
+  events: KalenderArrangement[]
+  anbud: KalenderAnbud[]
+  stillinger: KalenderStilling[]
+}
+
+interface ListEntry {
+  dateStr: string
+  dateMs: number
+  type: 'event' | 'anbud' | 'stilling' | 'helligdag'
+  tittel: string
+  href?: string   // undefined → non-linkable (holidays)
+  meta?: string
+}
+
 interface Props {
   title: string
   variant: WidgetVariant
   preloadedHolidays: HolidayMap
+  initialData: KalenderData
+  showEvents: boolean
+  showTenders: boolean
+  showJobs: boolean
 }
 
 const DAY_LABELS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
 
-export function CalendarClient({ title, variant, preloadedHolidays }: Props) {
+const TYPE_DOT: Record<ListEntry['type'], string> = {
+  helligdag: 'bg-red-600',
+  event:     'bg-fjord',
+  anbud:     'bg-sun',
+  stilling:  'bg-green-500',
+}
+
+const TYPE_LABEL: Record<ListEntry['type'], string> = {
+  helligdag: 'Helligdag',
+  event:     'Arrangement',
+  anbud:     'Anbudsfrist',
+  stilling:  'Stillingsfrist',
+}
+
+function buildDayIndex(data: KalenderData): Record<string, DayEntries> {
+  const idx: Record<string, DayEntries> = {}
+  function ensure(d: string): DayEntries {
+    if (!idx[d]) idx[d] = { events: [], anbud: [], stillinger: [] }
+    return idx[d]
+  }
+  for (const ev of data.arrangementer) {
+    if (!ev.startIso) continue
+    const startStr = format(new Date(ev.startIso), 'yyyy-MM-dd')
+    const endStr = format(new Date(ev.sluttIso || ev.startIso), 'yyyy-MM-dd')
+    let cur = startStr
+    let safety = 0
+    while (cur <= endStr && safety < 366) {
+      ensure(cur).events.push(ev)
+      const next = new Date(cur + 'T12:00:00')
+      next.setDate(next.getDate() + 1)
+      cur = format(next, 'yyyy-MM-dd')
+      safety++
+    }
+  }
+  for (const a of data.anbud) {
+    if (a.fristIso) ensure(format(new Date(a.fristIso), 'yyyy-MM-dd')).anbud.push(a)
+  }
+  for (const s of data.stillinger) {
+    if (s.fristIso) ensure(format(new Date(s.fristIso), 'yyyy-MM-dd')).stillinger.push(s)
+  }
+  return idx
+}
+
+function buildActivityEntries(
+  data: KalenderData,
+  holidays: Record<string, string>,
+  showEvents: boolean,
+  showTenders: boolean,
+  showJobs: boolean,
+): ListEntry[] {
+  const entries: ListEntry[] = []
+
+  for (const [date, name] of Object.entries(holidays)) {
+    entries.push({
+      dateStr: date,
+      dateMs: new Date(date + 'T12:00:00').getTime(),
+      type: 'helligdag',
+      tittel: name,
+      // no href — holidays are not linkable in the list
+    })
+  }
+  if (showEvents) {
+    for (const ev of data.arrangementer) {
+      if (!ev.startIso) continue
+      entries.push({
+        dateStr: format(new Date(ev.startIso), 'yyyy-MM-dd'),
+        dateMs: new Date(ev.startIso).getTime(),
+        type: 'event',
+        tittel: ev.tittel,
+        href: `/arrangementer/${ev.slug}`,
+      })
+    }
+  }
+  if (showTenders) {
+    for (const a of data.anbud) {
+      if (!a.fristIso) continue
+      entries.push({
+        dateStr: format(new Date(a.fristIso), 'yyyy-MM-dd'),
+        dateMs: new Date(a.fristIso).getTime(),
+        type: 'anbud',
+        tittel: a.tittel,
+        href: a.url,
+        meta: a.oppdragsgiver || undefined,
+      })
+    }
+  }
+  if (showJobs) {
+    for (const s of data.stillinger) {
+      if (!s.fristIso) continue
+      entries.push({
+        dateStr: format(new Date(s.fristIso), 'yyyy-MM-dd'),
+        dateMs: new Date(s.fristIso).getTime(),
+        type: 'stilling',
+        tittel: s.tittel,
+        href: `/stillinger/${s.slug}`,
+        meta: s.arbeidsgiver || undefined,
+      })
+    }
+  }
+
+  return entries.sort((a, b) => a.dateMs - b.dateMs)
+}
+
+export function CalendarClient({
+  title,
+  variant,
+  preloadedHolidays,
+  initialData,
+  showEvents,
+  showTenders,
+  showJobs,
+}: Props) {
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
   const [holidaysByYear, setHolidaysByYear] = useState<HolidayMap>(preloadedHolidays)
+  const [kalData, setKalData] = useState<KalenderData>(initialData)
+  const [kalLoading, setKalLoading] = useState(false)
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
+
   const loadedYears = useRef(new Set(Object.keys(preloadedHolidays).map(Number)))
+  const initialManed = useRef(initialData.maned)
+  const isKompakt = variant === 'kompakt'
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
+  const maned = `${year}-${String(month + 1).padStart(2, '0')}`
 
   useEffect(() => {
     if (loadedYears.current.has(year)) return
@@ -40,30 +206,60 @@ export function CalendarClient({ title, variant, preloadedHolidays }: Props) {
       .catch(() => {})
   }, [year])
 
-  const holidays = holidaysByYear[year] ?? {}
+  useEffect(() => {
+    if (maned === initialManed.current) return
+    setKalLoading(true)
+    setSelectedDay(null)
+    fetch(`/api/kalender?maned=${maned}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setKalData(data) })
+      .catch(() => {})
+      .finally(() => setKalLoading(false))
+  }, [maned])
 
-  // Build calendar grid
+  const holidays = holidaysByYear[year] ?? {}
+  const dayIndex = buildDayIndex(kalData)
+
+  // Calendar grid
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
   const calStart = startOfWeek(monthStart, { weekStartsOn: 1 })
   const calEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
   const allDays = eachDayOfInterval({ start: calStart, end: calEnd })
-
   const weeks: Date[][] = []
-  for (let i = 0; i < allDays.length; i += 7) {
-    weeks.push(allDays.slice(i, i + 7))
-  }
-
-  // Holidays in the displayed month (parse date parts directly to avoid timezone issues)
-  const monthHolidays = Object.entries(holidays)
-    .filter(([date]) => {
-      const parts = date.split('-').map(Number)
-      return parts[0] === year && parts[1] === month + 1
-    })
-    .sort(([a], [b]) => a.localeCompare(b))
+  for (let i = 0; i < allDays.length; i += 7) weeks.push(allDays.slice(i, i + 7))
 
   const monthLabel = format(currentMonth, 'MMMM yyyy', { locale: nb })
-  const isKompakt = variant === 'kompakt'
+
+  // Chronological list (full variant)
+  const allListEntries = useMemo(
+    () => buildActivityEntries(kalData, holidays, showEvents, showTenders, showJobs),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [kalData, holidays, showEvents, showTenders, showJobs],
+  )
+
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+  const monthStartStr = format(monthStart, 'yyyy-MM-dd')
+  const monthEndStr = format(monthEnd, 'yyyy-MM-dd')
+  const isPastMonth = monthEndStr < todayStr
+  const isFutureMonth = monthStartStr > todayStr
+  const kommendeFra = isFutureMonth ? monthStartStr : todayStr
+
+  const monthEntries = allListEntries.filter(
+    e => e.dateStr >= monthStartStr && e.dateStr <= monthEndStr,
+  )
+
+  const displayList: ListEntry[] = selectedDay
+    ? monthEntries.filter(e => e.dateStr === selectedDay)
+    : monthEntries.filter(e => isPastMonth || e.dateStr >= kommendeFra).slice(0, 7)
+
+  const listLabel = selectedDay
+    ? `Viser ${format(parseISO(selectedDay), 'd. MMMM', { locale: nb })}`
+    : isPastMonth
+    ? 'Denne måneden'
+    : 'Kommende'
+
+  const hasAnyTypes = showEvents || showTenders || showJobs
 
   return (
     <>
@@ -78,8 +274,9 @@ export function CalendarClient({ title, variant, preloadedHolidays }: Props) {
         >
           ‹
         </button>
-        <span className={`font-medium capitalize text-ink ${isKompakt ? 'text-sm' : ''}`}>
+        <span className={`flex items-center gap-1.5 font-medium capitalize text-ink ${isKompakt ? 'text-sm' : ''}`}>
           {monthLabel}
+          {kalLoading && <span className="text-xs text-muted animate-pulse">…</span>}
         </span>
         <button
           onClick={() => setCurrentMonth(m => addMonths(m, 1))}
@@ -111,23 +308,66 @@ export function CalendarClient({ title, variant, preloadedHolidays }: Props) {
                 const inMonth = isSameMonth(day, currentMonth)
                 const isHoliday = !!holidays[dateStr]
                 const todayDate = isToday(day)
+                const isSelected = selectedDay === dateStr
+                const dots = inMonth ? (dayIndex[dateStr] ?? null) : null
 
-                const size = isKompakt ? 'w-5 h-5 text-[11px]' : 'w-7 h-7 text-sm'
-                let spanCls = `inline-flex items-center justify-center rounded-full ${size} `
-
+                let spanCls = `inline-flex items-center justify-center rounded-full ${isKompakt ? 'w-5 h-5 text-[11px]' : 'w-7 h-7 text-sm'} `
                 if (!inMonth) {
                   spanCls += 'text-muted/30'
                 } else if (todayDate) {
                   spanCls += 'bg-sea text-fog font-bold'
                 } else if (isHoliday) {
-                  spanCls += 'bg-red-50 text-red-700 font-semibold'
+                  spanCls += 'text-red-600 font-semibold'
+                } else if (isSelected) {
+                  spanCls += 'bg-fjord/10 text-fjord font-semibold ring-1 ring-fjord/30'
                 } else {
                   spanCls += 'text-ink'
                 }
 
                 return (
-                  <td key={dateStr} className="py-px text-center">
-                    <span className={spanCls}>{format(day, 'd')}</span>
+                  <td
+                    key={dateStr}
+                    className={`py-px text-center${inMonth ? ' cursor-pointer' : ''}`}
+                    onClick={() => {
+                      if (!inMonth) return
+                      if (isKompakt) { window.location.href = '/arrangementer'; return }
+                      setSelectedDay(prev => prev === dateStr ? null : dateStr)
+                    }}
+                  >
+                    <div className="flex flex-col items-center">
+                      <span className={spanCls}>{format(day, 'd')}</span>
+                      {isKompakt ? (
+                        <div className="mt-0.5 flex h-[4px] items-center gap-[2px]">
+                          {inMonth && isHoliday && (
+                            <span className="inline-block h-[3px] w-[3px] rounded-full bg-red-600" />
+                          )}
+                          {dots && showEvents && dots.events.length > 0 && (
+                            <span className="inline-block h-[3px] w-[3px] rounded-full bg-fjord" />
+                          )}
+                          {dots && showTenders && dots.anbud.length > 0 && (
+                            <span className="inline-block h-[3px] w-[3px] rounded-full bg-sun" />
+                          )}
+                          {dots && showJobs && dots.stillinger.length > 0 && (
+                            <span className="inline-block h-[3px] w-[3px] rounded-full bg-green-500" />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="mt-0.5 flex h-2 items-center gap-[2px]">
+                          {inMonth && isHoliday && (
+                            <span className="inline-block h-2 w-2 rounded-full bg-red-600" />
+                          )}
+                          {dots && showEvents && dots.events.length > 0 && (
+                            <span className="inline-block h-2 w-2 rounded-full bg-fjord" />
+                          )}
+                          {dots && showTenders && dots.anbud.length > 0 && (
+                            <span className="inline-block h-2 w-2 rounded-full bg-sun" />
+                          )}
+                          {dots && showJobs && dots.stillinger.length > 0 && (
+                            <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </td>
                 )
               })}
@@ -136,31 +376,104 @@ export function CalendarClient({ title, variant, preloadedHolidays }: Props) {
         </tbody>
       </table>
 
-      {/* Holiday list */}
-      <div className="mt-4 border-t border-ink/5 pt-3">
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
-          Norske helligdager
-        </p>
-        {monthHolidays.length === 0 ? (
-          <p className="text-xs text-muted">Ingen helligdager i denne måneden.</p>
-        ) : (
-          <ul className="space-y-0.5">
-            {(isKompakt ? monthHolidays.slice(0, 3) : monthHolidays).map(([date, name]) => {
-              const parts = date.split('-').map(Number)
-              return (
-                <li key={date} className="text-xs text-ink">
-                  <span className="font-semibold text-red-600">{parts[2]}.{parts[1]}.</span>
-                  {' '}{name}
-                </li>
-              )
-            })}
-          </ul>
+      {/* Legend */}
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+        <span className="flex items-center gap-1 text-[11px] text-muted">
+          <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-red-600" />
+          Helligdag
+        </span>
+        {showEvents && (
+          <span className="flex items-center gap-1 text-[11px] text-muted">
+            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-fjord" />
+            Arrangement
+          </span>
+        )}
+        {showTenders && (
+          <span className="flex items-center gap-1 text-[11px] text-muted">
+            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-sun" />
+            Anbudsfrist
+          </span>
+        )}
+        {showJobs && (
+          <span className="flex items-center gap-1 text-[11px] text-muted">
+            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-green-500" />
+            Stillingsfrist
+          </span>
         )}
       </div>
 
-      <p className="mt-3 text-[11px] text-muted">
-        Kilde:{' '}
-        <a href="https://date.nager.at" target="_blank" rel="noopener" className="underline hover:text-sea">
+      {/* Kommende list (full variant only) */}
+      {!isKompakt && (
+        <div className="mt-4 border-t border-ink/5 pt-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+              {listLabel}
+            </p>
+            {selectedDay && (
+              <button
+                onClick={() => setSelectedDay(null)}
+                className="text-[11px] text-sea hover:underline"
+              >
+                Vis alle →
+              </button>
+            )}
+          </div>
+
+          {displayList.length === 0 ? (
+            <p className="text-xs text-muted">
+              {selectedDay
+                ? 'Ingen hendelser denne dagen.'
+                : 'Ingen planlagte hendelser denne måneden.'}
+            </p>
+          ) : (
+            <ul className="space-y-1.5">
+              {displayList.map((entry, i) => {
+                const dot = (
+                  <span
+                    className={`mt-[3px] inline-block h-2 w-2 shrink-0 rounded-full ${TYPE_DOT[entry.type]}`}
+                  />
+                )
+                const text = (
+                  <span className="text-xs leading-snug">
+                    <span className="text-muted">
+                      {format(parseISO(entry.dateStr), 'd. MMMM', { locale: nb })}
+                      {' · '}
+                    </span>
+                    <span className="font-medium text-ink/70">{TYPE_LABEL[entry.type]}:</span>
+                    {' '}
+                    <span className={entry.href ? 'text-ink group-hover:underline' : 'text-ink'}>
+                      {entry.tittel}
+                    </span>
+                    {entry.meta && <span className="text-muted"> — {entry.meta}</span>}
+                  </span>
+                )
+
+                return (
+                  <li key={i}>
+                    {entry.href ? (
+                      <a
+                        href={entry.href}
+                        target={entry.type === 'anbud' ? '_blank' : undefined}
+                        rel={entry.type === 'anbud' ? 'noopener' : undefined}
+                        className="group flex items-start gap-2"
+                      >
+                        {dot}{text}
+                      </a>
+                    ) : (
+                      <span className="flex items-start gap-2">{dot}{text}</span>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Discrete source credit */}
+      <p className="mt-3 text-[10px] text-muted/60">
+        Helligdager:{' '}
+        <a href="https://date.nager.at" target="_blank" rel="noopener" className="hover:text-sea">
           date.nager.at
         </a>
       </p>

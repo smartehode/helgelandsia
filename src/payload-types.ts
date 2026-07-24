@@ -1001,6 +1001,18 @@ export interface Page {
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
             /**
+             * Blå prikker i kalendergriden.
+             */
+            showEvents?: boolean | null;
+            /**
+             * Gule prikker i kalendergriden.
+             */
+            showTenders?: boolean | null;
+            /**
+             * Grønne prikker i kalendergriden.
+             */
+            showJobs?: boolean | null;
+            /**
              * Hvor bredt elementet skal stå i sone-gridet.
              */
             bredde?: ('1' | '2' | 'full') | null;
@@ -1921,6 +1933,9 @@ export interface PagesSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              showEvents?: T;
+              showTenders?: T;
+              showJobs?: T;
               bredde?: T;
               id?: T;
               blockName?: T;
@@ -2489,6 +2504,18 @@ export interface Sidefelt {
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
             /**
+             * Blå prikker i kalendergriden.
+             */
+            showEvents?: boolean | null;
+            /**
+             * Gule prikker i kalendergriden.
+             */
+            showTenders?: boolean | null;
+            /**
+             * Grønne prikker i kalendergriden.
+             */
+            showJobs?: boolean | null;
+            /**
              * Hvor bredt elementet skal stå i sone-gridet.
              */
             bredde?: ('1' | '2' | 'full') | null;
@@ -2778,6 +2805,18 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Blå prikker i kalendergriden.
+             */
+            showEvents?: boolean | null;
+            /**
+             * Gule prikker i kalendergriden.
+             */
+            showTenders?: boolean | null;
+            /**
+             * Grønne prikker i kalendergriden.
+             */
+            showJobs?: boolean | null;
             /**
              * Hvor bredt elementet skal stå i sone-gridet.
              */
@@ -3069,6 +3108,18 @@ export interface Sidefelt {
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
             /**
+             * Blå prikker i kalendergriden.
+             */
+            showEvents?: boolean | null;
+            /**
+             * Gule prikker i kalendergriden.
+             */
+            showTenders?: boolean | null;
+            /**
+             * Grønne prikker i kalendergriden.
+             */
+            showJobs?: boolean | null;
+            /**
              * Hvor bredt elementet skal stå i sone-gridet.
              */
             bredde?: ('1' | '2' | 'full') | null;
@@ -3358,6 +3409,18 @@ export interface Sidefelt {
              */
             count?: number | null;
             variant?: ('full' | 'kompakt') | null;
+            /**
+             * Blå prikker i kalendergriden.
+             */
+            showEvents?: boolean | null;
+            /**
+             * Gule prikker i kalendergriden.
+             */
+            showTenders?: boolean | null;
+            /**
+             * Grønne prikker i kalendergriden.
+             */
+            showJobs?: boolean | null;
             /**
              * Hvor bredt elementet skal stå i sone-gridet.
              */
@@ -3752,6 +3815,9 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              showEvents?: T;
+              showTenders?: T;
+              showJobs?: T;
               bredde?: T;
               id?: T;
               blockName?: T;
@@ -3944,6 +4010,9 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              showEvents?: T;
+              showTenders?: T;
+              showJobs?: T;
               bredde?: T;
               id?: T;
               blockName?: T;
@@ -4136,6 +4205,9 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              showEvents?: T;
+              showTenders?: T;
+              showJobs?: T;
               bredde?: T;
               id?: T;
               blockName?: T;
@@ -4328,6 +4400,9 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               count?: T;
               variant?: T;
+              showEvents?: T;
+              showTenders?: T;
+              showJobs?: T;
               bredde?: T;
               id?: T;
               blockName?: T;

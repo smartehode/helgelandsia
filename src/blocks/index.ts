@@ -448,8 +448,34 @@ export const HolidaysBlock: Block = {
       label: 'Visning',
       defaultValue: 'full',
       options: [
-        { label: 'Full – dato, navn og dager til', value: 'full' },
-        { label: 'Kompakt – navn og dager til', value: 'kompakt' },
+        { label: 'Full – kalender med prikker og dagklikk', value: 'full' },
+        { label: 'Kompakt – kalender med prikker, dagklikk åpner /arrangementer', value: 'kompakt' },
+      ],
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'showEvents',
+          type: 'checkbox',
+          defaultValue: true,
+          label: 'Vis arrangementer',
+          admin: { width: '33%', description: 'Blå prikker i kalendergriden.' },
+        },
+        {
+          name: 'showTenders',
+          type: 'checkbox',
+          defaultValue: true,
+          label: 'Vis anbudsfrister',
+          admin: { width: '33%', description: 'Gule prikker i kalendergriden.' },
+        },
+        {
+          name: 'showJobs',
+          type: 'checkbox',
+          defaultValue: true,
+          label: 'Vis stillingsfrister',
+          admin: { width: '34%', description: 'Grønne prikker i kalendergriden.' },
+        },
       ],
     },
     breddeField,

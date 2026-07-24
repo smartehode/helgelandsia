@@ -1,9 +1,14 @@
 import type { WidgetVariant } from './PowerPriceWidget'
 import { CalendarClient, type HolidayMap } from './CalendarClient'
+import { hentKalenderData } from '@/lib/kalender'
+import type { KalenderData } from '@/lib/kalender'
 
 interface Props {
   title?: string
   variant?: WidgetVariant
+  showEvents?: boolean
+  showTenders?: boolean
+  showJobs?: boolean
 }
 
 async function fetchHolidaysForYear(year: number): Promise<Record<string, string>> {
@@ -20,12 +25,21 @@ async function fetchHolidaysForYear(year: number): Promise<Record<string, string
   }
 }
 
-export async function CalendarWidget({ title, variant = 'full' }: Props) {
-  const thisYear = new Date().getFullYear()
+export async function CalendarWidget({
+  title,
+  variant = 'full',
+  showEvents = true,
+  showTenders = true,
+  showJobs = true,
+}: Props) {
+  const now = new Date()
+  const thisYear = now.getFullYear()
+  const maned = `${thisYear}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
-  const [thisYearResult, nextYearResult] = await Promise.allSettled([
+  const [thisYearResult, nextYearResult, initialDataResult] = await Promise.allSettled([
     fetchHolidaysForYear(thisYear),
     fetchHolidaysForYear(thisYear + 1),
+    hentKalenderData(maned),
   ])
 
   // Only include years that actually returned data so the client will retry on failure
@@ -37,12 +51,21 @@ export async function CalendarWidget({ title, variant = 'full' }: Props) {
     preloadedHolidays[thisYear + 1] = nextYearResult.value
   }
 
+  const initialData: KalenderData =
+    initialDataResult.status === 'fulfilled'
+      ? initialDataResult.value
+      : { maned, arrangementer: [], anbud: [], stillinger: [] }
+
   return (
     <div className="rounded-2xl bg-paper p-6 ring-1 ring-ink/5">
       <CalendarClient
-        title={title ?? 'Kalender'}
+        title={title ?? 'Helgeland-kalenderen'}
         variant={variant}
         preloadedHolidays={preloadedHolidays}
+        initialData={initialData}
+        showEvents={showEvents}
+        showTenders={showTenders}
+        showJobs={showJobs}
       />
     </div>
   )

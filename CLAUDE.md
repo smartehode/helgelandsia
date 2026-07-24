@@ -1170,8 +1170,9 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
 - Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
   akkumulert data over tid
 - Rate limiting: skjemaer (claim, innsending, kontakt-endepunktet),
-  /api/sok (offentlig, ingen auth) OG /api/arrangement-import (SSRF-
-  beskyttet, men bør ha IP-basert throttle per innlogget member)
+  /api/sok (offentlig, ingen auth), /api/arrangement-import (SSRF-
+  beskyttet, men bør ha IP-basert throttle per innlogget member) OG
+  /api/kalender (offentlig, ingen auth — rate limiting-kandidat)
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
@@ -1183,6 +1184,44 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   gir enkelt MONTHLY-fallback — kan finkornes om det trengs
 - Migrasjoner som gjenstår å kjøre: `fremhevet-sone`, `anbud-widget`,
   `widget-layout-control` (dekker også politilogg-blokk),
-  **`ferge-widget`**, **`ics-import`** (dekker sourceUrl + icsUid på events)
+  **`ferge-widget`**, **`ics-import`** (dekker sourceUrl + icsUid på events),
+  **`kalender-aktivitet`** (showEvents/showTenders/showJobs på HolidaysBlock)
 - FergeWidget: etter deploy — sett ønsket variant på blokker i sidefelt/bunn
   (de bruker nå 'full' som defaultValue etter variant-bugfiksen)
+
+### 2026-07-24 — KalenderWidget: aktivitetskalender (prikker + dagklikk)
+
+**CalendarWidget utvidet fra helligdagskalender til aktivitetskalender**
+- `src/lib/kalender.ts` — ny server-only datafunksjon `hentKalenderData(maned)`.
+  Henter parallelt (Promise.allSettled): arrangementer (publiserte, overlapper
+  med måneden, søker 90 dager tilbake for flerdagere), anbud (ACTIVE + frist
+  i måneden), stillinger (publiserte + frist i måneden). Maks 200 per type.
+- `src/app/api/kalender/route.ts` — GET /api/kalender?maned=YYYY-MM.
+  Offentlig (ingen auth), force-dynamic. Rate limiting-kandidat (se GJENSTÅR).
+- `src/blocks/index.ts` — HolidaysBlock: 3 nye sjekkboks-felt i `type:'row'`-wrapper:
+  `showEvents`, `showTenders`, `showJobs` (alle defaultValue: true).
+  **SKJEMAENDRING** — eieren kjører `npx payload migrate:create kalender-aktivitet`,
+  leser filen (sjekk ADD COLUMN IF NOT EXISTS, ingen DROP), committer med koden.
+- `src/components/widgets/CalendarWidget.tsx` — server-komponent utvidet:
+  henter `hentKalenderData(maned)` parallelt med helligdagsfetchen; tar
+  `showEvents?`, `showTenders?`, `showJobs?`-props; sender `initialData` til
+  CalendarClient.
+- `src/components/widgets/CalendarClient.tsx` — fullstendig omskrevet:
+  - Nye eksporterte typer: `KalenderArrangement`, `KalenderAnbud`,
+    `KalenderStilling`, `KalenderData`.
+  - `buildDayIndex(data)`: ekspanderer flerdagersarrangementer over alle dager
+    i spennet (sikkerhetsbegrensning 366 dager), setter anbud/stillinger på
+    sin fristdato. Bruker lokal tidssone via date-fns `format`.
+  - Prikker under dagsnummeret: fjord (arrangement), sun/amber (anbudsfrist),
+    green-500 (stillingsfrist). Fast høyde på prikk-raden hindrer
+    gridhopp ved tomme dager.
+  - Dagklikk: full variant → inline liste under kalender (arrangement, anbud,
+    stilling med lenker); kompakt variant → navigerer til /arrangementer.
+  - Månedsskifte: klientside-henting fra /api/kalender, loading-indikator (…)
+    i månedstittel, grønn nedgradering: ved feil vises kalender uten prikker.
+  - Tegnforklaring (legend) under gridtabellen.
+  - `parseISO` importert fra date-fns for trygg ISO-datoformatering i dagpanelet.
+- `src/components/RenderBlocks.tsx` — case 'holidays' sender nå `showEvents`,
+  `showTenders`, `showJobs` (med `?? true`-fallback for eksisterende blokker).
+- `CLAUDE.md` — GJENSTÅR oppdatert med kalender-aktivitet migrasjon og
+  /api/kalender som rate limiting-kandidat.
