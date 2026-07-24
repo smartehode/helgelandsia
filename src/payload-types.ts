@@ -1127,6 +1127,34 @@ export interface Page {
             blockName?: string | null;
             blockType: 'kunngjoringer';
           }
+        | {
+            /**
+             * Standard: «Fra Midt-Norge»
+             */
+            title?: string | null;
+            source?: ('api' | 'manual' | 'begge') | null;
+            /**
+             * 1–10 siste artikler fra WordPress-APIet.
+             */
+            count?: number | null;
+            /**
+             * Lim inn artikkellenker fra midtinorge.no. Tittel, bilde og ingress hentes automatisk.
+             */
+            manualUrls?:
+              | {
+                  url: string;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'eksterneArtikler';
+          }
       )[]
     | null;
   meta?: {
@@ -2003,6 +2031,23 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        eksterneArtikler?:
+          | T
+          | {
+              title?: T;
+              source?: T;
+              count?: T;
+              manualUrls?:
+                | T
+                | {
+                    url?: T;
+                    id?: T;
+                  };
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   meta?:
     | T
@@ -2631,6 +2676,34 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'kunngjoringer';
           }
+        | {
+            /**
+             * Standard: «Fra Midt-Norge»
+             */
+            title?: string | null;
+            source?: ('api' | 'manual' | 'begge') | null;
+            /**
+             * 1–10 siste artikler fra WordPress-APIet.
+             */
+            count?: number | null;
+            /**
+             * Lim inn artikkellenker fra midtinorge.no. Tittel, bilde og ingress hentes automatisk.
+             */
+            manualUrls?:
+              | {
+                  url: string;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'eksterneArtikler';
+          }
       )[]
     | null;
   /**
@@ -2932,6 +3005,34 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'kunngjoringer';
+          }
+        | {
+            /**
+             * Standard: «Fra Midt-Norge»
+             */
+            title?: string | null;
+            source?: ('api' | 'manual' | 'begge') | null;
+            /**
+             * 1–10 siste artikler fra WordPress-APIet.
+             */
+            count?: number | null;
+            /**
+             * Lim inn artikkellenker fra midtinorge.no. Tittel, bilde og ingress hentes automatisk.
+             */
+            manualUrls?:
+              | {
+                  url: string;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'eksterneArtikler';
           }
       )[]
     | null;
@@ -3235,6 +3336,34 @@ export interface Sidefelt {
             blockName?: string | null;
             blockType: 'kunngjoringer';
           }
+        | {
+            /**
+             * Standard: «Fra Midt-Norge»
+             */
+            title?: string | null;
+            source?: ('api' | 'manual' | 'begge') | null;
+            /**
+             * 1–10 siste artikler fra WordPress-APIet.
+             */
+            count?: number | null;
+            /**
+             * Lim inn artikkellenker fra midtinorge.no. Tittel, bilde og ingress hentes automatisk.
+             */
+            manualUrls?:
+              | {
+                  url: string;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'eksterneArtikler';
+          }
       )[]
     | null;
   /**
@@ -3536,6 +3665,34 @@ export interface Sidefelt {
             id?: string | null;
             blockName?: string | null;
             blockType: 'kunngjoringer';
+          }
+        | {
+            /**
+             * Standard: «Fra Midt-Norge»
+             */
+            title?: string | null;
+            source?: ('api' | 'manual' | 'begge') | null;
+            /**
+             * 1–10 siste artikler fra WordPress-APIet.
+             */
+            count?: number | null;
+            /**
+             * Lim inn artikkellenker fra midtinorge.no. Tittel, bilde og ingress hentes automatisk.
+             */
+            manualUrls?:
+              | {
+                  url: string;
+                  id?: string | null;
+                }[]
+              | null;
+            variant?: ('full' | 'kompakt') | null;
+            /**
+             * Hvor bredt elementet skal stå i sone-gridet.
+             */
+            bredde?: ('1' | '2' | 'full') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'eksterneArtikler';
           }
       )[]
     | null;
@@ -3885,6 +4042,23 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        eksterneArtikler?:
+          | T
+          | {
+              title?: T;
+              source?: T;
+              count?: T;
+              manualUrls?:
+                | T
+                | {
+                    url?: T;
+                    id?: T;
+                  };
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   sidefeltKolonner?: T;
   sidefelt?:
@@ -4075,6 +4249,23 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               kommuner?: T;
               count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        eksterneArtikler?:
+          | T
+          | {
+              title?: T;
+              source?: T;
+              count?: T;
+              manualUrls?:
+                | T
+                | {
+                    url?: T;
+                    id?: T;
+                  };
               variant?: T;
               bredde?: T;
               id?: T;
@@ -4275,6 +4466,23 @@ export interface SidefeltSelect<T extends boolean = true> {
               id?: T;
               blockName?: T;
             };
+        eksterneArtikler?:
+          | T
+          | {
+              title?: T;
+              source?: T;
+              count?: T;
+              manualUrls?:
+                | T
+                | {
+                    url?: T;
+                    id?: T;
+                  };
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   bunnKolonner?: T;
   bunn?:
@@ -4465,6 +4673,23 @@ export interface SidefeltSelect<T extends boolean = true> {
               title?: T;
               kommuner?: T;
               count?: T;
+              variant?: T;
+              bredde?: T;
+              id?: T;
+              blockName?: T;
+            };
+        eksterneArtikler?:
+          | T
+          | {
+              title?: T;
+              source?: T;
+              count?: T;
+              manualUrls?:
+                | T
+                | {
+                    url?: T;
+                    id?: T;
+                  };
               variant?: T;
               bredde?: T;
               id?: T;

@@ -43,6 +43,10 @@
         #     static.nrk.no               — NRK statiske bilder
         #   Leaflet kart-fliser (PolitiMap, browser-side):
         #     *.tile.openstreetmap.org    — OSM-fliser
+        #   Midt-Norge (EksterneArtiklerWidget — browser-side <img>):
+        #     midtinorge.no               — WordPress-bilder (wp-content/uploads)
+        #     NB: CDN-domene ukjent før deploy — sjekk browser-konsoll for
+        #     CSP-violations og legg til evt. CDN-domene her.
         #
         # Klientside connect-src utenom 'self':
         #   api.open-meteo.com  — vær (WebcamWeatherClient, 30 min klient-cache)
@@ -57,6 +61,6 @@
         #   www.openstreetmap.org  — kart-iframe på /bedrifter/[slug]
         #   nais.kystverket.no     — skipstrafikk-widget
         # -----------------------------------------------------------------------
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://weathercam.herokuapp.com https://webcam.havbrukssenter.no https://www.velfjordferie.no https://ftp.hald-ikt.no https://kamera.atlas.vegvesen.no https://infohelgeland.no https://vcdn.polarismedia.no https://www.hblad.no https://gfx.nrk.no https://static.nrk.no https://*.tile.openstreetmap.org; connect-src 'self' https://api.open-meteo.com https://date.nager.at; frame-src https://www.openstreetmap.org https://nais.kystverket.no; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://weathercam.herokuapp.com https://webcam.havbrukssenter.no https://www.velfjordferie.no https://ftp.hald-ikt.no https://kamera.atlas.vegvesen.no https://infohelgeland.no https://vcdn.polarismedia.no https://www.hblad.no https://gfx.nrk.no https://static.nrk.no https://*.tile.openstreetmap.org https://midtinorge.no; connect-src 'self' https://api.open-meteo.com https://date.nager.at; frame-src https://www.openstreetmap.org https://nais.kystverket.no; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
     }
 }

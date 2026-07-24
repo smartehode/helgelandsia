@@ -33,6 +33,7 @@ import * as migration_20260716_011758 from './20260716_011758';
 import * as migration_20260722_065046_ics_import from './20260722_065046_ics_import';
 import * as migration_20260723_234726_kalender_aktivitet from './20260723_234726_kalender_aktivitet';
 import * as migration_20260724_102514 from './20260724_102514';
+import * as migration_20260724_160029 from './20260724_160029';
 
 export const migrations = [
   {
@@ -208,6 +209,11 @@ export const migrations = [
   {
     up: migration_20260724_102514.up,
     down: migration_20260724_102514.down,
-    name: '20260724_102514'
+    name: '20260724_102514',
+  },
+  {
+    up: migration_20260724_160029.up,
+    down: migration_20260724_160029.down,
+    name: '20260724_160029'
   },
 ];

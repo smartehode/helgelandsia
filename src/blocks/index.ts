@@ -671,6 +671,59 @@ export const KunngjoringerBlock: Block = {
   ],
 }
 
+export const EksterneArtiklerBlock: Block = {
+  slug: 'eksterneArtikler',
+  labels: { singular: 'Artikler fra Midt-Norge', plural: 'Artikler fra Midt-Norge' },
+  fields: [
+    {
+      name: 'title',
+      type: 'text',
+      label: 'Tittel (valgfritt)',
+      admin: { description: 'Standard: «Fra Midt-Norge»' },
+    },
+    {
+      name: 'source',
+      type: 'select',
+      label: 'Datakilde',
+      defaultValue: 'api',
+      options: [
+        { label: 'WordPress API — henter siste N artikler automatisk', value: 'api' },
+        { label: 'Manuelle URL-er — OG-data hentes per lenke', value: 'manual' },
+        { label: 'Begge — API + manuelle URL-er kombinert', value: 'begge' },
+      ],
+    },
+    {
+      name: 'count',
+      type: 'number',
+      label: 'Antall fra API',
+      defaultValue: 5,
+      min: 1,
+      max: 10,
+      admin: { description: '1–10 siste artikler fra WordPress-APIet.' },
+    },
+    {
+      name: 'manualUrls',
+      type: 'array',
+      label: 'Manuelle artikler (URL-er)',
+      admin: { description: 'Lim inn artikkellenker fra midtinorge.no. Tittel, bilde og ingress hentes automatisk.' },
+      fields: [
+        { name: 'url', type: 'text', required: true, label: 'URL' },
+      ],
+    },
+    {
+      name: 'variant',
+      type: 'radio',
+      label: 'Visning',
+      defaultValue: 'full',
+      options: [
+        { label: 'Full – bilde, tittel, ingress og dato', value: 'full' },
+        { label: 'Kompakt – tittel og dato', value: 'kompakt' },
+      ],
+    },
+    breddeField,
+  ],
+}
+
 export const layoutBlocks = [
   HeroBlock,
   RichTextBlock,
@@ -694,6 +747,7 @@ export const layoutBlocks = [
   PolitiloggBlock,
   FergeBlock,
   KunngjoringerBlock,
+  EksterneArtiklerBlock,
 ]
 
 export const widgetBlocks = [
@@ -713,4 +767,5 @@ export const widgetBlocks = [
   PolitiloggBlock,
   FergeBlock,
   KunngjoringerBlock,
+  EksterneArtiklerBlock,
 ]
