@@ -32,6 +32,7 @@ import * as migration_20260715_092949_kunngjoringer_widget from './20260715_0929
 import * as migration_20260716_011758 from './20260716_011758';
 import * as migration_20260722_065046_ics_import from './20260722_065046_ics_import';
 import * as migration_20260723_234726_kalender_aktivitet from './20260723_234726_kalender_aktivitet';
+import * as migration_20260724_102514 from './20260724_102514';
 
 export const migrations = [
   {
@@ -202,6 +203,11 @@ export const migrations = [
   {
     up: migration_20260723_234726_kalender_aktivitet.up,
     down: migration_20260723_234726_kalender_aktivitet.down,
-    name: '20260723_234726_kalender_aktivitet'
+    name: '20260723_234726_kalender_aktivitet',
+  },
+  {
+    up: migration_20260724_102514.up,
+    down: migration_20260724_102514.down,
+    name: '20260724_102514'
   },
 ];

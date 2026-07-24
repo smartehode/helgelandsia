@@ -142,7 +142,10 @@ export default async function MinSide({
               <h2 className="text-sm font-semibold text-fjord">Send inn innhold</h2>
             </div>
             <div className="p-5">
-              <SubmissionTabs initialTab={type} />
+              <SubmissionTabs
+                initialTab={type}
+                verifiedBusinesses={verifiedBusinesses.map((b: any) => ({ id: b.id, name: b.name }))}
+              />
             </div>
           </div>
         </section>

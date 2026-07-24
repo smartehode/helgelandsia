@@ -18,7 +18,15 @@ const tabs = [
 
 type TabId = (typeof tabs)[number]['id']
 
-export function SubmissionTabs({ initialTab }: { initialTab?: string }) {
+interface VerifiedBusiness { id: number; name: string }
+
+export function SubmissionTabs({
+  initialTab,
+  verifiedBusinesses = [],
+}: {
+  initialTab?: string
+  verifiedBusinesses?: VerifiedBusiness[]
+}) {
   const defaultTab = tabs.find(t => t.id === initialTab)?.id ?? 'artikkel'
   const [active, setActive] = useState<TabId>(defaultTab)
   return (
@@ -35,7 +43,7 @@ export function SubmissionTabs({ initialTab }: { initialTab?: string }) {
       {active === 'arrangement' && <EventForm />}
       {active === 'stilling' && <JobForm />}
       {active === 'bedrift' && <BusinessForm />}
-      {active === 'pressemelding' && <PressReleaseForm />}
+      {active === 'pressemelding' && <PressReleaseForm businesses={verifiedBusinesses} />}
       {active === 'nyhetsbrev' && <NewsletterForm />}
     </div>
   )

@@ -691,6 +691,7 @@ export interface PressRelease {
    */
   slug?: string | null;
   submittedBy?: (number | null) | Member;
+  bedrift?: (number | null) | Business;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1716,6 +1717,7 @@ export interface PressReleasesSelect<T extends boolean = true> {
   contactPhone?: T;
   slug?: T;
   submittedBy?: T;
+  bedrift?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

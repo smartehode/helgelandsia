@@ -104,7 +104,7 @@ export default async function BusinessPage({
   const payload = await getPayloadClient()
   const cat = b.naceCategory ? getCategoryById(b.naceCategory) : null
 
-  const [subunitsResult, regnskapResult, percentilResult] = await Promise.all([
+  const [subunitsResult, regnskapResult, percentilResult, pressReleasesResult] = await Promise.all([
     b.orgnr
       ? payload.find({
           collection: 'businesses',
@@ -127,11 +127,24 @@ export default async function BusinessPage({
     b.orgnr && b.naceCategory && cat
       ? getPercentilerForBusiness(payload, b.orgnr, b.naceCategory, cat.label)
       : null,
+    payload.find({
+      collection: 'press-releases',
+      where: {
+        and: [
+          { bedrift: { equals: b.id } },
+          { _status: { equals: 'published' } },
+        ],
+      },
+      sort: '-createdAt',
+      limit: 6,
+      depth: 0,
+    }),
   ])
 
   const subunits = subunitsResult?.docs ?? []
   const regnskap: any = (regnskapResult as any)?.docs?.[0] ?? null
   const percentil = percentilResult
+  const pressReleases: any[] = (pressReleasesResult as any)?.docs ?? []
   const isBrreg = b.source === 'brreg'
 
   const canonicalUrl = `${SITE}/bedrifter/${orgnr}/${expectedSlug}`
@@ -346,6 +359,30 @@ export default async function BusinessPage({
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Pressemeldinger koblet til denne bedriften */}
+          {pressReleases.length > 0 && (
+            <div>
+              <h2 className="mb-3 font-serif text-lg font-semibold text-sea">Pressemeldinger</h2>
+              <ul className="space-y-2">
+                {pressReleases.slice(0, 5).map((pr: any) => (
+                  <li key={pr.id} className="rounded-xl border border-ink/10 bg-white px-4 py-3">
+                    <Link href={`/pressemeldinger/${pr.slug}`} className="text-sm font-medium text-sea hover:underline">
+                      {pr.title}
+                    </Link>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {new Date(pr.createdAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              {pressReleases.length > 5 && (
+                <Link href="/pressemeldinger" className="mt-3 block text-sm text-sea hover:underline">
+                  Se alle pressemeldinger →
+                </Link>
+              )}
             </div>
           )}
 

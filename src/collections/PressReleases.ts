@@ -44,5 +44,6 @@ export const PressReleases: CollectionConfig = {
     },
     slugField('title'),
     { name: 'submittedBy', type: 'relationship', relationTo: 'members', label: 'Innsendt av', admin: { position: 'sidebar' }, access: { read: ({ req: { user } }) => Boolean(user) } },
+    { name: 'bedrift', type: 'relationship', relationTo: 'businesses', label: 'Gjelder bedrift', required: false, admin: { position: 'sidebar' } },
   ],
 }

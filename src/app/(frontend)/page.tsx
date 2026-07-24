@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import { ForsideSearch } from '@/components/ForsideSearch'
+import { HeroHeading } from '@/components/HeroHeading'
 import { HeroStrip } from '@/components/HeroStrip'
 import { WebcamWeatherWidget } from '@/components/widgets/WebcamWeatherWidget'
 import { RenderBlocks } from '@/components/RenderBlocks'
@@ -217,9 +218,7 @@ export default async function HomePage() {
 
       {/* ── 1. HERO ─────────────────────────────────────────────────────── */}
       <section className="py-10 text-center sm:py-14">
-        <h1 className="font-serif text-3xl font-semibold text-fjord sm:text-4xl">
-          Alt om Helgeland, samlet på ett sted
-        </h1>
+        <HeroHeading />
         <p className="mx-auto mt-3 max-w-md text-base text-muted">
           Næringsliv, stillinger, arrangementer og leserinnlegg fra hele regionen.
         </p>

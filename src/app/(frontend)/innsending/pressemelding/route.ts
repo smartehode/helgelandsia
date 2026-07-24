@@ -29,6 +29,34 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Tittel og innhold må fylles ut.' }, { status: 400 })
   }
 
+  // Valider bedrift-kobling: aldri stol på klientverdien (regel 10)
+  let validatedBedriftId: number | undefined
+  const bedriftIdRaw = fd.get('bedriftId')
+  if (bedriftIdRaw && String(bedriftIdRaw).trim() !== '') {
+    const parsed = Number(bedriftIdRaw)
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      return Response.json({ error: 'Ugyldig bedrift-ID.' }, { status: 400 })
+    }
+    // Sjekk at innlogget member faktisk eier og er verifisert på bedriften
+    const { docs } = await payload.find({
+      collection: 'businesses',
+      where: {
+        and: [
+          { id: { equals: parsed } },
+          { owner: { equals: user.id } },
+          { claimStatus: { equals: 'verified' } },
+        ],
+      },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
+    if (docs.length === 0) {
+      return Response.json({ error: 'Du har ikke tilgang til denne bedriften.' }, { status: 403 })
+    }
+    validatedBedriftId = parsed
+  }
+
   let imageId: number | undefined
   const file = fd.get('image') as File | null
   if (file && typeof file === 'object' && file.size > 0) {
@@ -57,6 +85,7 @@ export async function POST(req: Request) {
         image: imageId,
         slug: `${slugify(title)}-${Date.now().toString(36)}`,
         submittedBy: user.id,
+        bedrift: validatedBedriftId,
         _status: 'draft',
       },
     })

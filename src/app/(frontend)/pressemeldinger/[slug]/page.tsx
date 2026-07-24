@@ -3,10 +3,12 @@ import Image from 'next/image'
 import type { Metadata } from 'next'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
+import Link from 'next/link'
 import { RichText } from '@/components/RichText'
 import { ShareButtons } from '@/components/ShareButtons'
 import { getPayloadClient } from '@/lib/getPayload'
 import { SITE, abs } from '@/lib/og'
+import { nameToSlug } from '@/lib/slug'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,6 +63,17 @@ export default async function PressReleasePage({ params }: { params: Promise<{ s
         {p.organization ? `${p.organization} · ` : ''}
         {format(new Date(p.createdAt), 'd. MMMM yyyy', { locale: nb })}
       </p>
+      {p.bedrift && typeof p.bedrift === 'object' && p.bedrift.orgnr && (
+        <p className="mb-3 text-sm text-muted">
+          Fra:{' '}
+          <Link
+            href={`/bedrifter/${p.bedrift.orgnr}/${nameToSlug(p.bedrift.name)}`}
+            className="text-sea hover:underline"
+          >
+            {p.bedrift.name}
+          </Link>
+        </p>
+      )}
       <h1 className="font-serif text-3xl font-bold text-sea">{p.title}</h1>
       <ShareButtons title={p.title} />
       {p.excerpt && <p className="mt-3 text-lg text-ink/70">{p.excerpt}</p>}

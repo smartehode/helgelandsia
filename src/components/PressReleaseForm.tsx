@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 const input = 'w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm outline-none focus:border-sea'
 const label = 'mb-1 block text-xs font-semibold uppercase tracking-wide text-muted'
 
-export function PressReleaseForm() {
+interface MemberBusiness { id: number; name: string }
+
+export function PressReleaseForm({ businesses = [] }: { businesses?: MemberBusiness[] }) {
   const router = useRouter()
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
   const [error, setError] = useState('')
@@ -35,6 +37,25 @@ export function PressReleaseForm() {
     <form onSubmit={onSubmit} className="space-y-4">
       <div><label className={label}>Tittel *</label><input name="title" required className={input} /></div>
       <div><label className={label}>Avsender/organisasjon</label><input name="organization" className={input} /></div>
+
+      {/* Vis bare hvis innlogget bruker eier verifiserte bedrifter */}
+      {businesses.length > 0 && (
+        <div>
+          <label className={label}>Gjelder bedrift <span className="normal-case font-normal">(valgfritt)</span></label>
+          <select
+            name="bedriftId"
+            className={input}
+            defaultValue={businesses.length === 1 ? String(businesses[0].id) : ''}
+          >
+            <option value="">– Ikke koblet til en bedrift –</option>
+            {businesses.map(b => (
+              <option key={b.id} value={String(b.id)}>{b.name}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-muted">Kun dine verifiserte bedrifter vises.</p>
+        </div>
+      )}
+
       <div><label className={label}>Ingress</label><textarea name="excerpt" rows={3} className={input} /></div>
       <div><label className={label}>Innhold *</label><textarea name="content" required rows={8} className={input} /></div>
       <div className="grid gap-4 sm:grid-cols-3">
