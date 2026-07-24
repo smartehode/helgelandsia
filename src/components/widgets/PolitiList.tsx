@@ -1,6 +1,16 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import dynamic from 'next/dynamic'
+import type { MapMarker } from './PolitiMap'
+import { kategoriData } from '@/lib/politi-kategorier'
+
+export type { MapMarker }
+
+const PolitiMap = dynamic(
+  () => import('./PolitiMap').then(m => ({ default: m.PolitiMap })),
+  { ssr: false },
+)
 
 export interface PoliceMsg {
   id: string
@@ -22,7 +32,49 @@ export interface PoliceThread {
   area: string
   isActive: boolean
   latest: PoliceMsg
-  history: PoliceMsg[] // eldre meldinger, eldst først
+  history: PoliceMsg[]
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Ikon — samme SVG-data som kart-markørene (visuell paritet)
+
+function CatIcon({ category, size = 14 }: { category: string; size?: number }) {
+  const { hex, svgPaths } = kategoriData(category)
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={hex}
+      strokeWidth={2.3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      // svgPaths er våre egne konstanter, ikke brukerinput
+      dangerouslySetInnerHTML={{ __html: svgPaths }}
+    />
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Hjelpefunksjoner
+
+const CAT_TEXT: Record<string, string> = {
+  Trafikk:       'text-amber-700',
+  'Ro og orden': 'text-blue-700',
+  Voldshendelse: 'text-red-700',
+  Redning:       'text-orange-700',
+  Brann:         'text-red-800',
+  Ulykke:        'text-orange-700',
+  Tyveri:        'text-purple-700',
+  Innbrudd:      'text-purple-700',
+  Savnet:        'text-pink-700',
+  Sjø:           'text-sky-700',
+  Arrangement:   'text-green-700',
+  Dyr:           'text-lime-700',
+  Skadeverk:     'text-stone-700',
+  Vær:           'text-sky-700',
 }
 
 const CAT_CLS: Record<string, string> = {
@@ -42,23 +94,6 @@ const CAT_CLS: Record<string, string> = {
   Vær:           'bg-sky-50 text-sky-700',
 }
 
-const CAT_TEXT: Record<string, string> = {
-  Trafikk:       'text-amber-700',
-  'Ro og orden': 'text-blue-700',
-  Voldshendelse: 'text-red-700',
-  Redning:       'text-orange-700',
-  Brann:         'text-red-800',
-  Ulykke:        'text-orange-700',
-  Tyveri:        'text-purple-700',
-  Innbrudd:      'text-purple-700',
-  Savnet:        'text-pink-700',
-  Sjø:           'text-sky-700',
-  Arrangement:   'text-green-700',
-  Dyr:           'text-lime-700',
-  Skadeverk:     'text-stone-700',
-  Vær:           'text-sky-700',
-}
-
 function relTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime()
   const m = Math.floor(diffMs / 60_000)
@@ -70,36 +105,50 @@ function relTime(iso: string): string {
 }
 
 const POLITILOGGEN_URL = 'https://www.politiet.no/politiloggen'
+const TICKER_DURATION_S = 40
 
-function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolean }) {
-  const [expanded, setExpanded] = useState(false)
+// ──────────────────────────────────────────────────────────────────────────────
+// Enkelt listeelement — props-drevet expanded state
+
+interface PolitiItemProps {
+  thread: PoliceThread
+  compact: boolean
+  expanded: boolean
+  onToggle: (id: string) => void
+}
+
+function PolitiItem({ thread, compact, expanded, onToggle }: PolitiItemProps) {
   const [overflows, setOverflows] = useState(false)
   const textRef = useRef<HTMLParagraphElement>(null)
 
   useEffect(() => {
     const el = textRef.current
     if (!el) return
-    // scrollHeight > clientHeight betyr at teksten er kappet av line-clamp
     setOverflows(el.scrollHeight > el.clientHeight + 2)
   }, [])
 
   const msg = thread.latest
-  const location = thread.area
-    ? `${thread.municipality} · ${thread.area}`
-    : thread.municipality
+  const location = thread.area ? `${thread.municipality} · ${thread.area}` : thread.municipality
   const canExpand = overflows || thread.history.length > 0
 
+  const handleClick = useCallback(() => {
+    if (canExpand) onToggle(thread.id)
+  }, [canExpand, onToggle, thread.id])
+
+  const handleLinkClick = useCallback((e: React.MouseEvent) => e.stopPropagation(), [])
+
+  // ── KOMPAKT ────────────────────────────────────────────────────────────────
   if (compact) {
     return (
       <li
         className={`py-1.5 ${canExpand ? 'cursor-pointer' : ''}`}
-        onClick={() => canExpand && setExpanded(e => !e)}
+        onClick={handleClick}
       >
-        {/* Linje 1: kategori · sted · tid */}
         <div className="flex items-center gap-1.5 text-[11px] leading-none">
           {thread.isActive && (
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />
           )}
+          <CatIcon category={msg.category} size={12} />
           <span className={`shrink-0 font-semibold ${CAT_TEXT[msg.category] ?? 'text-muted'}`}>
             {msg.category}
           </span>
@@ -107,7 +156,6 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
           <span className="min-w-0 flex-1 truncate text-muted">{location}</span>
           <span className="ml-1 shrink-0 text-muted">{relTime(msg.createdOn)}</span>
         </div>
-        {/* Linje 2: tekst + expand-pil */}
         <div className="mt-0.5 flex items-start gap-1">
           <p
             ref={textRef}
@@ -119,7 +167,6 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
             <span className="shrink-0 pt-px text-[10px] leading-snug text-sea/70">▾</span>
           )}
         </div>
-        {/* Utvidet: historikk + lenke */}
         {expanded && (
           <>
             {thread.history.length > 0 && (
@@ -137,7 +184,7 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
               target="_blank"
               rel="noopener noreferrer"
               className="mt-1 inline-block text-[10px] text-muted hover:text-sea"
-              onClick={e => e.stopPropagation()}
+              onClick={handleLinkClick}
             >
               politiet.no ↗
             </a>
@@ -147,18 +194,18 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
     )
   }
 
-  // ── FULL VARIANT ──────────────────────────────────────────────────────────
+  // ── FULL ───────────────────────────────────────────────────────────────────
   return (
     <li
       className={`px-4 py-3.5 transition hover:bg-fog/40 ${canExpand ? 'cursor-pointer' : ''}`}
-      onClick={() => canExpand && setExpanded(e => !e)}
+      onClick={handleClick}
     >
-      {/* Header: badge + tid */}
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1.5">
           {thread.isActive && (
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" title="Pågående hendelse" />
           )}
+          <CatIcon category={msg.category} size={14} />
           <span
             className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${CAT_CLS[msg.category] ?? 'bg-fog text-muted'}`}
           >
@@ -168,12 +215,10 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
         <span className="shrink-0 text-xs text-muted">{relTime(msg.createdOn)}</span>
       </div>
 
-      {/* Sted */}
       <p className="mb-1 text-xs font-medium text-sea">
         {location}{msg.isEdited ? ' · oppdatert' : ''}
       </p>
 
-      {/* Meldingstekst — kappet/full */}
       <p
         ref={textRef}
         className={`text-sm leading-relaxed text-ink/80 ${!expanded ? 'line-clamp-3' : ''}`}
@@ -181,20 +226,15 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
         {msg.text}
       </p>
 
-      {/* "Vis mer" — kun når teksten faktisk er kappet */}
       {!expanded && overflows && (
         <div className="mt-1 flex items-center gap-0.5 text-[11px] text-sea/80">
-          <span>vis mer</span>
-          <span>▾</span>
+          <span>vis mer</span><span>▾</span>
         </div>
       )}
-
-      {/* "Vis mindre" — når utvidet */}
       {expanded && canExpand && (
         <div className="mt-1 text-[11px] text-sea/80">▴ vis mindre</div>
       )}
 
-      {/* Historikk: eldre oppdateringer på samme sak */}
       {expanded && thread.history.length > 0 && (
         <div className="mt-3 space-y-2 border-t border-ink/5 pt-3">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
@@ -209,14 +249,13 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
         </div>
       )}
 
-      {/* Lenke til politiloggen — kun ved utvidet visning */}
       {expanded && (
         <a
           href={POLITILOGGEN_URL}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 inline-block text-[11px] text-muted hover:text-sea"
-          onClick={e => e.stopPropagation()}
+          onClick={handleLinkClick}
         >
           politiet.no ↗
         </a>
@@ -225,19 +264,178 @@ function PolitiItem({ thread, compact }: { thread: PoliceThread; compact: boolea
   )
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Ticker-wrapper (full variant, > 2 meldinger, ingen reduced-motion)
+
+const KEYFRAME_CSS =
+  '@keyframes politi-scroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}'
+
+interface TickerProps {
+  threads: PoliceThread[]
+  expandedId: string | null
+  onToggle: (id: string) => void
+}
+
+function PolitiTicker({ threads, expandedId, onToggle }: TickerProps) {
+  const [isPaused, setIsPaused] = useState(false)
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isExpanded = expandedId !== null
+
+  // Injiser @keyframes én gang
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = KEYFRAME_CSS
+    document.head.appendChild(style)
+    return () => style.remove()
+  }, [])
+
+  const pauseTicker = useCallback(() => {
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current)
+    setIsPaused(true)
+  }, [])
+
+  const resumeTicker = useCallback(() => {
+    touchTimerRef.current = setTimeout(() => setIsPaused(false), 400)
+  }, [])
+
+  // Ticker-modus: dupliser lista for sømløs loop
+  // Expanded-modus: vanlig liste (ingen høydebegrensning, ingen animasjon)
+  const doubled = [...threads, ...threads]
+
+  if (isExpanded) {
+    // Vis alle elementer uten clip — bruker kollapser inn igjen ved klikk
+    return (
+      <ul className="divide-y divide-ink/5">
+        {threads.map(t => (
+          <PolitiItem
+            key={t.id}
+            thread={t}
+            compact={false}
+            expanded={expandedId === t.id}
+            onToggle={onToggle}
+          />
+        ))}
+      </ul>
+    )
+  }
+
+  return (
+    <div
+      className="overflow-hidden"
+      style={{ height: '220px' }}
+      onMouseEnter={pauseTicker}
+      onMouseLeave={resumeTicker}
+      onTouchStart={pauseTicker}
+      onTouchEnd={resumeTicker}
+    >
+      <ul
+        className="divide-y divide-ink/5"
+        style={{
+          animation: `politi-scroll ${TICKER_DURATION_S}s linear infinite`,
+          animationPlayState: isPaused ? 'paused' : 'running',
+        }}
+      >
+        {doubled.map((t, i) => (
+          <PolitiItem
+            key={`${t.id}-${i}`}
+            thread={t}
+            compact={false}
+            // Kun første halvdel kan ekspandere (ikke duplikaten)
+            expanded={expandedId === t.id && i < threads.length}
+            onToggle={onToggle}
+          />
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Hoved-komponent
+
 export function PolitiList({
   threads,
   variant,
+  markers,
 }: {
   threads: PoliceThread[]
   variant: 'full' | 'kompakt'
+  markers?: MapMarker[]
 }) {
   const compact = variant === 'kompakt'
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [prefersReduced, setPrefersReduced] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReduced(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReduced(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  const onToggle = useCallback((id: string) => {
+    setExpandedId(prev => (prev === id ? null : id))
+  }, [])
+
+  const useTicker = !compact && !prefersReduced && threads.length > 2
+
+  if (compact) {
+    return (
+      <ul className="divide-y divide-ink/5 px-3">
+        {threads.map(t => (
+          <PolitiItem
+            key={t.id}
+            thread={t}
+            compact
+            expanded={expandedId === t.id}
+            onToggle={onToggle}
+          />
+        ))}
+      </ul>
+    )
+  }
+
+  // Full variant med ticker
+  if (useTicker) {
+    return (
+      <>
+        {markers && markers.length > 0 && <PolitiMap markers={markers} />}
+        <PolitiTicker threads={threads} expandedId={expandedId} onToggle={onToggle} />
+      </>
+    )
+  }
+
+  // Full variant, reduced-motion: vis 2 + Se alle-lenke
+  const visibleThreads = prefersReduced ? threads.slice(0, 2) : threads
+  const hasMore = prefersReduced && threads.length > 2
+
   return (
-    <ul className={compact ? 'divide-y divide-ink/5 px-3' : 'divide-y divide-ink/5'}>
-      {threads.map(thread => (
-        <PolitiItem key={thread.id} thread={thread} compact={compact} />
-      ))}
-    </ul>
+    <>
+      {markers && markers.length > 0 && <PolitiMap markers={markers} />}
+      <ul className="divide-y divide-ink/5">
+        {visibleThreads.map(t => (
+          <PolitiItem
+            key={t.id}
+            thread={t}
+            compact={false}
+            expanded={expandedId === t.id}
+            onToggle={onToggle}
+          />
+        ))}
+      </ul>
+      {hasMore && (
+        <div className="px-4 py-2.5">
+          <a
+            href={POLITILOGGEN_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-sea hover:underline"
+          >
+            Se alle meldinger ↗
+          </a>
+        </div>
+      )}
+    </>
   )
 }

@@ -1225,3 +1225,65 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   `showTenders`, `showJobs` (med `?? true`-fallback for eksisterende blokker).
 - `CLAUDE.md` — GJENSTÅR oppdatert med kalender-aktivitet migrasjon og
   /api/kalender som rate limiting-kandidat.
+
+### 2026-07-24 — PolitiWidget kart (Leaflet + Kartverket geokoding)
+
+**PolitiWidget utvidet med Leaflet-kart i full variant**
+- `src/lib/helgeland/kommuner.ts` — utvidet med to nye eksporter:
+  - `KOMMUNESENTRE`: Record<string (lowercase), {lat, lng}> — senterkoordinater
+    for alle 18 Helgeland-kommuner. Brukes som fallback ved geokoding.
+  - `KOMMUNENAVN_TIL_NUMMER`: Record<string, string> — lowercase kommunenavn → kommunenummer.
+    Brukes av Kartverket stedsnavn-API for kommunescopet oppslag.
+- `src/components/widgets/PolitiWidget.tsx` — server-side geokoding lagt til:
+  - `geocodeArea(area, municipalityLC)` — henter Kartverket stedsnavn-API
+    (`ws.geonorge.no/stedsnavn/v1/navn?sok=...&kommunenummer=...&treffPerSide=1`),
+    fallback til `KOMMUNESENTRE[municipalityLC]`.
+  - In-memory `geocodeCache: Map<string, {lat,lng}>` — cacher på `komunneNr:area`.
+    Overlever request-grenser (modul-level), tømmes ved restart.
+  - Timeout: 3 sekunder. revalidate: 86400. Stille feil med fallback.
+  - Geokoding kjøres parallelt (Promise.allSettled) etter at tråder er bygget.
+  - `MapMarker[]` sendes til `PolitiList` kun i full variant.
+- `src/components/widgets/PolitiMap.tsx` — ny klient-komponent ('use client').
+  - Statisk `import 'leaflet/dist/leaflet.css'` — lastes kun ved dynamisk import.
+  - `L.circleMarker` per hendelse (radius 7, farge fra `CAT_COLOR`-map = hex-verdier
+    som matcher PolitiLists `CAT_CLS`). Ingen standard Leaflet-ikon, unngår
+    webpack-icon-problematikken.
+  - `L.tileLayer` med OSM-URL og standard attribusjon.
+  - `scrollWheelZoom: false` — ikke-forstyrrende for brukere som scroller forbi.
+  - Popup per markør: kategori (farget), sted · tid, meldingstekst (kappet 120 tegn).
+  - Kart-center: [66.05, 13.2] (midtre Helgeland), zoom 7.
+  - `useEffect` cleanup: `map.remove()` + `mapRef.current = null`.
+- `src/components/widgets/PolitiList.tsx` — `MapMarker` re-eksportert fra PolitiMap.
+  - `PolitiMap` dynamisk importert: `next/dynamic(..., { ssr: false })` — Leaflet
+    krever browser-miljø, ingen SSR.
+  - Ny `markers?: MapMarker[]`-prop. Kartet rendres over listen når `!compact && markers?.length`.
+- `Caddyfile` — `img-src` utvidet med `https://*.tile.openstreetmap.org` (OSM-fliser
+  lastes av browser via Leaflet). **Eieren kjører `docker compose restart caddy`
+  etter deploy (regel 14).**
+- `npm install leaflet @types/leaflet` — ny avhengighet.
+- Ingen skjemaendringer. `npm run build` rent.
+
+**PolitiWidget — ikoner og ticker (2026-07-24)**
+- `src/lib/politi-kategorier.ts` — ny felles datakilde: 14 kategorier med SVG-paths
+  (24×24 viewBox) og hex-farge. Brukes både i kart-markør og listemeldinger →
+  visuell 1:1-paritet. Eksporterer `kategoriData(cat)` og `KATEGORI_DEFAULT`.
+- `src/components/widgets/PolitiMap.tsx` — bruker nå `kategoriData()` for
+  `makeDivIconHtml()`. Byttet `circleMarker` → `L.marker` med `L.divIcon`:
+  30×30 px farget sirkel med kategoriikonet (hvit SVG-stroke).
+- `src/components/widgets/PolitiList.tsx` — komplett omskriving:
+  - `CatIcon`-komponent: SVG med `dangerouslySetInnerHTML={{ __html: svgPaths }}` —
+    trygt (ingen brukerinput). Vises foran kategoribadge i full variant og foran
+    kategoritekstet i kompakt variant. Størrelse 14 px (full) / 12 px (kompakt).
+  - `expanded`-state løftet til `PolitiList` (var lokal i `PolitiItem`). Bruker
+    `onToggle(id)`-callback → muliggjør ticker-kontroll.
+  - Ticker (`PolitiTicker`): aktiv i full variant, > 2 meldinger, ingen
+    `prefers-reduced-motion`. Lista dupliseres i DOM for sømløs CSS-loop
+    (`translateY(0 → -50%)`, 40 s). `@keyframes politi-scroll` injiseres som
+    `<style>` i `useEffect` (cleanup på unmount).
+  - Hover/touch pauser tickeren (`animationPlayState: 'paused'`). Touch har 400 ms
+    delay på resume så klikk rekker å registrere seg.
+  - Ekspandert melding (vis mer) bytter hele listen til vanlig modus (ingen clip,
+    ingen animasjon) slik at fulltekst og historikk er synlig uten å bli kappet.
+  - `prefers-reduced-motion`: vis 2 meldinger + «Se alle meldinger ↗»-lenke.
+    `useEffect` lytter på MediaQueryList `change`-event.
+  - Ingen skjemaendringer. `npm run build` rent.
