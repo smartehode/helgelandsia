@@ -159,12 +159,33 @@ export const Oppdrag: CollectionConfig = {
       admin: { position: 'sidebar' },
       access: { read: isEditorField },
       fields: [
+        // Steg 1: velg bransje → bedriftslisten filtreres automatisk
+        {
+          name: 'bransje',
+          type: 'select',
+          label: 'Bransje',
+          required: true,
+          options: CATEGORY_SELECT_OPTIONS,
+          admin: {
+            description: 'Velg bransje — bedriftslisten filtreres automatisk.',
+          },
+        },
+        // Steg 2: velg bedrift (filtrert på valgt bransje ovenfor)
         {
           name: 'bedrift',
           type: 'relationship',
           relationTo: 'businesses',
           label: 'Bedrift',
           required: true,
+          filterOptions: ({ siblingData }: any) => {
+            const bransje = (siblingData as any)?.bransje
+            if (!bransje) return false
+            return { naceCategory: { equals: bransje } }
+          },
+          admin: {
+            allowCreate: false,
+            description: 'Velg bransje ovenfor for å filtrere bedriftslisten.',
+          },
         },
       ],
     },

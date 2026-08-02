@@ -76,8 +76,8 @@ export async function POST(
     return Response.json({ error: 'Du har allerede meldt interesse for dette oppdraget.' }, { status: 409 })
   }
 
-  // Legg til i interessert-lista
-  const nyListe = [...interessert, { bedrift: bizId }]
+  // Legg til i interessert-lista (bransje settes fra bedriftens naceCategory)
+  const nyListe = [...interessert, { bedrift: bizId, bransje: biz.naceCategory ?? null }]
   await payload.update({
     collection: 'oppdrag',
     id: oppdrag.id,
