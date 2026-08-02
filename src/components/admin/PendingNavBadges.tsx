@@ -13,6 +13,7 @@ const SUBMISSION_COLLECTIONS = [
   { slug: 'jobs', label: 'Stillinger' },
   { slug: 'press-releases', label: 'Pressemeldinger' },
   { slug: 'newsletters', label: 'Nyhetsbrev' },
+  { slug: 'oppdrag', label: 'Oppdrag' },
 ] as const
 
 const badge = (n: number) => (
@@ -43,7 +44,7 @@ export default async function PendingNavBadges({ payload }: Props) {
   const items: PendingItem[] = []
 
   try {
-    const [claimsRes, postsRes, eventsRes, jobsRes, pressRes, newsletterRes] = await Promise.all([
+    const [claimsRes, postsRes, eventsRes, jobsRes, pressRes, newsletterRes, oppdragRes] = await Promise.all([
       payload.find({
         collection: 'businesses',
         where: { claimStatus: { equals: 'pending' } },
@@ -86,6 +87,13 @@ export default async function PendingNavBadges({ payload }: Props) {
         draft: true,
         overrideAccess: true,
       }),
+      payload.find({
+        collection: 'oppdrag',
+        where: { and: [{ _status: { equals: 'draft' } }, { submittedBy: { exists: true } }] },
+        limit: 1,
+        draft: true,
+        overrideAccess: true,
+      }),
     ])
 
     if (claimsRes.totalDocs > 0) {
@@ -97,7 +105,7 @@ export default async function PendingNavBadges({ payload }: Props) {
       })
     }
 
-    const rawCounts = [postsRes, eventsRes, jobsRes, pressRes, newsletterRes]
+    const rawCounts = [postsRes, eventsRes, jobsRes, pressRes, newsletterRes, oppdragRes]
     SUBMISSION_COLLECTIONS.forEach((c, i) => {
       if (rawCounts[i].totalDocs > 0) {
         items.push({

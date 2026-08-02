@@ -122,10 +122,10 @@ export default async function BedrifterPage({
   const thirtyDaysAgo = new Date(nowDate)
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  // Tre bakgrunnsqueries i parallell: anbud, nyregistrerte og opphørte bedrifter.
+  // Fire bakgrunnsqueries i parallell: anbud, nyregistrerte, opphørte og oppdrag.
   // registreringsdato = enhet.registreringsdatoEnhetsregisteret (historisk BRREG-dato,
   // IKKE import-dato) — trygt å filtrere på uten "25 000 nye bedrifter"-fellen.
-  const [allActiveTendersRes, nyregistrerteRes, opphortRes] = await Promise.all([
+  const [allActiveTendersRes, nyregistrerteRes, opphortRes, allOppdragRes] = await Promise.all([
     payload.find({
       collection: 'tenders' as any,
       where: { status: { equals: 'ACTIVE' } },
@@ -161,11 +161,25 @@ export default async function BedrifterPage({
       depth: 0,
       overrideAccess: true,
     }),
+    payload.find({
+      collection: 'oppdrag',
+      where: { _status: { equals: 'published' } },
+      limit: 500,
+      depth: 0,
+      overrideAccess: true,
+    }),
   ])
 
   const allActiveTenders: any[] = allActiveTendersRes.docs
   const nyregistrerte: any[] = nyregistrerteRes.docs
   const opphort: any[] = opphortRes.docs
+
+  // Oppdrag-telling per kategori
+  const oppdragCountPerCategory: Record<string, number> = {}
+  for (const o of allOppdragRes.docs as any[]) {
+    const kat = o.kategori as string | undefined
+    if (kat) oppdragCountPerCategory[kat] = (oppdragCountPerCategory[kat] ?? 0) + 1
+  }
 
   // Kategoritelling: ett anbud kan treffe flere kategorier (flere CPV-koder)
   const tenderCountPerCategory: Record<string, number> = {}
@@ -274,6 +288,7 @@ export default async function BedrifterPage({
           {BUSINESS_CATEGORIES.map((cat, i) => {
             const count = catCounts[i]?.totalDocs ?? 0
             const tenderCount = tenderCountPerCategory[cat.id] ?? 0
+            const oppdragCount = oppdragCountPerCategory[cat.id] ?? 0
             return (
               <Link
                 key={cat.id}
@@ -286,6 +301,11 @@ export default async function BedrifterPage({
                 {tenderCount > 0 && (
                   <span className="rounded-full bg-sea/10 px-2 py-0.5 text-[9px] font-medium text-sea">
                     {tenderCount} anbud
+                  </span>
+                )}
+                {oppdragCount > 0 && (
+                  <span className="rounded-full bg-fjord/10 px-2 py-0.5 text-[9px] font-medium text-fjord">
+                    {oppdragCount} oppdrag
                   </span>
                 )}
               </Link>

@@ -11,6 +11,7 @@ const COLLECTIONS = [
   { slug: 'jobs' as const, label: 'stillinger', adminSlug: 'jobs' },
   { slug: 'press-releases' as const, label: 'pressemeldinger', adminSlug: 'press-releases' },
   { slug: 'newsletters' as const, label: 'nyhetsbrev', adminSlug: 'newsletters' },
+  { slug: 'oppdrag' as const, label: 'oppdrag', adminSlug: 'oppdrag' },
 ]
 
 export default async function PendingOverview({ payload: payloadProp }: Props) {
@@ -20,7 +21,7 @@ export default async function PendingOverview({ payload: payloadProp }: Props) {
   try {
     const payload = payloadProp ?? (await getPayloadClient())
 
-    const [claimsRes, postsRes, eventsRes, jobsRes, pressRes, newsletterRes] = await Promise.all([
+    const [claimsRes, postsRes, eventsRes, jobsRes, pressRes, newsletterRes, oppdragRes] = await Promise.all([
       payload.find({
         collection: 'businesses',
         where: { claimStatus: { equals: 'pending' } },
@@ -63,11 +64,18 @@ export default async function PendingOverview({ payload: payloadProp }: Props) {
         draft: true,
         overrideAccess: true,
       }),
+      payload.find({
+        collection: 'oppdrag',
+        where: { and: [{ _status: { equals: 'draft' } }, { submittedBy: { exists: true } }] },
+        limit: 1,
+        draft: true,
+        overrideAccess: true,
+      }),
     ])
 
     claimsCount = claimsRes.totalDocs
 
-    const rawCounts = [postsRes, eventsRes, jobsRes, pressRes, newsletterRes]
+    const rawCounts = [postsRes, eventsRes, jobsRes, pressRes, newsletterRes, oppdragRes]
     COLLECTIONS.forEach((c, i) => {
       if (rawCounts[i].totalDocs > 0) {
         draftCounts.push({ slug: c.adminSlug, label: c.label, count: rawCounts[i].totalDocs })

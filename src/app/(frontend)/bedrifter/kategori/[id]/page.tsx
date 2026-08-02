@@ -5,6 +5,7 @@ import type { Metadata } from 'next'
 import type { Where } from 'payload'
 import { getPayloadClient } from '@/lib/getPayload'
 import { getCategoryById, getCategoryById as getcat, BUSINESS_CATEGORIES, publicListingWhere, SHOW_ON_PUBLIC_LISTING_FILTER } from '@/lib/businesses/categories'
+import { kategorierForAnbud } from '@/lib/doffin/match'
 import BedrifterFilters from '@/components/BedrifterFilters'
 import { SITE } from '@/lib/og'
 import { bizUrl } from '@/lib/slug'
@@ -103,9 +104,10 @@ export default async function KategoriPage({
   const nonFeaturedWhere: Where = { and: [...baseConditions, NOT_FEATURED] }
 
   const payload = await getPayloadClient()
-  // To parallelle spørringer: fremhevede alltid øverst, resten paginert alfabetisk.
-  // I tillegg: aktuelle oppdrag i denne bransjen (maks 5, nyeste først).
-  const [featuredQuery, listing, oppdragRes] = await Promise.all([
+  const now = new Date()
+
+  // Fire parallelle spørringer: fremhevede, resten (paginert), oppdrag og anbud.
+  const [featuredQuery, listing, oppdragRes, tenderRes] = await Promise.all([
     payload.find({
       collection: 'businesses',
       where: featuredWhere,
@@ -128,7 +130,21 @@ export default async function KategoriPage({
       limit: 5,
       depth: 0,
     }),
+    payload.find({
+      collection: 'tenders' as any,
+      where: { status: { equals: 'ACTIVE' } },
+      sort: 'deadline',
+      limit: 200,
+      depth: 0,
+      overrideAccess: true,
+    }),
   ])
+
+  // Filtrer anbud som matcher denne kategorien via NACE↔CPV-mapping
+  const categoryTenders = (tenderRes.docs as any[])
+    .filter(t => !t.deadline || new Date(t.deadline) > now)
+    .filter(t => kategorierForAnbud(t).includes(id))
+    .slice(0, 5)
 
   const totalDocs = featuredQuery.totalDocs + listing.totalDocs
   const totalPages = listing.totalPages ?? 1
@@ -240,6 +256,60 @@ export default async function KategoriPage({
             <Link href={`/oppdrag?kategori=${id}`} className="text-sea hover:underline">
               Se og svar på oppdrag →
             </Link>
+          </p>
+        </section>
+      )}
+
+      {/* Aktuelle anbud i denne bransjen (Doffin via NACE↔CPV-mapping) */}
+      {categoryTenders.length > 0 && (
+        <section className="mt-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-eyebrow text-muted">
+              Aktuelle anbud i {cat.label}
+            </h2>
+            <a href="/anbud" className="text-xs text-sea hover:underline">Se alle →</a>
+          </div>
+          <ul className="space-y-2">
+            {categoryTenders.map((t: any) => {
+              const frist = t.deadline
+                ? new Date(t.deadline).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short', year: 'numeric' })
+                : null
+              const daysLeft = t.deadline
+                ? Math.ceil((new Date(t.deadline).getTime() - now.getTime()) / 86_400_000)
+                : null
+              return (
+                <li key={t.id}>
+                  <a
+                    href={t.doffinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-4 rounded-xl border border-ink/10 bg-white px-4 py-3 transition hover:border-sea/30 hover:shadow-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">{t.title}</p>
+                      <p className="text-xs text-muted">
+                        {t.buyerName}{t.municipality ? ` · ${t.municipality}` : ''}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {frist && <span className="text-xs text-muted">{frist}</span>}
+                      {daysLeft !== null && daysLeft <= 14 && (
+                        <p className={`text-[10px] font-semibold ${daysLeft <= 7 ? 'text-red-600' : 'text-amber-600'}`}>
+                          {daysLeft === 0 ? 'I dag' : daysLeft === 1 ? '1 dag' : `${daysLeft} dager`}
+                        </p>
+                      )}
+                    </div>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+          <p className="mt-3 text-xs text-muted">
+            Offentlige innkjøp fra{' '}
+            <a href="https://doffin.no" target="_blank" rel="noopener noreferrer" className="text-sea hover:underline">
+              Doffin
+            </a>
+            {' '}(nasjonalt kunngjøringsblad).
           </p>
         </section>
       )}
