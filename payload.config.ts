@@ -27,6 +27,7 @@ import { Members } from './src/collections/Members'
 import { BRREGSyncJobs } from './src/collections/BRREGSyncJobs'
 import { Tenders } from './src/collections/Tenders'
 import { Regnskap } from './src/collections/Regnskap'
+import { Oppdrag } from './src/collections/Oppdrag'
 import { googleOAuth } from './src/oauth/google'
 
 // Globals
@@ -110,6 +111,7 @@ export default buildConfig({
     BRREGSyncJobs,
     Tenders,
     Regnskap,
+    Oppdrag,
   ],
   globals: [SiteSettings, Hero, Header, Footer, WidgetAreas],
 

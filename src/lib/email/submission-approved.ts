@@ -3,13 +3,14 @@ import { submissionApprovedHtml } from './templates'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? 'https://helgelandsia.no'
 
-const COLLECTION_META: Record<string, { type: string; path: string }> = {
+const COLLECTION_META: Record<string, { type: string; path: string; titleField?: string }> = {
   events:            { type: 'arrangement',  path: '/arrangementer' },
-  posts:             { type: 'artikkel',     path: '/historier' },
+  posts:             { type: 'artikkel',     path: '/leserinnlegg' },
   businesses:        { type: 'bedrift',      path: '/bedrifter' },
   jobs:              { type: 'stilling',     path: '/stillinger' },
   'press-releases':  { type: 'pressemelding', path: '/pressemeldinger' },
   newsletters:       { type: 'nyhetsbrev',   path: '/nyhetsbrev' },
+  oppdrag:           { type: 'oppdrag',      path: '/oppdrag', titleField: 'tittel' },
 }
 
 export async function notifySubmissionApproved(
@@ -21,7 +22,8 @@ export async function notifySubmissionApproved(
     const meta = COLLECTION_META[collection]
     if (!meta || !doc.submittedBy || !doc.slug) return
 
-    const title: string = doc.title ?? doc.name ?? '(uten tittel)'
+    const titleField = meta.titleField ?? 'title'
+    const title: string = doc[titleField] ?? doc.title ?? doc.name ?? '(uten tittel)'
     const memberId = typeof doc.submittedBy === 'object' ? doc.submittedBy?.id : doc.submittedBy
     if (!memberId) return
 

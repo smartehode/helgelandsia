@@ -103,8 +103,9 @@ export default async function KategoriPage({
   const nonFeaturedWhere: Where = { and: [...baseConditions, NOT_FEATURED] }
 
   const payload = await getPayloadClient()
-  // To parallelle spørringer: fremhevede alltid øverst, resten paginert alfabetisk
-  const [featuredQuery, listing] = await Promise.all([
+  // To parallelle spørringer: fremhevede alltid øverst, resten paginert alfabetisk.
+  // I tillegg: aktuelle oppdrag i denne bransjen (maks 5, nyeste først).
+  const [featuredQuery, listing, oppdragRes] = await Promise.all([
     payload.find({
       collection: 'businesses',
       where: featuredWhere,
@@ -119,6 +120,13 @@ export default async function KategoriPage({
       limit: LIMIT,
       page: side,
       depth: 1,
+    }),
+    payload.find({
+      collection: 'oppdrag',
+      where: { and: [{ _status: { equals: 'published' } }, { kategori: { equals: id } }] },
+      sort: '-createdAt',
+      limit: 5,
+      depth: 0,
     }),
   ])
 
@@ -190,6 +198,50 @@ export default async function KategoriPage({
           ))}
           {side < totalPages && <Link href={makeHref(side + 1)} className="rounded-lg px-3 py-2 text-sm text-muted hover:bg-fog">Neste →</Link>}
         </nav>
+      )}
+
+      {/* Aktuelle oppdrag i denne bransjen */}
+      {oppdragRes.docs.length > 0 && (
+        <section className="mt-14">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-eyebrow text-muted">
+              Aktuelle oppdrag i {cat.label}
+            </h2>
+            <Link href={`/oppdrag?kategori=${id}`} className="text-xs text-sea hover:underline">
+              Se alle →
+            </Link>
+          </div>
+          <ul className="space-y-2">
+            {(oppdragRes.docs as any[]).map((o: any) => {
+              const kommuneDisplay = o.kommune
+                ? (o.kommune as string).charAt(0).toUpperCase() + (o.kommune as string).slice(1)
+                : ''
+              const dato = o.createdAt
+                ? new Date(o.createdAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
+                : ''
+              return (
+                <li key={o.id}>
+                  <Link
+                    href={`/oppdrag/${o.slug}`}
+                    className="flex items-center justify-between gap-4 rounded-xl border border-ink/10 bg-white px-4 py-3 transition hover:border-sea/30 hover:shadow-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-ink">{o.tittel}</p>
+                      <p className="text-xs text-muted">{kommuneDisplay}{o.onsketTidsrom ? ` · ${o.onsketTidsrom}` : ''}</p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted">{dato}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+          <p className="mt-3 text-xs text-muted">
+            Driver du bedrift i denne bransjen?{' '}
+            <Link href={`/oppdrag?kategori=${id}`} className="text-sea hover:underline">
+              Se og svar på oppdrag →
+            </Link>
+          </p>
+        </section>
       )}
 
       {/* Relaterte kategorier */}

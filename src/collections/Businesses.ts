@@ -422,5 +422,15 @@ export const Businesses: CollectionConfig = {
         description: 'Settes automatisk fra NACE-koden ved synk. Kan overstyres manuelt for meldingsbaserte bedrifter.',
       },
     },
+    {
+      name: 'mottarOppdrag',
+      type: 'checkbox',
+      defaultValue: false,
+      label: 'Motta oppdragsvarsler',
+      admin: {
+        position: 'sidebar',
+        description: 'Bedriften ønsker å motta varsler om lokale oppdrag i sin bransje.',
+      },
+    },
   ],
 }

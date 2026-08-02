@@ -38,7 +38,7 @@ export default async function MinSide({
   if (!user || user.collection !== 'members') redirect('/logg-inn')
 
   const [
-    eventsRes, postsRes, jobsRes, businessesRes, pressRes, newsletterRes,
+    eventsRes, postsRes, jobsRes, businessesRes, pressRes, newsletterRes, oppdragRes,
     ownedVerifiedRes, ownedPendingRes,
   ]: any = await Promise.all([
     payload.find({ collection: 'events',          where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
@@ -47,6 +47,7 @@ export default async function MinSide({
     payload.find({ collection: 'businesses',      where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
     payload.find({ collection: 'press-releases',  where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
     payload.find({ collection: 'newsletters',     where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0 }),
+    payload.find({ collection: 'oppdrag',         where: { submittedBy: { equals: user.id } }, sort: '-createdAt', draft: true, limit: 50, depth: 0, overrideAccess: true }),
     payload.find({
       collection: 'businesses',
       where: { and: [{ owner: { equals: user.id } }, { claimStatus: { equals: 'verified' } }] },
@@ -66,6 +67,7 @@ export default async function MinSide({
     ...businessesRes.docs.map((d: any) => ({ ...d, title: d.name, kind: 'Bedrift' })),
     ...pressRes.docs.map((d: any) => ({ ...d, kind: 'Pressemelding' })),
     ...newsletterRes.docs.map((d: any) => ({ ...d, kind: 'Nyhetsbrev' })),
+    ...oppdragRes.docs.map((d: any) => ({ ...d, title: d.tittel, kind: 'Oppdrag' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const verifiedBusinesses: any[] = ownedVerifiedRes.docs
@@ -210,8 +212,9 @@ export default async function MinSide({
                   </span>
                 )}
               </div>
-              <div className="px-4 py-3">
-                <div className="flex items-center justify-between gap-4">
+              <div className="divide-y divide-ink/5">
+                {/* Anbudsvarsling */}
+                <div className="flex items-center justify-between gap-4 px-4 py-3">
                   <div>
                     <p className="text-sm font-medium text-ink">Anbudsvarsling</p>
                     <p className="mt-0.5 text-xs text-muted">
@@ -233,6 +236,43 @@ export default async function MinSide({
                     </button>
                   </form>
                 </div>
+                {/* Oppdragsvarsling — per bedrift */}
+                {verifiedBusinesses.map((b: any) => {
+                  const toggleOppdrag = async () => {
+                    'use server'
+                    const p = await getPayloadClient()
+                    await p.update({
+                      collection: 'businesses',
+                      id: b.id,
+                      data: { mottarOppdrag: !b.mottarOppdrag } as any,
+                      overrideAccess: true,
+                    })
+                    revalidatePath('/min-side')
+                    redirect('/min-side')
+                  }
+                  return (
+                    <div key={b.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-ink">Oppdragsvarsler — {b.name}</p>
+                        <p className="mt-0.5 text-xs text-muted">
+                          Motta e-post når noen legger ut et oppdrag i din bransje på Helgeland.
+                        </p>
+                      </div>
+                      <form action={toggleOppdrag} className="shrink-0">
+                        <button
+                          type="submit"
+                          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                            b.mottarOppdrag
+                              ? 'bg-sea text-white hover:bg-fjord'
+                              : 'bg-fog text-ink/50 hover:bg-ink/10'
+                          }`}
+                        >
+                          {b.mottarOppdrag ? 'På' : 'Av'}
+                        </button>
+                      </form>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}

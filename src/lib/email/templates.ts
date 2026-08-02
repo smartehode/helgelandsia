@@ -98,6 +98,60 @@ Du kan skru av varslingen på <a href="${BASE_URL}/min-side" style="color:${SEA}
   `)
 }
 
+export function oppdragNotificationHtml(params: {
+  bedriftNavn: string
+  tittel: string
+  katLabel: string
+  kommune: string
+  onsketTidsrom: string | null
+  beskrivelseKort: string
+  oppdragUrl: string
+}): string {
+  const { bedriftNavn, tittel, katLabel, kommune, onsketTidsrom, beskrivelseKort, oppdragUrl } = params
+  const kommuneDisplay = kommune.charAt(0).toUpperCase() + kommune.slice(1)
+  return wrap(`
+<h1 style="${h1}">Nytt lokalt oppdrag i din bransje</h1>
+<p style="${p}">Hei,</p>
+<p style="${p}">Det er lagt ut et nytt oppdrag på Helgelandsia som kan passe for <strong>${bedriftNavn}</strong>:</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+  style="border:1px solid ${BORDER};border-radius:8px;padding:16px 20px;margin-bottom:16px;background:#fff;">
+<tr><td>
+  <p style="font-family:Georgia,serif;font-size:17px;color:${FJORD};font-weight:bold;margin:0 0 8px;">${tittel}</p>
+  <p style="font-size:13px;color:${MUTED};margin:0 0 4px;">${katLabel} &middot; ${kommuneDisplay}</p>
+  ${onsketTidsrom ? `<p style="font-size:13px;color:${MUTED};margin:0 0 8px;">Tidsrom: ${onsketTidsrom}</p>` : ''}
+  ${beskrivelseKort ? `<p style="font-size:14px;color:${INK};margin:8px 0 0;">${beskrivelseKort}${beskrivelseKort.length >= 200 ? '…' : ''}</p>` : ''}
+</td></tr>
+</table>
+<a href="${oppdragUrl}" style="${btn}">Se oppdraget og meld interesse</a>
+<p style="${sm}">Du mottar dette fordi <strong>${bedriftNavn}</strong> er registrert på Helgelandsia med oppdragsvarsling aktivert.<br/>
+Skru av på <a href="${BASE_URL}/min-side" style="color:${SEA};">Min side</a>.</p>
+  `)
+}
+
+export function oppdragInteresseHtml(params: {
+  oppdragTittel: string
+  bedriftNavn: string
+  bedriftUrl: string
+  bedriftTelefon: string | null
+  bedriftEpost: string | null
+  oppdragUrl: string
+}): string {
+  const { oppdragTittel, bedriftNavn, bedriftUrl, bedriftTelefon, bedriftEpost, oppdragUrl } = params
+  const kontaktLinjer = [
+    bedriftTelefon ? `<li style="font-size:14px;color:${INK};">Tlf: ${bedriftTelefon}</li>` : '',
+    bedriftEpost ? `<li style="font-size:14px;color:${INK};">E-post: <a href="mailto:${bedriftEpost}" style="color:${SEA};">${bedriftEpost}</a></li>` : '',
+  ].filter(Boolean).join('')
+  return wrap(`
+<h1 style="${h1}">En bedrift er interessert i ditt oppdrag</h1>
+<p style="${p}"><strong>${bedriftNavn}</strong> på Helgeland har meldt interesse for ditt oppdrag <strong>«${oppdragTittel}»</strong>.</p>
+<p style="${p}">Det er opp til deg å ta kontakt. Her er bedriftens informasjon:</p>
+${kontaktLinjer ? `<ul style="padding-left:20px;margin:0 0 16px;">${kontaktLinjer}</ul>` : ''}
+<p style="${p}"><a href="${bedriftUrl}" style="color:${SEA};">Se bedriftsprofilen til ${bedriftNavn} ↗</a></p>
+<a href="${oppdragUrl}" style="${btn}">Se oppdraget</a>
+<p style="${sm}">Helgelandsia er kun formidler og er ikke part i avtaler som inngås mellom partene.</p>
+  `)
+}
+
 export function submissionApprovedHtml(params: {
   name: string
   contentType: string

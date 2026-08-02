@@ -1162,6 +1162,13 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   URL: `/admin-verktoy/ics-import` — naviger dit direkte i nettleseren.
 
 ## GJENSTÅR
+- Oppdragsmodul: to migrasjoner å kjøre:
+  - **`oppdrag-collection`** — dekker Oppdrag-tabellen + interessert-undertabell +
+    `mottarOppdrag` på businesses. Eieren kjører
+    `npx payload migrate:create oppdrag-collection`, leser (sjekk ADD/CREATE IF NOT
+    EXISTS, ingen DROP), committer med koden.
+- Oppdragsvarsling: bevisst test bak OPPDRAG_VARSLING_ENABLED=true (samme mønster som
+  TENDER_DIGEST_ENABLED). Aktiver og test med én syntetisk innsending i prod.
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
 - Bransje-percentiler Helgeland (SQL over regnskap per nace_category —
   fundament for KI-sammendrag + egen "Topp X%"-badge-verdi)
@@ -1171,8 +1178,10 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   akkumulert data over tid
 - Rate limiting: skjemaer (claim, innsending, kontakt-endepunktet),
   /api/sok (offentlig, ingen auth), /api/arrangement-import (SSRF-
-  beskyttet, men bør ha IP-basert throttle per innlogget member) OG
-  /api/kalender (offentlig, ingen auth — rate limiting-kandidat)
+  beskyttet, men bør ha IP-basert throttle per innlogget member),
+  /api/kalender (offentlig, ingen auth) OG
+  /api/oppdrag/[slug]/meld-interesse (member-auth men per-bruker-throttle
+  bør til for å hindre masse-meld-interesse)
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
@@ -1287,3 +1296,93 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   - `prefers-reduced-motion`: vis 2 meldinger + «Se alle meldinger ↗»-lenke.
     `useEffect` lytter på MediaQueryList `change`-event.
   - Ingen skjemaendringer. `npm run build` rent.
+
+### 2026-08-02 — EksterneArtiklerWidget WP-API + Oppdragsmodul
+
+**EksterneArtiklerWidget — WP REST API som primærkilde for manuelle URL-er**
+- `src/components/widgets/EksterneArtiklerWidget.tsx` fullstendig omskrevet.
+  Manuelle URL-er brukte tidligere kun OG-tag-parsing. Nå: WP REST API-slug-oppslag
+  som primærkilde, OG-parsing som fallback.
+- `urlToSlug(url)` — henter siste sti-segment (trimmer trailing slash).
+- `fetchByWpSlug(rawUrl)` — `GET https://midtinorge.no/wp-json/wp/v2/posts?slug={slug}&_embed`,
+  bruker `mapWpPost()` ved treff. Logger `[EksterneArtikler] WP-API HTTP {status}` og
+  `WP-API hit/miss/fallback` per artikkel.
+- `fetchOgFallback(url)` — eksisterende OG-parsing via `safeFetch` fra `src/lib/ssrf.ts`.
+- `mapWpPost(post, fallbackUrl)` — delt mapper for auto- og manuell WP-sti:
+  tittel, excerpt (strip HTML), dato, featured media fra `_embedded['wp:featuredmedia'][0]`.
+- `manualCache` — module-level `Map<string, {article, ts}>` med 30 min TTL.
+  Erstatter gammel `ogCache`.
+- `useApi = source !== 'manual'`; `useManual = manualUrls.length > 0` (dekoblet).
+
+**Oppdragsmodul — komplett (7-punkts spec)**
+
+*Collection*
+- `src/collections/Oppdrag.ts` — ny collection (slug: `oppdrag`).
+  Felter: `submittedBy` (relationship → members, read: innloggede), `tittel` (required),
+  `beskrivelse` (textarea), `kategori` (select, bransjekategorier), `kommune` (select,
+  18 Helgeland-kommuner lowercase), `onsketTidsrom` (text), `kontaktEpost` (email, read:
+  editors only), `kontaktTelefon` (text, read: editors only), `interessert` (array med
+  bedrift-relationship, read: editors only), `slug` (text, index, unique, sidebar).
+  `versions: { drafts: true }` — godkjenningsflyt via redaksjonen.
+  `afterChange`-hooks: `afterChangeApproved('oppdrag')` (godkjenningsvarsel til innsender)
+  + `notifyBusinesses` (varsler bedrifter med `mottarOppdrag=true` + riktig kategori,
+  bak `OPPDRAG_VARSLING_ENABLED=true`, NaN-guard på ownerId).
+  Access: read = published + innloggede; create/update/delete = editors.
+- `payload.config.ts` — `Oppdrag` lagt til i collections etter `Regnskap`.
+
+*Opt-in på Businesses*
+- `src/collections/Businesses.ts` — nytt felt `mottarOppdrag` (checkbox, default false,
+  sidebar). Vises i Min side Varsler-seksjonen som toggle per verifisert bedrift.
+
+*Innsending*
+- `src/app/(frontend)/innsending/oppdrag/route.ts` — POST, member-auth,
+  validerer tittel/kategori/kommune, oppretter draft med `overrideAccess: true`.
+  Slug: `${slugify(tittel)}-${Date.now().toString(36)}`.
+- `src/components/OppdragForm.tsx` — klientkomponent: kategori-select, kommune-select,
+  beskrivelse, kontaktEpost/Telefon, vilkårslinje.
+- `src/components/SubmissionTabs.tsx` — 7 faner (var 6), grid `grid-cols-4` + `grid-cols-3`.
+
+*Visning*
+- `src/app/(frontend)/oppdrag/page.tsx` — force-dynamic. Filter (kategori, kommune),
+  liste uten kontaktinfo, Bidra-knapp → `/logg-inn?fra=%2Fmin-side%3Ftype%3Doppdrag`.
+- `src/app/(frontend)/oppdrag/[slug]/page.tsx` — force-dynamic. Henter kun publiserte.
+  Kontaktinfo ALDRI vist. Server-side auth-sjekk: verifisert bedrift i riktig kategori →
+  `MeldInteresseKnapp`; allerede interessert → suksessmelding; ikke innlogget → logg-inn-lenke.
+
+*Formidling*
+- `src/components/MeldInteresseKnapp.tsx` — klientkomponent, POST til
+  `/api/oppdrag/[slug]/meld-interesse` med `{ bizId }`.
+- `src/app/api/oppdrag/[slug]/meld-interesse/route.ts` — member-auth, NaN-guard
+  på bizId, henter oppdrag (overrideAccess), verifiserer at bedriften tilhører
+  innlogget bruker og er verified, sjekker kategorimatch, duplikat-sjekk,
+  legger til i interessert-arrayet, sender `oppdragInteresseHtml` til oppdragsgiver
+  (kontaktinfo hentes server-side, aldri eksponert). E-postfeil logger stille.
+- `src/lib/email/templates.ts` — to nye maler: `oppdragNotificationHtml` (til bedrifter)
+  og `oppdragInteresseHtml` (til oppdragsgiver ved interesse).
+- `src/lib/email/submission-approved.ts` — `oppdrag` lagt til COLLECTION_META med
+  `titleField: 'tittel'`; `posts`-path rettet til `/leserinnlegg`.
+
+*Bransjekategorisider*
+- `src/app/(frontend)/bedrifter/kategori/[id]/page.tsx` — parallell `oppdragRes`-spørring
+  (maks 5, nyeste). «Aktuelle oppdrag i {kategori}»-seksjon etter katalogen, med
+  «Se og svar på oppdrag →»-CTA.
+
+*Min side*
+- `src/app/(frontend)/min-side/page.tsx` — oppdrag lagt til i «Mine innsendinger»,
+  per-bedrift `mottarOppdrag`-toggle med server action (`revalidatePath`/`redirect`),
+  Varsler-seksjon delt i `divide-y`-rader (Anbudsvarsling + Oppdragsvarsler per bedrift).
+
+**Sikkerhet**
+- `kontaktEpost`/`kontaktTelefon`/`interessert`/`submittedBy`: field-level access,
+  aldri i offentlig API-respons.
+- NaN-guard på alle ID-oppslag (regel 10).
+- E-postvarsling bak `OPPDRAG_VARSLING_ENABLED=true` (regel 17).
+- `npm run build` — rent (exit 0).
+
+**Skjemaendring — eieren kjører:**
+```
+npx payload migrate:create oppdrag-collection
+```
+Les filen: sjekk ADD TABLE IF NOT EXISTS for `oppdrag` og `oppdrag_interessert`,
+ADD COLUMN IF NOT EXISTS for `businesses.mottar_oppdrag`, ingen DROP.
+Herd med IF NOT EXISTS, commit samen med koden.
