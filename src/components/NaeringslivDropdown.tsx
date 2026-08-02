@@ -2,6 +2,8 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
+const CLOSE_DELAY = 250 // ms
+
 const ITEMS = [
   { href: '/bedrifter',       label: 'Bedrifter' },
   { href: '/stillinger',      label: 'Stillinger' },
@@ -32,6 +34,19 @@ export function NaeringslivDropdown() {
   const toggleRef    = useRef<HTMLButtonElement>(null)
   const menuRef      = useRef<HTMLDivElement>(null)
   const focusFirst   = useRef(false)
+  const closeTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function cancelClose() {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+  }
+
+  function scheduleClose() {
+    cancelClose()
+    closeTimer.current = setTimeout(() => setOpen(false), CLOSE_DELAY)
+  }
 
   // Lukk ved klikk utenfor
   useEffect(() => {
@@ -43,6 +58,9 @@ export function NaeringslivDropdown() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  // Rydd opp timer ved unmount
+  useEffect(() => () => cancelClose(), [])
 
   // Flytt fokus til første menyrad etter åpning via tastatur
   useEffect(() => {
@@ -106,8 +124,8 @@ export function NaeringslivDropdown() {
     <div
       ref={containerRef}
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => { cancelClose(); setOpen(true) }}
+      onMouseLeave={scheduleClose}
     >
       {/* Split: klikkbar lenke + toggle-knapp */}
       <div className="flex items-center gap-0.5">
@@ -130,26 +148,28 @@ export function NaeringslivDropdown() {
         </button>
       </div>
 
-      {/* Dropdown */}
+      {/* Dropdown — pt-1.5 (ikke mt-1.5) eliminerer hover-dødssonen mellom trigger og panel */}
       {open && (
-        <div
-          ref={menuRef}
-          role="menu"
-          onKeyDown={handleMenuKeyDown}
-          className="absolute left-0 top-full z-50 mt-1.5 w-48 rounded-xl border border-ink/10 bg-white py-1.5 shadow-lg ring-1 ring-ink/5"
-        >
-          {ITEMS.map(item => (
-            <Link
-              key={item.href}
-              role="menuitem"
-              href={item.href}
-              tabIndex={-1}
-              onClick={() => setOpen(false)}
-              className="block px-4 py-2 text-sm text-ink/70 transition hover:bg-fog hover:text-sea focus:bg-fog focus:text-sea focus:outline-none"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="absolute left-0 top-full z-50 pt-1.5">
+          <div
+            ref={menuRef}
+            role="menu"
+            onKeyDown={handleMenuKeyDown}
+            className="w-48 rounded-xl border border-ink/10 bg-white py-1.5 shadow-lg ring-1 ring-ink/5"
+          >
+            {ITEMS.map(item => (
+              <Link
+                key={item.href}
+                role="menuitem"
+                href={item.href}
+                tabIndex={-1}
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2 text-sm text-ink/70 transition hover:bg-fog hover:text-sea focus:bg-fog focus:text-sea focus:outline-none"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>
