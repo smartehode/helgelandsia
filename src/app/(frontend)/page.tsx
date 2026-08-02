@@ -174,15 +174,23 @@ function SecHeader({ label, href }: { label: string; href: string }) {
 export default async function HomePage() {
   const payload = await getPayloadClient()
 
-  const [widgetAreasRes, weather, power, hints] = await Promise.all([
+  const [widgetAreasRes, weather, power, hints, latestOppdragRes] = await Promise.all([
     payload.findGlobal({ slug: 'sidefelt', depth: 1 }).catch(() => null),
     fetchHeroWeather(),
     fetchHeroPower(),
     fetchCardHints(payload).catch(() => ({ bedrifter: null, anbud: null, stillinger: null, arrangementer: null } as CardHints)),
+    payload.find({
+      collection: 'oppdrag',
+      where: { _status: { equals: 'published' } },
+      sort: '-createdAt',
+      limit: 1,
+      depth: 0,
+    }).catch(() => null),
   ])
 
   const widgetAreas: any = widgetAreasRes
   const weatherItems = weather.map(w => ({ label: `${w.emoji} ${w.name}:`, value: `${w.temp}°C` }))
+  const latestOppdrag = (latestOppdragRes as any)?.docs?.[0] ?? null
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -223,12 +231,26 @@ export default async function HomePage() {
           Næringsliv, stillinger, arrangementer og leserinnlegg fra hele regionen.
         </p>
         <ForsideSearch />
-        {(weatherItems.length > 0 || power != null) && (
+        {(weatherItems.length > 0 || power != null || latestOppdrag) && (
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm text-muted">
             {power != null && (
               <span>⚡ Strøm NO4: <strong className="font-semibold text-ink">{power} øre/kWh</strong></span>
             )}
             <HeroStrip items={weatherItems} />
+            {latestOppdrag && (() => {
+              const tittel = latestOppdrag.tittel as string
+              const kort = tittel.length > 40 ? tittel.slice(0, 39) + '…' : tittel
+              const kommune = latestOppdrag.kommune as string | undefined
+              const stedTekst = kommune
+                ? ` (${kommune.charAt(0).toUpperCase()}${kommune.slice(1)})`
+                : ''
+              return (
+                <Link href={`/oppdrag/${latestOppdrag.slug}`} className="transition hover:text-sea">
+                  📋 Nytt oppdrag:{' '}
+                  <strong className="font-semibold text-ink">{kort}{stedTekst}</strong>
+                </Link>
+              )
+            })()}
           </div>
         )}
       </section>

@@ -1,41 +1,39 @@
 import Link from 'next/link'
 import { getPayloadClient } from '@/lib/getPayload'
+import { NaeringslivDropdown } from '@/components/NaeringslivDropdown'
 import { MobileNav } from '@/components/MobileNav'
 
-const FALLBACK_NAV = [
-  { url: '/arrangementer', label: 'Arrangementer' },
-  { url: '/leserinnlegg', label: 'Leserinnlegg' },
-  { url: '/bedrifter', label: 'Bedrifter' },
-  { url: '/stillinger', label: 'Stillinger' },
-  { url: '/pressemeldinger', label: 'Pressemeldinger' },
-  { url: '/nyhetsbrev', label: 'Nyhetsbrev' },
-  { url: '/anbud', label: 'Anbud' },
-  { url: '/nyttig', label: 'Nyttig' },
-  { url: '/om', label: 'Om' },
-  { url: '/min-side', label: 'Min side' },
-]
+// Nav-strukturen er hardkodet her fordi den inneholder en dropdown (Næringsliv)
+// som en flat CMS-liste ikke kan representere. Admin → Meny (topp) påvirker
+// dermed ikke lenger navigasjonen — endringer gjøres her i koden.
+const LINK_CLS = 'text-sm font-medium text-ink/70 transition hover:text-sea'
 
 export async function SiteHeader() {
   const payload = await getPayloadClient()
-  const [header, settings] = await Promise.all([
-    payload.findGlobal({ slug: 'header' }),
-    payload.findGlobal({ slug: 'site-settings' }),
-  ])
-  const items = (header?.items?.length ? header.items : FALLBACK_NAV) as { id?: string | null; label: string; url: string }[]
+  const settings = await payload.findGlobal({ slug: 'site-settings' }).catch(() => null)
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink/5 bg-fog/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+
+        {/* Logo */}
         <Link href="/" className="font-serif text-xl font-semibold tracking-tight text-fjord">
-          {settings?.siteName ?? 'Helgelandsia'}
+          {(settings as any)?.siteName ?? 'Helgelandsia'}
         </Link>
-        <nav className="hidden gap-6 md:flex">
-          {items.map((item) => (
-            <Link key={item.id ?? item.url} href={item.url}
-              className="text-sm font-medium text-ink/70 transition hover:text-sea">{item.label}</Link>
-          ))}
+
+        {/* Desktop-meny */}
+        <nav className="hidden items-center gap-6 md:flex" aria-label="Hovedmeny">
+          <Link href="/"              className={LINK_CLS}>Startside</Link>
+          <Link href="/leserinnlegg" className={LINK_CLS}>Leserinnlegg</Link>
+          <NaeringslivDropdown />
+          <Link href="/arrangementer" className={LINK_CLS}>Arrangementer</Link>
+          <Link href="/oppdrag"       className={LINK_CLS}>Oppdrag</Link>
+          <Link href="/om"            className={LINK_CLS}>Om oss</Link>
+          <Link href="/min-side"      className={LINK_CLS}>Min side</Link>
         </nav>
-        <MobileNav items={items} />
+
+        {/* Mobil-hamburgermeny */}
+        <MobileNav />
       </div>
     </header>
   )
