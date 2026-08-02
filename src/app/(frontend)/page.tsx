@@ -102,25 +102,33 @@ const IconCalendar = () => (
   </svg>
 )
 
+const IconClipboard = () => (
+  <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4" aria-hidden>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+  </svg>
+)
+
 const NAV_CARDS = [
   { href: '/bedrifter',     icon: <IconBuilding />,   title: 'Bedrifter',     desc: 'Finn bedrifter i alle 18 Helgeland-kommuner', hintKey: 'bedrifter' },
   { href: '/anbud',         icon: <IconDocument />,   title: 'Anbud',         desc: 'Offentlige anbud og konkurranser i Nordland',  hintKey: 'anbud' },
   { href: '/stillinger',    icon: <IconBriefcase />,  title: 'Stillinger',    desc: 'Ledige stillinger ute i regionen',             hintKey: 'stillinger' },
   { href: '/arrangementer', icon: <IconCalendar />,   title: 'Arrangementer', desc: 'Hva skjer i Helgeland fremover',               hintKey: 'arrangementer' },
+  { href: '/oppdrag',       icon: <IconClipboard />,  title: 'Oppdrag',       desc: 'Lokale oppdrag fra folk i regionen',           hintKey: 'oppdrag' },
 ]
 
 // ─── Live-data til inngangskort ──────────────────────────────────────────────
 
 interface LiveHint { label: string; text: string }
-interface CardHints { bedrifter: LiveHint | null; anbud: LiveHint | null; stillinger: LiveHint | null; arrangementer: LiveHint | null }
+interface CardHints { bedrifter: LiveHint | null; anbud: LiveHint | null; stillinger: LiveHint | null; arrangementer: LiveHint | null; oppdrag: LiveHint | null }
 
 async function fetchCardHints(payload: any): Promise<CardHints> {
   const now = new Date().toISOString()
-  const [bRes, aRes, jRes, eRes] = await Promise.allSettled([
+  const [bRes, aRes, jRes, eRes, oRes] = await Promise.allSettled([
     payload.find({ collection: 'businesses', sort: '-registreringsdato', limit: 1, depth: 0, overrideAccess: true }),
     payload.find({ collection: 'tenders', where: { and: [{ status: { equals: 'ACTIVE' } }, { deadline: { greater_than: now } }] }, sort: '-createdAt', limit: 1, depth: 0, overrideAccess: true }),
     payload.find({ collection: 'jobs', where: { _status: { equals: 'published' } }, sort: '-createdAt', limit: 1, depth: 0 }),
     payload.find({ collection: 'events', where: { and: [{ _status: { equals: 'published' } }, { startDate: { greater_than_equal: now } }] }, sort: 'startDate', limit: 1, depth: 0 }),
+    payload.find({ collection: 'oppdrag', where: { _status: { equals: 'published' } }, sort: '-createdAt', limit: 1, depth: 0, overrideAccess: true }),
   ])
 
   const bedrifter = (() => {
@@ -153,7 +161,17 @@ async function fetchCardHints(payload: any): Promise<CardHints> {
     return { label: 'Neste', text: dato ? `${e.title} · ${dato}` : e.title }
   })()
 
-  return { bedrifter, anbud, stillinger, arrangementer }
+  const oppdrag = (() => {
+    if (oRes.status !== 'fulfilled') return null
+    const o = oRes.value.docs?.[0]
+    if (!o) return null
+    const kommune = o.kommune
+      ? `${(o.kommune as string).charAt(0).toUpperCase()}${(o.kommune as string).slice(1)}`
+      : null
+    return { label: 'Nyeste', text: kommune ? `${o.tittel}, ${kommune}` : o.tittel }
+  })()
+
+  return { bedrifter, anbud, stillinger, arrangementer, oppdrag }
 }
 
 // ─── Seksjonsoverskrift ──────────────────────────────────────────────────────
@@ -174,23 +192,15 @@ function SecHeader({ label, href }: { label: string; href: string }) {
 export default async function HomePage() {
   const payload = await getPayloadClient()
 
-  const [widgetAreasRes, weather, power, hints, latestOppdragRes] = await Promise.all([
+  const [widgetAreasRes, weather, power, hints] = await Promise.all([
     payload.findGlobal({ slug: 'sidefelt', depth: 1 }).catch(() => null),
     fetchHeroWeather(),
     fetchHeroPower(),
-    fetchCardHints(payload).catch(() => ({ bedrifter: null, anbud: null, stillinger: null, arrangementer: null } as CardHints)),
-    payload.find({
-      collection: 'oppdrag',
-      where: { _status: { equals: 'published' } },
-      sort: '-createdAt',
-      limit: 1,
-      depth: 0,
-    }).catch(() => null),
+    fetchCardHints(payload).catch(() => ({ bedrifter: null, anbud: null, stillinger: null, arrangementer: null, oppdrag: null } as CardHints)),
   ])
 
   const widgetAreas: any = widgetAreasRes
   const weatherItems = weather.map(w => ({ label: `${w.emoji} ${w.name}:`, value: `${w.temp}°C` }))
-  const latestOppdrag = (latestOppdragRes as any)?.docs?.[0] ?? null
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -231,40 +241,27 @@ export default async function HomePage() {
           Næringsliv, stillinger, arrangementer og leserinnlegg fra hele regionen.
         </p>
         <ForsideSearch />
-        {(weatherItems.length > 0 || power != null || latestOppdrag) && (
+        {(weatherItems.length > 0 || power != null) && (
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm text-muted">
             {power != null && (
               <span>⚡ Strøm NO4: <strong className="font-semibold text-ink">{power} øre/kWh</strong></span>
             )}
             <HeroStrip items={weatherItems} />
-            {latestOppdrag && (() => {
-              const tittel = latestOppdrag.tittel as string
-              const kort = tittel.length > 40 ? tittel.slice(0, 39) + '…' : tittel
-              const kommune = latestOppdrag.kommune as string | undefined
-              const stedTekst = kommune
-                ? ` (${kommune.charAt(0).toUpperCase()}${kommune.slice(1)})`
-                : ''
-              return (
-                <Link href={`/oppdrag/${latestOppdrag.slug}`} className="transition hover:text-sea">
-                  📋 Nytt oppdrag:{' '}
-                  <strong className="font-semibold text-ink">{kort}{stedTekst}</strong>
-                </Link>
-              )
-            })()}
           </div>
         )}
       </section>
 
       {/* ── 2. INNGANGSKORT ─────────────────────────────────────────────── */}
       <section className="border-t border-ink/10 py-8">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {NAV_CARDS.map(card => {
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {NAV_CARDS.map((card, i) => {
             const hint = hints[card.hintKey as keyof CardHints]
+            const isLast = i === NAV_CARDS.length - 1
             return (
               <Link
                 key={card.href}
                 href={card.href}
-                className="group flex flex-col gap-1.5 rounded-xl border border-ink/10 bg-white p-4 transition hover:border-sea/50 hover:shadow-sm"
+                className={`group flex flex-col gap-1.5 rounded-xl border border-ink/10 bg-white p-4 transition hover:border-sea/50 hover:shadow-sm${isLast ? ' col-span-2 sm:col-span-1' : ''}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sea">{card.icon}</span>
