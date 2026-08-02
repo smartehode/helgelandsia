@@ -1351,6 +1351,28 @@ export interface Oppdrag {
   kontaktTelefon?: string | null;
   interessert?:
     | {
+        /**
+         * Velg bransje — bedriftslisten filtreres automatisk.
+         */
+        bransje:
+          | 'bygg'
+          | 'handel'
+          | 'restaurant'
+          | 'transport'
+          | 'havbruk'
+          | 'landbruk'
+          | 'industri'
+          | 'tjenester'
+          | 'helse'
+          | 'utdanning'
+          | 'kultur'
+          | 'eiendom'
+          | 'forening'
+          | 'energi'
+          | 'annet';
+        /**
+         * Velg bransje ovenfor for å filtrere bedriftslisten.
+         */
         bedrift: number | Business;
         id?: string | null;
       }[]
@@ -2214,6 +2236,7 @@ export interface OppdragSelect<T extends boolean = true> {
   interessert?:
     | T
     | {
+        bransje?: T;
         bedrift?: T;
         id?: T;
       };

@@ -298,15 +298,19 @@ export default async function BedrifterPage({
                 <span className="text-2xl leading-none">{cat.icon}</span>
                 <span className="text-[11px] font-medium leading-tight text-ink">{cat.label}</span>
                 <span className="text-[10px] tabular-nums text-muted">{count.toLocaleString('nb')} bedrifter</span>
-                {tenderCount > 0 && (
-                  <span className="rounded-full bg-sea/10 px-2 py-0.5 text-[9px] font-medium text-sea">
-                    {tenderCount} anbud
-                  </span>
-                )}
-                {oppdragCount > 0 && (
-                  <span className="rounded-full bg-fjord/10 px-2 py-0.5 text-[9px] font-medium text-fjord">
-                    {oppdragCount} oppdrag
-                  </span>
+                {(tenderCount > 0 || oppdragCount > 0) && (
+                  <div className="flex flex-wrap justify-center gap-1">
+                    {tenderCount > 0 && (
+                      <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold text-amber-800">
+                        {tenderCount} anbud
+                      </span>
+                    )}
+                    {oppdragCount > 0 && (
+                      <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[9px] font-semibold text-green-800">
+                        {oppdragCount} oppdrag
+                      </span>
+                    )}
+                  </div>
                 )}
               </Link>
             )
