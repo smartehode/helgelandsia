@@ -83,6 +83,7 @@ export interface Config {
     'brreg-sync-jobs': BrregSyncJob;
     tenders: Tender;
     regnskap: Regnskap;
+    oppdrag: Oppdrag;
     members: Member;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -106,6 +107,7 @@ export interface Config {
     'brreg-sync-jobs': BrregSyncJobsSelect<false> | BrregSyncJobsSelect<true>;
     tenders: TendersSelect<false> | TendersSelect<true>;
     regnskap: RegnskapSelect<false> | RegnskapSelect<true>;
+    oppdrag: OppdragSelect<false> | OppdragSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -554,6 +556,10 @@ export interface Business {
         | 'annet'
       )
     | null;
+  /**
+   * Bedriften ønsker å motta varsler om lokale oppdrag i sin bransje.
+   */
+  mottarOppdrag?: boolean | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1298,6 +1304,64 @@ export interface Regnskap {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "oppdrag".
+ */
+export interface Oppdrag {
+  id: number;
+  submittedBy?: (number | null) | Member;
+  tittel: string;
+  beskrivelse?: string | null;
+  kategori:
+    | 'bygg'
+    | 'handel'
+    | 'restaurant'
+    | 'transport'
+    | 'havbruk'
+    | 'landbruk'
+    | 'industri'
+    | 'tjenester'
+    | 'helse'
+    | 'utdanning'
+    | 'kultur'
+    | 'eiendom'
+    | 'forening'
+    | 'energi'
+    | 'annet';
+  kommune:
+    | 'alstahaug'
+    | 'bindal'
+    | 'brønnøy'
+    | 'dønna'
+    | 'grane'
+    | 'hattfjelldal'
+    | 'hemnes'
+    | 'herøy'
+    | 'leirfjord'
+    | 'lurøy'
+    | 'nesna'
+    | 'rana'
+    | 'rødøy'
+    | 'sømna'
+    | 'træna'
+    | 'vefsn'
+    | 'vega'
+    | 'vevelstad';
+  onsketTidsrom?: string | null;
+  kontaktEpost?: string | null;
+  kontaktTelefon?: string | null;
+  interessert?:
+    | {
+        bedrift: number | Business;
+        id?: string | null;
+      }[]
+    | null;
+  slug?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -1379,6 +1443,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'regnskap';
         value: number | Regnskap;
+      } | null)
+    | ({
+        relationTo: 'oppdrag';
+        value: number | Oppdrag;
       } | null)
     | ({
         relationTo: 'members';
@@ -1669,6 +1737,7 @@ export interface BusinessesSelect<T extends boolean = true> {
   showOnPublicListing?: T;
   featured?: T;
   naceCategory?: T;
+  mottarOppdrag?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2128,6 +2197,30 @@ export interface RegnskapSelect<T extends boolean = true> {
   hentetDato?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "oppdrag_select".
+ */
+export interface OppdragSelect<T extends boolean = true> {
+  submittedBy?: T;
+  tittel?: T;
+  beskrivelse?: T;
+  kategori?: T;
+  kommune?: T;
+  onsketTidsrom?: T;
+  kontaktEpost?: T;
+  kontaktTelefon?: T;
+  interessert?:
+    | T
+    | {
+        bedrift?: T;
+        id?: T;
+      };
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
