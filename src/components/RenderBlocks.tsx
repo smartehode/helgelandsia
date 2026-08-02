@@ -156,6 +156,7 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
           showEvents={block.showEvents ?? true}
           showTenders={block.showTenders ?? true}
           showJobs={block.showJobs ?? true}
+          showOppdrag={block.showOppdrag ?? true}
         />
       )
     case 'anbud':

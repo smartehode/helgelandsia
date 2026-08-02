@@ -32,23 +32,32 @@ export interface KalenderStilling {
   slug: string
 }
 
+export interface KalenderOppdrag {
+  tittel: string
+  kommune: string
+  datoIso: string
+  slug: string
+}
+
 export interface KalenderData {
   maned: string
   arrangementer: KalenderArrangement[]
   anbud: KalenderAnbud[]
   stillinger: KalenderStilling[]
+  oppdrag: KalenderOppdrag[]
 }
 
 interface DayEntries {
   events: KalenderArrangement[]
   anbud: KalenderAnbud[]
   stillinger: KalenderStilling[]
+  oppdrag: KalenderOppdrag[]
 }
 
 interface ListEntry {
   dateStr: string
   dateMs: number
-  type: 'event' | 'anbud' | 'stilling' | 'helligdag'
+  type: 'event' | 'anbud' | 'stilling' | 'oppdrag' | 'helligdag'
   tittel: string
   href?: string   // undefined → non-linkable (holidays)
   meta?: string
@@ -62,6 +71,7 @@ interface Props {
   showEvents: boolean
   showTenders: boolean
   showJobs: boolean
+  showOppdrag: boolean
 }
 
 const DAY_LABELS = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn']
@@ -70,7 +80,8 @@ const TYPE_DOT: Record<ListEntry['type'], string> = {
   helligdag: 'bg-red-600',
   event:     'bg-fjord',
   anbud:     'bg-sun',
-  stilling:  'bg-green-500',
+  stilling:  'bg-sky-500',   // lyseblå (sea-familien) — byttet fra grønn
+  oppdrag:   'bg-green-500', // grønn — samkjørt med oppdrag-badge i kategorigrid
 }
 
 const TYPE_LABEL: Record<ListEntry['type'], string> = {
@@ -78,12 +89,13 @@ const TYPE_LABEL: Record<ListEntry['type'], string> = {
   event:     'Arrangement',
   anbud:     'Anbudsfrist',
   stilling:  'Stillingsfrist',
+  oppdrag:   'Oppdrag',
 }
 
 function buildDayIndex(data: KalenderData): Record<string, DayEntries> {
   const idx: Record<string, DayEntries> = {}
   function ensure(d: string): DayEntries {
-    if (!idx[d]) idx[d] = { events: [], anbud: [], stillinger: [] }
+    if (!idx[d]) idx[d] = { events: [], anbud: [], stillinger: [], oppdrag: [] }
     return idx[d]
   }
   for (const ev of data.arrangementer) {
@@ -106,6 +118,9 @@ function buildDayIndex(data: KalenderData): Record<string, DayEntries> {
   for (const s of data.stillinger) {
     if (s.fristIso) ensure(format(new Date(s.fristIso), 'yyyy-MM-dd')).stillinger.push(s)
   }
+  for (const o of (data.oppdrag ?? [])) {
+    if (o.datoIso) ensure(format(new Date(o.datoIso), 'yyyy-MM-dd')).oppdrag.push(o)
+  }
   return idx
 }
 
@@ -115,6 +130,7 @@ function buildActivityEntries(
   showEvents: boolean,
   showTenders: boolean,
   showJobs: boolean,
+  showOppdrag: boolean,
 ): ListEntry[] {
   const entries: ListEntry[] = []
 
@@ -165,6 +181,22 @@ function buildActivityEntries(
       })
     }
   }
+  if (showOppdrag) {
+    for (const o of (data.oppdrag ?? [])) {
+      if (!o.datoIso) continue
+      const kommune = o.kommune
+        ? o.kommune.charAt(0).toUpperCase() + o.kommune.slice(1)
+        : ''
+      entries.push({
+        dateStr: format(new Date(o.datoIso), 'yyyy-MM-dd'),
+        dateMs: new Date(o.datoIso).getTime(),
+        type: 'oppdrag',
+        tittel: o.tittel,
+        href: `/oppdrag/${o.slug}`,
+        meta: kommune || undefined,
+      })
+    }
+  }
 
   return entries.sort((a, b) => a.dateMs - b.dateMs)
 }
@@ -177,6 +209,7 @@ export function CalendarClient({
   showEvents,
   showTenders,
   showJobs,
+  showOppdrag,
 }: Props) {
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
   const [holidaysByYear, setHolidaysByYear] = useState<HolidayMap>(preloadedHolidays)
@@ -233,9 +266,9 @@ export function CalendarClient({
 
   // Chronological list (full variant)
   const allListEntries = useMemo(
-    () => buildActivityEntries(kalData, holidays, showEvents, showTenders, showJobs),
+    () => buildActivityEntries(kalData, holidays, showEvents, showTenders, showJobs, showOppdrag),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [kalData, holidays, showEvents, showTenders, showJobs],
+    [kalData, holidays, showEvents, showTenders, showJobs, showOppdrag],
   )
 
   const todayStr = format(new Date(), 'yyyy-MM-dd')
@@ -259,7 +292,7 @@ export function CalendarClient({
     ? 'Denne måneden'
     : 'Kommende'
 
-  const hasAnyTypes = showEvents || showTenders || showJobs
+  const hasAnyTypes = showEvents || showTenders || showJobs || showOppdrag
 
   return (
     <>
@@ -348,6 +381,9 @@ export function CalendarClient({
                             <span className="inline-block h-[3px] w-[3px] rounded-full bg-sun" />
                           )}
                           {dots && showJobs && dots.stillinger.length > 0 && (
+                            <span className="inline-block h-[3px] w-[3px] rounded-full bg-sky-500" />
+                          )}
+                          {dots && showOppdrag && dots.oppdrag.length > 0 && (
                             <span className="inline-block h-[3px] w-[3px] rounded-full bg-green-500" />
                           )}
                         </div>
@@ -363,6 +399,9 @@ export function CalendarClient({
                             <span className="inline-block h-2 w-2 rounded-full bg-sun" />
                           )}
                           {dots && showJobs && dots.stillinger.length > 0 && (
+                            <span className="inline-block h-2 w-2 rounded-full bg-sky-500" />
+                          )}
+                          {dots && showOppdrag && dots.oppdrag.length > 0 && (
                             <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
                           )}
                         </div>
@@ -396,8 +435,14 @@ export function CalendarClient({
         )}
         {showJobs && (
           <span className="flex items-center gap-1 text-[11px] text-muted">
-            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-green-500" />
+            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-sky-500" />
             Stillingsfrist
+          </span>
+        )}
+        {showOppdrag && (
+          <span className="flex items-center gap-1 text-[11px] text-muted">
+            <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-green-500" />
+            Oppdrag
           </span>
         )}
       </div>

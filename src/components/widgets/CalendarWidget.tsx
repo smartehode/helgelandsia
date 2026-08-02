@@ -9,6 +9,7 @@ interface Props {
   showEvents?: boolean
   showTenders?: boolean
   showJobs?: boolean
+  showOppdrag?: boolean
 }
 
 async function fetchHolidaysForYear(year: number): Promise<Record<string, string>> {
@@ -31,6 +32,7 @@ export async function CalendarWidget({
   showEvents = true,
   showTenders = true,
   showJobs = true,
+  showOppdrag = true,
 }: Props) {
   const now = new Date()
   const thisYear = now.getFullYear()
@@ -54,7 +56,7 @@ export async function CalendarWidget({
   const initialData: KalenderData =
     initialDataResult.status === 'fulfilled'
       ? initialDataResult.value
-      : { maned, arrangementer: [], anbud: [], stillinger: [] }
+      : { maned, arrangementer: [], anbud: [], stillinger: [], oppdrag: [] }
 
   return (
     <div className="rounded-2xl bg-paper p-6 ring-1 ring-ink/5">
@@ -66,6 +68,7 @@ export async function CalendarWidget({
         showEvents={showEvents}
         showTenders={showTenders}
         showJobs={showJobs}
+        showOppdrag={showOppdrag}
       />
     </div>
   )

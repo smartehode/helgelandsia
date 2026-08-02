@@ -22,11 +22,19 @@ export interface KalenderStilling {
   slug: string
 }
 
+export interface KalenderOppdrag {
+  tittel: string
+  kommune: string
+  datoIso: string  // createdAt — onsketTidsrom er fritekst, ikke dato
+  slug: string
+}
+
 export interface KalenderData {
   maned: string
   arrangementer: KalenderArrangement[]
   anbud: KalenderAnbud[]
   stillinger: KalenderStilling[]
+  oppdrag: KalenderOppdrag[]
 }
 
 export async function hentKalenderData(maned: string): Promise<KalenderData> {
@@ -46,7 +54,7 @@ export async function hentKalenderData(maned: string): Promise<KalenderData> {
 
   const payload = await getPayloadClient()
 
-  const [eventsRes, tendersRes, jobsRes] = await Promise.allSettled([
+  const [eventsRes, tendersRes, jobsRes, oppdragRes] = await Promise.allSettled([
     payload.find({
       collection: 'events',
       where: {
@@ -80,6 +88,20 @@ export async function hentKalenderData(maned: string): Promise<KalenderData> {
           { _status: { equals: 'published' } },
           { deadline: { greater_than_equal: monthStartISO } },
           { deadline: { less_than_equal: monthEndISO } },
+        ],
+      },
+      limit: 200,
+      depth: 0,
+      overrideAccess: true,
+    }),
+    // Oppdrag ankres på publiseringsdato (createdAt) — onsketTidsrom er fritekst
+    payload.find({
+      collection: 'oppdrag',
+      where: {
+        and: [
+          { _status: { equals: 'published' } },
+          { createdAt: { greater_than_equal: monthStartISO } },
+          { createdAt: { less_than_equal: monthEndISO } },
         ],
       },
       limit: 200,
@@ -128,5 +150,17 @@ export async function hentKalenderData(maned: string): Promise<KalenderData> {
           }))
       : []
 
-  return { maned, arrangementer, anbud, stillinger }
+  const oppdrag: KalenderOppdrag[] =
+    oppdragRes.status === 'fulfilled'
+      ? oppdragRes.value.docs
+          .filter((o: any) => o.createdAt)
+          .map((o: any) => ({
+            tittel: o.tittel ?? '',
+            kommune: o.kommune ?? '',
+            datoIso: o.createdAt,
+            slug: o.slug ?? '',
+          }))
+      : []
+
+  return { maned, arrangementer, anbud, stillinger, oppdrag }
 }
