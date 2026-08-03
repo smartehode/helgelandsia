@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import { getPayloadClient } from '@/lib/getPayload'
@@ -7,6 +8,7 @@ interface Props {
   title?: string
   count?: number
   variant?: 'full' | 'kompakt'
+  bredde?: string   // fra breddeField — '1 kolonne' | '2 kolonner' | 'Full bredde'
 }
 
 function osloTodayMidnight(): Date {
@@ -24,7 +26,18 @@ function isOngoing(e: any): boolean {
   return true
 }
 
-export async function ArrangementerWidget({ title = 'Kommende arrangementer', count = 5, variant = 'full' }: Props) {
+// Henter URL fra oppløst media-objekt (depth: 1)
+function imageUrl(m: any): string | null {
+  if (!m || typeof m !== 'object') return null
+  return (m.sizes?.card?.url ?? m.sizes?.thumbnail?.url ?? m.url) || null
+}
+
+export async function ArrangementerWidget({
+  title = 'Kommende arrangementer',
+  count = 5,
+  variant = 'full',
+  bredde,
+}: Props) {
   const payload = await getPayloadClient()
   const nowISO = new Date().toISOString()
   const todayISO = osloTodayMidnight().toISOString()
@@ -42,8 +55,8 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
         ],
       },
       sort: 'startDate',
-      limit: count * 2, // fetch extra for featured sort
-      depth: 0,
+      limit: count * 2,
+      depth: 1,  // populate image-relasjonen
     })
     events = res.docs
       .sort((a: any, b: any) => {
@@ -54,6 +67,9 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
       .slice(0, count)
   } catch { }
   if (!events.length) return null
+
+  // Bildevisning kun i full variant og bred blokk (2 kolonner eller full bredde)
+  const showImages = variant === 'full' && bredde !== '1 kolonne' && bredde !== undefined
 
   return (
     <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
@@ -67,12 +83,15 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
         {events.map((event: any) => {
           const startDt = event.startDate ? new Date(event.startDate) : null
           const ongoing = isOngoing(event)
+          const imgUrl = imageUrl(event.image)
+
           return (
             <li key={event.id}>
               <Link
                 href={`/arrangementer/${event.slug}`}
                 className="group flex items-center gap-4 px-4 py-3.5 transition hover:bg-fog/60"
               >
+                {/* Dato-badge */}
                 {startDt && (
                   <div className="w-8 shrink-0 text-center">
                     <span className="block font-serif text-xl font-bold leading-none text-sea">
@@ -83,6 +102,8 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
                     </span>
                   </div>
                 )}
+
+                {/* Tekst — tar all ledig bredde */}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink transition group-hover:text-sea">
                     {event.title}
@@ -91,11 +112,27 @@ export async function ArrangementerWidget({ title = 'Kommende arrangementer', co
                     <p className="mt-0.5 truncate text-xs text-muted">{event.locationName}</p>
                   )}
                 </div>
-                {ongoing && (
+
+                {/* "Nå"-indikator (kun uten bilde for ikke å klemme) */}
+                {ongoing && !imgUrl && (
                   <span className="ml-auto shrink-0 flex items-center gap-1 text-[10px] font-semibold text-sea">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-sea" />
                     Nå
                   </span>
+                )}
+
+                {/* Bilde til høyre — kun i bred modus og når bilde finnes */}
+                {showImages && imgUrl && (
+                  <div className="shrink-0 overflow-hidden rounded-lg">
+                    <Image
+                      src={imgUrl}
+                      alt={event.image?.alt ?? event.title}
+                      width={108}
+                      height={72}
+                      className="object-cover"
+                      sizes="108px"
+                    />
+                  </div>
                 )}
               </Link>
             </li>

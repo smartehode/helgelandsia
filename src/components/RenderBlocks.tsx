@@ -181,6 +181,7 @@ function BlockSwitch({ block, forceVariant }: { block: any; forceVariant?: Widge
           title={block.title}
           count={block.count ?? 5}
           variant={forceVariant ?? (block.variant as WidgetVariant) ?? 'full'}
+          bredde={block.bredde as string | undefined}
         />
       )
     case 'skipstrafikk':
