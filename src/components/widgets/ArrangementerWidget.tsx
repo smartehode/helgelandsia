@@ -32,20 +32,6 @@ function imageUrl(m: any): string | null {
   return m.url ?? m.sizes?.card?.url ?? m.sizes?.thumbnail?.url ?? null
 }
 
-// Trekker ut første avsnitt som ren tekst fra Lexical JSON
-function lexicalToText(content: any): string {
-  if (!content || typeof content !== 'object') return ''
-  const paras = content.root?.children ?? content.children ?? []
-  for (const para of paras) {
-    const text = (para.children ?? [])
-      .filter((n: any) => n.type === 'text' && n.text)
-      .map((n: any) => n.text as string)
-      .join('')
-      .trim()
-    if (text) return text
-  }
-  return ''
-}
 
 // ─── Kortkomponent (bred modus) ──────────────────────────────────────────────
 
@@ -53,7 +39,6 @@ function EventCard({ event }: { event: any }) {
   const startDt = event.startDate ? new Date(event.startDate) : null
   const ongoing  = isOngoing(event)
   const imgUrl   = imageUrl(event.image)
-  const ingress  = lexicalToText(event.description)
 
   return (
     <Link
@@ -68,7 +53,7 @@ function EventCard({ event }: { event: any }) {
             alt={event.image?.alt ?? event.title}
             fill
             className="object-cover transition duration-500 group-hover:scale-[1.03]"
-            sizes="(min-width: 640px) 50vw, 100vw"
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
           />
         ) : (
           /* Plassholder — bevisst, ikke tomt hull */
@@ -84,14 +69,14 @@ function EventCard({ event }: { event: any }) {
 
         {/* Dato-badge: rivekalender-stil — nedre venstre */}
         {startDt && (
-          <div className="absolute bottom-2 left-2 w-11 overflow-hidden rounded-lg bg-white shadow-md ring-1 ring-black/5">
-            <div className="bg-fjord py-[3px] text-center">
-              <span className="block text-[8px] font-bold uppercase tracking-widest text-white/90">
+          <div className="absolute bottom-2 left-2 w-10 overflow-hidden rounded-md bg-white shadow ring-1 ring-black/5">
+            <div className="bg-fjord py-[2px] text-center">
+              <span className="block text-[7px] font-bold uppercase tracking-widest text-white/90">
                 {format(startDt, 'MMM', { locale: nb })}
               </span>
             </div>
-            <div className="py-[3px] text-center">
-              <span className="block font-serif text-[18px] font-bold leading-tight text-fjord">
+            <div className="py-[2px] text-center">
+              <span className="block font-serif text-base font-bold leading-tight text-fjord">
                 {format(startDt, 'd')}
               </span>
             </div>
@@ -111,14 +96,11 @@ function EventCard({ event }: { event: any }) {
 
       {/* Tekstinnhold */}
       <div className="flex flex-1 flex-col p-3">
-        <p className="line-clamp-2 text-[15px] font-medium leading-snug text-ink transition group-hover:text-sea">
+        <p className="line-clamp-2 text-sm font-medium leading-snug text-ink transition group-hover:text-sea">
           {event.title}
         </p>
         {event.locationName && (
           <p className="mt-1 line-clamp-1 text-xs text-muted">{event.locationName}</p>
-        )}
-        {ingress && (
-          <p className="mt-1 line-clamp-1 text-xs text-muted/60">{ingress}</p>
         )}
       </div>
     </Link>
@@ -204,8 +186,13 @@ export async function ArrangementerWidget({
   } catch { }
   if (!events.length) return null
 
-  // Kortgrid kun i full variant med bred blokk (2 kolonner eller Full bredde)
+  // Kortgrid i full variant med bred blokk (2 kolonner eller Full bredde)
   const wideMode = variant === 'full' && bredde !== undefined && bredde !== '1 kolonne'
+  // Full bredde: 3 kolonner på desktop; 2 kolonner-sone: maks 2 (allerede smale kort)
+  const gridCols =
+    bredde === 'Full bredde'
+      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+      : 'grid-cols-1 sm:grid-cols-2'
 
   if (wideMode) {
     return (
@@ -216,7 +203,7 @@ export async function ArrangementerWidget({
             Se alle →
           </Link>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className={`grid gap-4 ${gridCols}`}>
           {events.map(event => <EventCard key={event.id} event={event} />)}
         </div>
       </div>
