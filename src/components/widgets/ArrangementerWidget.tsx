@@ -8,7 +8,7 @@ interface Props {
   title?: string
   count?: number
   variant?: 'full' | 'kompakt'
-  bredde?: string   // fra breddeField — '1 kolonne' | '2 kolonner' | 'Full bredde'
+  bredde?: string   // '1 kolonne' | '2 kolonner' | 'Full bredde'
 }
 
 function osloTodayMidnight(): Date {
@@ -26,10 +26,24 @@ function isOngoing(e: any): boolean {
   return true
 }
 
-// Henter URL fra oppløst media-objekt (depth: 1)
 function imageUrl(m: any): string | null {
   if (!m || typeof m !== 'object') return null
-  return (m.sizes?.card?.url ?? m.sizes?.thumbnail?.url ?? m.url) || null
+  return m.sizes?.card?.url ?? m.sizes?.thumbnail?.url ?? m.url ?? null
+}
+
+// Trekker ut ren tekst fra Lexical JSON (richText) — kun første avsnitt
+function lexicalToText(content: any): string {
+  if (!content || typeof content !== 'object') return ''
+  const paras = content.root?.children ?? content.children ?? []
+  for (const para of paras) {
+    const text = (para.children ?? [])
+      .filter((n: any) => n.type === 'text' && n.text)
+      .map((n: any) => n.text as string)
+      .join('')
+      .trim()
+    if (text) return text
+  }
+  return ''
 }
 
 export async function ArrangementerWidget({
@@ -56,7 +70,7 @@ export async function ArrangementerWidget({
       },
       sort: 'startDate',
       limit: count * 2,
-      depth: 1,  // populate image-relasjonen
+      depth: 1,
     })
     events = res.docs
       .sort((a: any, b: any) => {
@@ -68,8 +82,8 @@ export async function ArrangementerWidget({
   } catch { }
   if (!events.length) return null
 
-  // Bildevisning kun i full variant og bred blokk (2 kolonner eller full bredde)
-  const showImages = variant === 'full' && bredde !== '1 kolonne' && bredde !== undefined
+  // Bred visning: 2 kolonner eller full bredde (ikke smal/1-kolonne)
+  const wideMode = variant === 'full' && bredde !== undefined && bredde !== '1 kolonne'
 
   return (
     <div className="overflow-hidden rounded-xl border border-ink/10 bg-white">
@@ -83,13 +97,14 @@ export async function ArrangementerWidget({
         {events.map((event: any) => {
           const startDt = event.startDate ? new Date(event.startDate) : null
           const ongoing = isOngoing(event)
-          const imgUrl = imageUrl(event.image)
+          const imgUrl = wideMode ? imageUrl(event.image) : null
+          const ingress = wideMode ? lexicalToText(event.description) : ''
 
           return (
             <li key={event.id}>
               <Link
                 href={`/arrangementer/${event.slug}`}
-                className="group flex items-center gap-4 px-4 py-3.5 transition hover:bg-fog/60"
+                className="group flex items-center gap-3 px-4 py-2.5 transition hover:bg-fog/60"
               >
                 {/* Dato-badge */}
                 {startDt && (
@@ -103,7 +118,21 @@ export async function ArrangementerWidget({
                   </div>
                 )}
 
-                {/* Tekst — tar all ledig bredde */}
+                {/* Bilde — etter dato, til venstre for tekst (kun bred modus + bilde finnes) */}
+                {imgUrl && (
+                  <div className="shrink-0 overflow-hidden rounded-md">
+                    <Image
+                      src={imgUrl}
+                      alt={event.image?.alt ?? event.title}
+                      width={160}
+                      height={100}
+                      className="object-cover"
+                      sizes="160px"
+                    />
+                  </div>
+                )}
+
+                {/* Tekst — tar resten av raden */}
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink transition group-hover:text-sea">
                     {event.title}
@@ -111,28 +140,17 @@ export async function ArrangementerWidget({
                   {variant === 'full' && event.locationName && (
                     <p className="mt-0.5 truncate text-xs text-muted">{event.locationName}</p>
                   )}
+                  {ingress && (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-muted/60">{ingress}</p>
+                  )}
                 </div>
 
-                {/* "Nå"-indikator (kun uten bilde for ikke å klemme) */}
-                {ongoing && !imgUrl && (
-                  <span className="ml-auto shrink-0 flex items-center gap-1 text-[10px] font-semibold text-sea">
+                {/* "Nå"-indikator */}
+                {ongoing && (
+                  <span className="shrink-0 flex items-center gap-1 text-[10px] font-semibold text-sea">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-sea" />
                     Nå
                   </span>
-                )}
-
-                {/* Bilde til høyre — kun i bred modus og når bilde finnes */}
-                {showImages && imgUrl && (
-                  <div className="shrink-0 overflow-hidden rounded-lg">
-                    <Image
-                      src={imgUrl}
-                      alt={event.image?.alt ?? event.title}
-                      width={108}
-                      height={72}
-                      className="object-cover"
-                      sizes="108px"
-                    />
-                  </div>
                 )}
               </Link>
             </li>
