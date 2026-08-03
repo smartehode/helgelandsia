@@ -1,4 +1,5 @@
 import { getPayloadClient } from './getPayload'
+import { fetchNavJobs, isHelgeland, getNavEmployer, parseNavDeadline } from './nav-jobs'
 
 // Shared types (also defined in CalendarClient.tsx for client-side use)
 export interface KalenderArrangement {
@@ -20,6 +21,7 @@ export interface KalenderStilling {
   arbeidsgiver: string
   fristIso: string
   slug: string
+  navUrl?: string  // definert for NAV-stillinger → lenke til arbeidsplassen.nav.no
 }
 
 export interface KalenderOppdrag {
@@ -54,7 +56,7 @@ export async function hentKalenderData(maned: string): Promise<KalenderData> {
 
   const payload = await getPayloadClient()
 
-  const [eventsRes, tendersRes, jobsRes, oppdragRes] = await Promise.allSettled([
+  const [eventsRes, tendersRes, jobsRes, oppdragRes, navJobsRes] = await Promise.allSettled([
     payload.find({
       collection: 'events',
       where: {
@@ -108,6 +110,7 @@ export async function hentKalenderData(maned: string): Promise<KalenderData> {
       depth: 0,
       overrideAccess: true,
     }),
+    fetchNavJobs(),
   ])
 
   const arrangementer: KalenderArrangement[] =
@@ -138,7 +141,7 @@ export async function hentKalenderData(maned: string): Promise<KalenderData> {
           }))
       : []
 
-  const stillinger: KalenderStilling[] =
+  const egneStillinger: KalenderStilling[] =
     jobsRes.status === 'fulfilled'
       ? jobsRes.value.docs
           .filter((j: any) => j.deadline)
@@ -149,6 +152,29 @@ export async function hentKalenderData(maned: string): Promise<KalenderData> {
             slug: j.slug ?? '',
           }))
       : []
+
+  // NAV-stillinger: kun de med strukturert dato i visningsmåneden.
+  // "Snarest" og tekstfrister utelates (ingen dag å stå på).
+  const navStillinger: KalenderStilling[] =
+    navJobsRes.status === 'fulfilled'
+      ? navJobsRes.value
+          .filter(isHelgeland)
+          .flatMap((job: any) => {
+            const fristIso = parseNavDeadline(job)
+            if (!fristIso) return []
+            const fristDate = new Date(fristIso)
+            if (fristDate < monthStart || fristDate > monthEnd) return []
+            return [{
+              tittel: job.title ?? '',
+              arbeidsgiver: getNavEmployer(job),
+              fristIso,
+              slug: '',
+              navUrl: `https://arbeidsplassen.nav.no/stillinger/stilling/${job.uuid}`,
+            }]
+          })
+      : []
+
+  const stillinger: KalenderStilling[] = [...egneStillinger, ...navStillinger]
 
   const oppdrag: KalenderOppdrag[] =
     oppdragRes.status === 'fulfilled'

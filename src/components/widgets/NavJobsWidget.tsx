@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
 import type { WidgetVariant } from './PowerPriceWidget'
-import { KOMMUNENAVN_UC } from '@/lib/helgeland/kommuner'
+import { fetchNavJobs, isHelgeland, getNavEmployer } from '@/lib/nav-jobs'
+import type { NavJob } from '@/lib/nav-jobs'
 
 interface Props {
   title?: string
@@ -10,73 +11,19 @@ interface Props {
   variant?: WidgetVariant
 }
 
-// NAV-API returnerer kommunenavn som store bokstaver, f.eks. "BRØNNØY".
-// Hentes fra src/lib/helgeland/kommuner.ts — énkildes sannhet.
-// MELØY (Salten) er fjernet; var feilaktig inkludert.
-const HELGELAND_KOMMUNER = KOMMUNENAVN_UC
-
-interface NavLocation {
-  municipal?: string
-  county?: string
-  city?: string
-}
-
-interface NavJob {
-  uuid: string
-  title?: string
-  businessName?: string
-  employer?: { name?: string }
-  locationList?: NavLocation[]
-  properties?: {
-    applicationdue?: string
-    jobtitle?: string
-  }
-  expires?: string
-}
-
 function getMunicipal(job: NavJob): string | undefined {
   const raw = job.locationList?.[0]?.municipal
   if (!raw) return undefined
-  // Gjør om "BRØNNØY" → "Brønnøy"
   return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase()
 }
 
-function isHelgeland(job: NavJob): boolean {
-  return (job.locationList ?? []).some(
-    loc => loc.municipal && HELGELAND_KOMMUNER.has(loc.municipal.toUpperCase()),
-  )
-}
-
-function getDeadline(job: NavJob): string | undefined {
+function getDeadlineLabel(job: NavJob): string | undefined {
   const raw = job.properties?.applicationdue ?? job.expires
   if (!raw || raw.toLowerCase() === 'snarest') return raw ?? undefined
   try {
     return format(new Date(raw), 'd. MMM', { locale: nb })
   } catch {
     return undefined
-  }
-}
-
-function getEmployer(job: NavJob): string | undefined {
-  return job.employer?.name ?? job.businessName
-}
-
-async function fetchNavJobs(): Promise<NavJob[]> {
-  try {
-    const res = await fetch(
-      'https://arbeidsplassen.nav.no/stillinger/api/search?county=NORDLAND&size=50',
-      {
-        signal: AbortSignal.timeout(5000),
-        next: { revalidate: 1800 },
-        headers: { 'Accept': 'application/json' },
-      },
-    )
-    if (!res.ok) return []
-    const data = await res.json()
-    // Respons: { hits: { hits: [{ _source: NavJob }] } }
-    return (data.hits?.hits ?? []).map((h: { _source: NavJob }) => h._source)
-  } catch {
-    return []
   }
 }
 
@@ -95,9 +42,9 @@ export async function NavJobsWidget({ title, count = 6, variant = 'full' }: Prop
       ) : (
         <div className="mt-4 divide-y divide-ink/5">
           {jobs.map(job => {
-            const deadline = getDeadline(job)
+            const deadline = getDeadlineLabel(job)
             const municipality = getMunicipal(job)
-            const employer = getEmployer(job)
+            const employer = getNavEmployer(job) || undefined
             return (
               <Link
                 key={job.uuid}

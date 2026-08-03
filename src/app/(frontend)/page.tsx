@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { nb } from 'date-fns/locale'
+import { fetchNavJobs, isHelgeland, getNavEmployer, parseNavDeadline } from '@/lib/nav-jobs'
 import { ForsideSearch } from '@/components/ForsideSearch'
 import { HeroHeading } from '@/components/HeroHeading'
 import { HeroStrip } from '@/components/HeroStrip'
@@ -123,12 +124,13 @@ interface CardHints { bedrifter: LiveHint | null; anbud: LiveHint | null; stilli
 
 async function fetchCardHints(payload: any): Promise<CardHints> {
   const now = new Date().toISOString()
-  const [bRes, aRes, jRes, eRes, oRes] = await Promise.allSettled([
+  const [bRes, aRes, jRes, eRes, oRes, navRes] = await Promise.allSettled([
     payload.find({ collection: 'businesses', sort: '-registreringsdato', limit: 1, depth: 0, overrideAccess: true }),
     payload.find({ collection: 'tenders', where: { and: [{ status: { equals: 'ACTIVE' } }, { deadline: { greater_than: now } }] }, sort: '-createdAt', limit: 1, depth: 0, overrideAccess: true }),
     payload.find({ collection: 'jobs', where: { _status: { equals: 'published' } }, sort: '-createdAt', limit: 1, depth: 0 }),
     payload.find({ collection: 'events', where: { and: [{ _status: { equals: 'published' } }, { startDate: { greater_than_equal: now } }] }, sort: 'startDate', limit: 1, depth: 0 }),
     payload.find({ collection: 'oppdrag', where: { _status: { equals: 'published' } }, sort: '-createdAt', limit: 1, depth: 0, overrideAccess: true }),
+    fetchNavJobs(),
   ])
 
   const bedrifter = (() => {
@@ -147,10 +149,23 @@ async function fetchCardHints(payload: any): Promise<CardHints> {
   })()
 
   const stillinger = (() => {
-    if (jRes.status !== 'fulfilled') return null
-    const j = jRes.value.docs?.[0]
-    if (!j) return null
-    return { label: 'Nyeste', text: [j.title, j.employer].filter(Boolean).join(' · ') }
+    // Prøv egne stillinger først
+    const j = jRes.status === 'fulfilled' ? jRes.value.docs?.[0] : null
+    if (j) return { label: 'Nyeste', text: [j.title, j.employer].filter(Boolean).join(' · ') }
+    // Fallback: første Helgeland-stilling fra NAV med strukturert frist
+    const navJobs = navRes.status === 'fulfilled' ? navRes.value : []
+    const navJob = navJobs.filter(isHelgeland).find(job => !!parseNavDeadline(job))
+    if (navJob) {
+      const employer = getNavEmployer(navJob)
+      return { label: 'Nyeste', text: [navJob.title, employer].filter(Boolean).join(' · ') }
+    }
+    // Fallback 2: første Helgeland-NAV-stilling selv uten strukturert frist
+    const anyNav = navJobs.find(isHelgeland)
+    if (anyNav) {
+      const employer = getNavEmployer(anyNav)
+      return { label: 'Nyeste', text: [anyNav.title, employer].filter(Boolean).join(' · ') }
+    }
+    return null
   })()
 
   const arrangementer = (() => {

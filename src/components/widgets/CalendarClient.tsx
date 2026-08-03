@@ -30,6 +30,7 @@ export interface KalenderStilling {
   arbeidsgiver: string
   fristIso: string
   slug: string
+  navUrl?: string  // definert for NAV-stillinger
 }
 
 export interface KalenderOppdrag {
@@ -59,8 +60,9 @@ interface ListEntry {
   dateMs: number
   type: 'event' | 'anbud' | 'stilling' | 'oppdrag' | 'helligdag'
   tittel: string
-  href?: string   // undefined → non-linkable (holidays)
+  href?: string     // undefined → non-linkable (holidays)
   meta?: string
+  external?: boolean // true → target="_blank" rel="noopener"
 }
 
 interface Props {
@@ -165,19 +167,22 @@ function buildActivityEntries(
         tittel: a.tittel,
         href: a.url,
         meta: a.oppdragsgiver || undefined,
+        external: true,
       })
     }
   }
   if (showJobs) {
     for (const s of data.stillinger) {
       if (!s.fristIso) continue
+      const isNav = !!s.navUrl
       entries.push({
         dateStr: format(new Date(s.fristIso), 'yyyy-MM-dd'),
         dateMs: new Date(s.fristIso).getTime(),
         type: 'stilling',
         tittel: s.tittel,
-        href: `/stillinger/${s.slug}`,
-        meta: s.arbeidsgiver || undefined,
+        href: isNav ? s.navUrl : `/stillinger/${s.slug}`,
+        meta: [s.arbeidsgiver || undefined, isNav ? '(NAV)' : undefined].filter(Boolean).join(' ') || undefined,
+        external: isNav,
       })
     }
   }
@@ -498,8 +503,8 @@ export function CalendarClient({
                     {entry.href ? (
                       <a
                         href={entry.href}
-                        target={entry.type === 'anbud' ? '_blank' : undefined}
-                        rel={entry.type === 'anbud' ? 'noopener' : undefined}
+                        target={entry.external ? '_blank' : undefined}
+                        rel={entry.external ? 'noopener' : undefined}
                         className="group flex items-start gap-2"
                       >
                         {dot}{text}
