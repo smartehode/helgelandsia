@@ -9,6 +9,7 @@ import { kategorierForAnbud } from '@/lib/doffin/match'
 import BedrifterFilters from '@/components/BedrifterFilters'
 import { SITE } from '@/lib/og'
 import { bizUrl } from '@/lib/slug'
+import { LeggUtOppdragFab } from '@/components/LeggUtOppdragFab'
 
 export const dynamic = 'force-dynamic'
 
@@ -161,6 +162,7 @@ export default async function KategoriPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <LeggUtOppdragFab />
       {/* Brødsmulesti */}
       <nav className="mb-4 text-sm text-muted">
         <Link href="/bedrifter" className="hover:text-sea">Bedrifter</Link>
@@ -216,49 +218,75 @@ export default async function KategoriPage({
         </nav>
       )}
 
-      {/* Aktuelle oppdrag i denne bransjen */}
-      {oppdragRes.docs.length > 0 && (
-        <section className="mt-14">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-eyebrow text-muted">
-              Aktuelle oppdrag i {cat.label}
-            </h2>
+      {/* Aktuelle oppdrag i denne bransjen — vises alltid */}
+      <section className="mt-14">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-eyebrow text-muted">
+            Aktuelle oppdrag i {cat.label}
+          </h2>
+          {oppdragRes.docs.length > 0 && (
             <Link href={`/oppdrag?kategori=${id}`} className="text-xs text-sea hover:underline">
               Se alle →
             </Link>
+          )}
+        </div>
+
+        {oppdragRes.docs.length > 0 ? (
+          <>
+            <ul className="space-y-2">
+              {(oppdragRes.docs as any[]).map((o: any) => {
+                const kommuneDisplay = o.kommune
+                  ? (o.kommune as string).charAt(0).toUpperCase() + (o.kommune as string).slice(1)
+                  : ''
+                const dato = o.createdAt
+                  ? new Date(o.createdAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
+                  : ''
+                return (
+                  <li key={o.id}>
+                    <Link
+                      href={`/oppdrag/${o.slug}`}
+                      className="flex items-center justify-between gap-4 rounded-xl border border-ink/10 bg-white px-4 py-3 transition hover:border-sea/30 hover:shadow-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-ink">{o.tittel}</p>
+                        <p className="text-xs text-muted">{kommuneDisplay}{o.onsketTidsrom ? ` · ${o.onsketTidsrom}` : ''}</p>
+                      </div>
+                      <span className="shrink-0 text-xs text-muted">{dato}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+            <p className="mt-3 text-xs text-muted">
+              Driver du bedrift i denne bransjen?{' '}
+              <Link href={`/oppdrag?kategori=${id}`} className="text-sea hover:underline">
+                Se og svar på oppdrag →
+              </Link>
+              {' · '}
+              <Link
+                href="/logg-inn?fra=%2Fmin-side%3Ftype%3Doppdrag"
+                className="text-sea hover:underline"
+              >
+                Legg ut nytt oppdrag
+              </Link>
+            </p>
+          </>
+        ) : (
+          /* Tom: invitasjon til å legge ut */
+          <div className="rounded-2xl border border-dashed border-ink/15 px-5 py-6 text-center">
+            <p className="text-sm text-muted">
+              Trenger du hjelp fra {cat.label.toLowerCase()}?{' '}
+              <Link
+                href="/logg-inn?fra=%2Fmin-side%3Ftype%3Doppdrag"
+                className="font-medium text-sea hover:underline"
+              >
+                Legg ut oppdraget her
+              </Link>
+              {' '}— lokale fagfolk tar kontakt.
+            </p>
           </div>
-          <ul className="space-y-2">
-            {(oppdragRes.docs as any[]).map((o: any) => {
-              const kommuneDisplay = o.kommune
-                ? (o.kommune as string).charAt(0).toUpperCase() + (o.kommune as string).slice(1)
-                : ''
-              const dato = o.createdAt
-                ? new Date(o.createdAt).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })
-                : ''
-              return (
-                <li key={o.id}>
-                  <Link
-                    href={`/oppdrag/${o.slug}`}
-                    className="flex items-center justify-between gap-4 rounded-xl border border-ink/10 bg-white px-4 py-3 transition hover:border-sea/30 hover:shadow-sm"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-ink">{o.tittel}</p>
-                      <p className="text-xs text-muted">{kommuneDisplay}{o.onsketTidsrom ? ` · ${o.onsketTidsrom}` : ''}</p>
-                    </div>
-                    <span className="shrink-0 text-xs text-muted">{dato}</span>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-          <p className="mt-3 text-xs text-muted">
-            Driver du bedrift i denne bransjen?{' '}
-            <Link href={`/oppdrag?kategori=${id}`} className="text-sea hover:underline">
-              Se og svar på oppdrag →
-            </Link>
-          </p>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Aktuelle anbud i denne bransjen (Doffin via NACE↔CPV-mapping) */}
       {categoryTenders.length > 0 && (

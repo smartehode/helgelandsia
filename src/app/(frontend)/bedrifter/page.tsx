@@ -7,6 +7,7 @@ import { kategorierForAnbud } from '@/lib/doffin/match'
 import BedrifterFilters from '@/components/BedrifterFilters'
 import { bizUrl } from '@/lib/slug'
 import type { Where } from 'payload'
+import { LeggUtOppdragFab } from '@/components/LeggUtOppdragFab'
 
 export const dynamic = 'force-dynamic'
 
@@ -263,6 +264,7 @@ export default async function BedrifterPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <LeggUtOppdragFab />
       {/* Hero */}
       <div className="mb-8">
         <h1 className="font-serif text-3xl font-bold text-sea md:text-4xl">

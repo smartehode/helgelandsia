@@ -449,6 +449,20 @@ export default async function BusinessPage({
               </a>
             </div>
           )}
+
+          {/* Suggesjon: legg ut oppdrag når oppføringen mangler kontaktinfo */}
+          {(b.claimStatus ?? 'unclaimed') === 'unclaimed' && (
+            <p className="border-t border-ink/8 pt-3 text-xs text-muted">
+              Fant du ikke det du lette etter?{' '}
+              <Link
+                href="/logg-inn?fra=%2Fmin-side%3Ftype%3Doppdrag"
+                className="text-sea hover:underline"
+              >
+                Legg ut et oppdrag
+              </Link>
+              {' '}— så kan fagfolk i bransjen kontakte deg.
+            </p>
+          )}
         </aside>
       </div>
     </div>
