@@ -186,11 +186,12 @@ export async function ArrangementerWidget({
   } catch { }
   if (!events.length) return null
 
-  // Kortgrid i full variant med bred blokk (2 kolonner eller Full bredde)
-  const wideMode = variant === 'full' && bredde !== undefined && bredde !== '1 kolonne'
-  // Full bredde: 3 kolonner på desktop; 2 kolonner-sone: maks 2 (allerede smale kort)
+  // Kortgrid i full variant med bred blokk (bredde='2' eller 'full')
+  // DB lagrer value-strengene '1' | '2' | 'full' — ikke labelene.
+  const wideMode = variant === 'full' && bredde !== undefined && bredde !== '1'
+  // full bredde: 3 kolonner på desktop; 2-kolonners sone: maks 2 (kortene er allerede smale)
   const gridCols =
-    bredde === 'Full bredde'
+    bredde === 'full'
       ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
       : 'grid-cols-1 sm:grid-cols-2'
 
