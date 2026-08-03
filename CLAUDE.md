@@ -13,6 +13,9 @@ i admin før publisering.
 - Next.js 15.4.11 (App Router) — PINNET, ikke oppgrader
   (Payload 3.85 peer-range utelukker 15.5.x)
 - Payload CMS 3 (inne i Next.js), PostgreSQL, Tailwind CSS
+- Rate limiting: in-memory (src/lib/rate-limit.ts, sliding window).
+  FORUTSETNING: én app-instans. Skalering til flere instanser krever
+  Redis-backing — bevisst fremtidsvalg som kan gjøres uten API-endring.
 - Design: «kald sjø, varm sol» — fjord/sea/fog/sun-palett i tailwind.config.ts,
   fonter Fraunces (serif) + Hanken Grotesk (sans)
 

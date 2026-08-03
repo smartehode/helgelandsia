@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { getPayloadClient } from '@/lib/getPayload'
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
+import { checkRateLimit, getClientIp, LIMITS, rateLimitResponse } from '@/lib/rate-limit'
 
 // ── SSRF protection ──────────────────────────────────────────────────────────
 
@@ -165,6 +166,10 @@ async function downloadImage(
 // ── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req)
+  const rl = checkRateLimit(`arrangement-import:${ip}`, LIMITS.IMPORT)
+  if (!rl.ok) return rateLimitResponse('/api/arrangement-import', ip, rl.retryAfter!)
+
   const payload = await getPayloadClient()
   const { user }: any = await payload.auth({ headers: await getHeaders() })
   if (!user || user.collection !== 'members') {

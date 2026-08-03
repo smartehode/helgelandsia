@@ -1,5 +1,6 @@
 import { headers as getHeaders } from 'next/headers'
 import { getPayloadClient } from '@/lib/getPayload'
+import { checkRateLimit, getClientIp, LIMITS, rateLimitResponse } from '@/lib/rate-limit'
 
 const slugify = (s: string) =>
   s.toLowerCase()
@@ -7,6 +8,10 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req)
+  const rl = checkRateLimit(`submission:${ip}`, LIMITS.SUBMISSION)
+  if (!rl.ok) return rateLimitResponse('innsending', ip, rl.retryAfter!)
+
   const payload = await getPayloadClient()
   const { user }: any = await payload.auth({ headers: await getHeaders() })
   if (!user || user.collection !== 'members') {

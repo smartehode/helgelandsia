@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers'
 import { getPayloadClient } from '@/lib/getPayload'
 import { assertSafe, safeFetch } from '@/lib/ssrf'
 import { parseIcs } from '@/lib/ics/parse'
+import { checkRateLimit, getClientIp, LIMITS, rateLimitResponse } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -367,6 +368,10 @@ async function handleFetchImages(payload: any): Promise<Response> {
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req)
+  const rl = checkRateLimit(`ics-import:${ip}`, LIMITS.IMPORT)
+  if (!rl.ok) return rateLimitResponse('/api/admin/ics-import', ip, rl.retryAfter!)
+
   const payload = await getPayloadClient()
   const { user }: any = await payload.auth({ headers: await getHeaders() })
   if (!user || user.collection !== 'users') {

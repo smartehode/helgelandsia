@@ -1,6 +1,12 @@
 # Caddy henter og fornyer SSL-sertifikat automatisk via Let's Encrypt.
 {$DOMAIN} {
-    reverse_proxy app:3000
+    reverse_proxy app:3000 {
+        # KRITISK for rate limiting: overskriv klient-sendt X-Forwarded-For
+        # med faktisk klient-IP Caddy ser. Hindrer at rate-grenser omgås
+        # ved å sende falsk header. Etter denne endringen er det alltid
+        # kun én verdi i X-Forwarded-For (ekte klient-IP).
+        header_up X-Forwarded-For {remote_host}
+    }
 
     header {
         # Clickjacking-vern

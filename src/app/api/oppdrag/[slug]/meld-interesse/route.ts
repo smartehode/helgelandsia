@@ -3,6 +3,7 @@ import { getPayloadClient } from '@/lib/getPayload'
 import { getCategoryById } from '@/lib/businesses/categories'
 import { oppdragInteresseHtml } from '@/lib/email/templates'
 import { bizUrl } from '@/lib/slug'
+import { checkRateLimit, getClientIp, LIMITS, rateLimitResponse } from '@/lib/rate-limit'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SERVER_URL ?? 'https://helgelandsia.no'
 
@@ -10,6 +11,10 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const ip = getClientIp(req)
+  const rl = checkRateLimit(`meld-interesse:${ip}`, LIMITS.MELD_INTERESSE)
+  if (!rl.ok) return rateLimitResponse('/api/oppdrag/meld-interesse', ip, rl.retryAfter!)
+
   const { slug } = await params
   const payload = await getPayloadClient()
 

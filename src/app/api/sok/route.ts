@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { getPayloadClient } from '@/lib/getPayload'
 import { bizUrl } from '@/lib/slug'
+import { checkRateLimit, getClientIp, LIMITS, rateLimitResponse } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +28,10 @@ function normalizeBizName(name: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req)
+  const rl = checkRateLimit(`sok:${ip}`, LIMITS.SEARCH)
+  if (!rl.ok) return rateLimitResponse('/api/sok', ip, rl.retryAfter!) as any
+
   const q = req.nextUrl.searchParams.get('q')?.trim() ?? ''
   if (q.length < 2) return NextResponse.json({})
 
