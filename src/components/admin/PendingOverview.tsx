@@ -144,6 +144,16 @@ export default async function PendingOverview({ payload: payloadProp }: Props) {
               Importer arrangementer (ICS) →
             </a>
           </li>
+          <li>
+            <a
+              href="https://dash.cloudflare.com/?to=/:account/web-analytics"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#0369a1', fontSize: '0.875rem', textDecoration: 'none' }}
+            >
+              Statistikk (Cloudflare Web Analytics) ↗
+            </a>
+          </li>
         </ul>
       </div>
     </>

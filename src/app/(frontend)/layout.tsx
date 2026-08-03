@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Hanken_Grotesk, Fraunces } from 'next/font/google'
+import Script from 'next/script'
 import { SiteHeader } from '@/components/SiteHeader'
 import { SiteFooter } from '@/components/SiteFooter'
 import { Ad } from '@/components/Ad'
@@ -33,6 +34,13 @@ export default function FrontendLayout({ children }: { children: React.ReactNode
         <main className="flex-1">{children}</main>
         <div className="mx-auto w-full max-w-6xl px-4"><Ad placement="footer" className="my-8" /></div>
         <SiteFooter />
+        {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
+          <Script
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            strategy="afterInteractive"
+            data-cf-beacon={JSON.stringify({ token: process.env.NEXT_PUBLIC_CF_BEACON_TOKEN })}
+          />
+        )}
       </body>
     </html>
   )

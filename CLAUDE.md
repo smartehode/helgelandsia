@@ -1179,12 +1179,6 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   genereres ved månedlig synk, tydelig merket som KI + kildeår)
 - Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
   akkumulert data over tid
-- Rate limiting: skjemaer (claim, innsending, kontakt-endepunktet),
-  /api/sok (offentlig, ingen auth), /api/arrangement-import (SSRF-
-  beskyttet, men bør ha IP-basert throttle per innlogget member),
-  /api/kalender (offentlig, ingen auth) OG
-  /api/oppdrag/[slug]/meld-interesse (member-auth men per-bruker-throttle
-  bør til for å hindre masse-meld-interesse)
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
 - Min side: vis pending claims («venter på godkjenning»)
 - Død admin-knapp «Full nedlasting» — feilsøk eller fjern
@@ -1200,6 +1194,9 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   **`kalender-aktivitet`** (showEvents/showTenders/showJobs på HolidaysBlock)
 - FergeWidget: etter deploy — sett ønsket variant på blokker i sidefelt/bunn
   (de bruker nå 'full' som defaultValue etter variant-bugfiksen)
+- ICS-import: titler fra Facebook-eventer inneholder Unicode fettskrift (𝗔𝗕𝗖)
+  som ikke normaliseres til vanlige tegn — vises som søl i admin og front.
+  Legg til Unicode-normalisering (NFKD + strip combining) i ICS-parseren.
 
 ### 2026-07-24 — KalenderWidget: aktivitetskalender (prikker + dagklikk)
 
@@ -1209,7 +1206,7 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   med måneden, søker 90 dager tilbake for flerdagere), anbud (ACTIVE + frist
   i måneden), stillinger (publiserte + frist i måneden). Maks 200 per type.
 - `src/app/api/kalender/route.ts` — GET /api/kalender?maned=YYYY-MM.
-  Offentlig (ingen auth), force-dynamic. Rate limiting-kandidat (se GJENSTÅR).
+  Offentlig (ingen auth), force-dynamic. Rate limiting: LIMITS.KALENDER (60/min).
 - `src/blocks/index.ts` — HolidaysBlock: 3 nye sjekkboks-felt i `type:'row'`-wrapper:
   `showEvents`, `showTenders`, `showJobs` (alle defaultValue: true).
   **SKJEMAENDRING** — eieren kjører `npx payload migrate:create kalender-aktivitet`,
@@ -1389,3 +1386,69 @@ npx payload migrate:create oppdrag-collection
 Les filen: sjekk ADD TABLE IF NOT EXISTS for `oppdrag` og `oppdrag_interessert`,
 ADD COLUMN IF NOT EXISTS for `businesses.mottar_oppdrag`, ingen DROP.
 Herd med IF NOT EXISTS, commit samen med koden.
+
+### 2026-08-03 — Cloudflare Web Analytics
+
+**Plausible CE vurdert og droppet — 3,2 GB RAM, ClickHouse for tung**
+- Server har 3,2 GB RAM totalt. ClickHouse krever 1–4 GB alene → ikke gjennomførbart.
+- Valgt Cloudflare Web Analytics (gratis, ingen selvhosting, null ekstra RAM).
+
+**Implementering**
+- `src/app/(frontend)/layout.tsx` — `next/script` med `strategy="afterInteractive"`.
+  Token leses fra `NEXT_PUBLIC_CF_BEACON_TOKEN` (env-variabel). Scriptet rendres ikke
+  hvis token mangler — trygt å deploye uten token satt.
+  **Eieren setter `NEXT_PUBLIC_CF_BEACON_TOKEN=<token>` i `.env` på serveren.**
+- `Caddyfile` — CSP utvidet:
+  - `script-src`: + `https://static.cloudflareinsights.com`
+  - `connect-src`: + `https://cloudflareinsights.com`
+  **Husk: `docker compose restart caddy` etter deploy (regel 14).**
+- `src/components/admin/PendingOverview.tsx` — ny lenke i Verktøy-seksjonen:
+  «Statistikk (Cloudflare Web Analytics) ↗» → `dash.cloudflare.com` (target=_blank).
+- Ingen skjemaendringer. `npm run build` rent.
+
+### 2026-08-03 — ArrangementerWidget kortgrid, «Legg ut oppdrag»-FAB, rate limiting
+
+**ArrangementerWidget — kortgrid i brede soner**
+- `src/components/widgets/ArrangementerWidget.tsx` fullstendig omskrevet.
+  `wideMode = variant === 'full' && bredde !== undefined && bredde !== '1'`.
+  `EventCard`-komponent (wide mode): `aspect-[16/10]` bilde med `next/image fill`,
+  kalenderikon-badge (fjord-header + serif dagtall, bottom-left), «Pågår nå»-badge
+  (top-right), tittel `text-sm font-medium line-clamp-2`, sted. Ingen ingress.
+  `EventListItem`-komponent (smal/kompakt): uendret rad-liste.
+  Grid: `bredde === 'full'` → `lg:grid-cols-3`; `bredde === '2'` → maks `sm:grid-cols-2`.
+  Plassholder-SVG for arrangementer uten bilde (fjord-bakgrunn).
+- **KRITISK LÆRDOM — breddeField-verdier:** Payload select-felt lagrer `value`
+  ('1', '2', 'full'), IKKE `label` ('1 kolonne', '2 kolonner', 'Full bredde').
+  Bug: widget sammenlignet mot label-strenger → kortgrid viste 2 kolonner selv med
+  `bredde='full'` i DB. Fix: alltid sammenlign mot value-streng ('1', '2', 'full').
+  Gjelder alle steder `block.bredde` brukes i widget-kode.
+
+**«Legg ut oppdrag»-FAB og kontekstuelle innslag**
+- `src/components/LeggUtOppdragFab.tsx` — ny async server-komponent.
+  Sjekker `payload-token`-cookie (begge brukergrupper har den) — returnerer `null`
+  hvis innlogget. Vises på /oppdrag, /bedrifter og /bedrifter/kategori/[id].
+  Fast posisjon bottom-right, fjord-bakgrunn, rund pille.
+- `/oppdrag/page.tsx` — fremtredende CTA-banner øverst («Har du en jobb som skal gjøres?
+  Legg den ut gratis — lokale bedrifter tar kontakt.») med medlemsverving-undertekst.
+- `/bedrifter/kategori/[id]/page.tsx` — oppdrag-seksjon rendres alltid (ikke bare
+  når det finnes oppdrag). Tom liste: dashed-border invitasjonskort.
+- `/bedrifter/[orgnr]/[slug]/page.tsx` — subtil «Legg ut et oppdrag»-linje nederst
+  i kontakt-aside når `claimStatus === 'unclaimed'`.
+
+**Rate limiting — in-memory sliding window**
+- `src/lib/rate-limit.ts` — ny felles util. Sliding-window Map med periodisk sweep
+  (5 min interval, `.unref()` for å unngå å holde prosessen oppe). Eksporterer
+  `checkRateLimit`, `getClientIp`, `rateLimitResponse`, `LIMITS`.
+- Grenser (per IP, per minutt): AUTH 5, SEARCH 30, CONTACT_REVEAL 10,
+  MELD_INTERESSE 10, SUBMISSION 10, IMPORT 5, KALENDER 60.
+- Endepunkter med rate limit: Payload auth catch-all (`[...slug]/route.ts`),
+  alle 7 innsendingsskjemaer, /api/sok, /api/bedrift/kontakt, /api/kalender,
+  /api/oppdrag/meld-interesse, /api/arrangement-import, /api/admin/ics-import.
+- **KRITISK LÆRDOM — Caddy X-Forwarded-For:** Caddy 2 APPENDER klient-IP til
+  eksisterende XFF-header uten `header_up`. Klient kan sende falsk første verdi
+  → rate-grense omgås. Fix: `header_up X-Forwarded-For {remote_host}` i Caddyfile
+  OVERSKRIVER med faktisk klient-IP. App leser siste verdi som forsvarsdybde.
+  **Husk: `docker compose restart caddy` etter deploy av Caddyfile-endring.**
+- FORUTSETNING: in-memory forutsetter én app-instans. Skalering til flere
+  instanser krever Redis-backing — bevisst fremtidsvalg, API uendret.
+  (Dokumentert i Stack-seksjonen øverst i CLAUDE.md.)
