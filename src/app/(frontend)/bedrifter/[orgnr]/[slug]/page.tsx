@@ -323,13 +323,19 @@ export default async function BusinessPage({
                   {percentil && (percentil.omsetningLabel || percentil.driftsmarginLabel) && (
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {percentil.omsetningLabel && (
-                        <span className="inline-flex items-center rounded-full bg-sea/10 px-2.5 py-0.5 text-[11px] font-medium text-sea">
-                          {percentil.omsetningLabel} omsetning i {percentil.kategorinavn} på Helgeland
+                        <span
+                          title={`Sammenlignet med ${percentil.groupSize} bedrifter i ${percentil.kategorinavn} på Helgeland`}
+                          className="inline-flex cursor-help items-center rounded-full bg-sea/10 px-2.5 py-0.5 text-[11px] font-medium text-sea"
+                        >
+                          {percentil.omsetningLabel} omsetning i {percentil.kategorinavn}
                         </span>
                       )}
                       {percentil.driftsmarginLabel && (
-                        <span className="inline-flex items-center rounded-full bg-sea/10 px-2.5 py-0.5 text-[11px] font-medium text-sea">
-                          {percentil.driftsmarginLabel} driftsmargin i {percentil.kategorinavn} på Helgeland
+                        <span
+                          title={`Sammenlignet med ${percentil.groupSize} bedrifter i ${percentil.kategorinavn} på Helgeland`}
+                          className="inline-flex cursor-help items-center rounded-full bg-sea/10 px-2.5 py-0.5 text-[11px] font-medium text-sea"
+                        >
+                          {percentil.driftsmarginLabel} driftsmargin i {percentil.kategorinavn}
                         </span>
                       )}
                     </div>

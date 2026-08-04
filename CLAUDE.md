@@ -1173,8 +1173,6 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
 - Oppdragsvarsling: bevisst test bak OPPDRAG_VARSLING_ENABLED=true (samme mønster som
   TENDER_DIGEST_ENABLED). Aktiver og test med én syntetisk innsending i prod.
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
-- Bransje-percentiler Helgeland (SQL over regnskap per nace_category —
-  fundament for KI-sammendrag + egen "Topp X%"-badge-verdi)
 - KI-sammendrag per bedrift (Claude API, stram tallbasert prompt,
   genereres ved månedlig synk, tydelig merket som KI + kildeår)
 - Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
@@ -1191,7 +1189,8 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
 - Migrasjoner som gjenstår å kjøre: `fremhevet-sone`, `anbud-widget`,
   `widget-layout-control` (dekker også politilogg-blokk),
   **`ferge-widget`**, **`ics-import`** (dekker sourceUrl + icsUid på events),
-  **`kalender-aktivitet`** (showEvents/showTenders/showJobs på HolidaysBlock)
+  **`kalender-aktivitet`** (showEvents/showTenders/showJobs på HolidaysBlock),
+  **`abonnenter`** (ny collection for ukebrev-påmelding)
 - FergeWidget: etter deploy — sett ønsket variant på blokker i sidefelt/bunn
   (de bruker nå 'full' som defaultValue etter variant-bugfiksen)
 - ICS-import: titler fra Facebook-eventer inneholder Unicode fettskrift (𝗔𝗕𝗖)
@@ -1509,3 +1508,27 @@ Påmelding og bekreftelses-e-post er alltid aktive.
 - FORUTSETNING: in-memory forutsetter én app-instans. Skalering til flere
   instanser krever Redis-backing — bevisst fremtidsvalg, API uendret.
   (Dokumentert i Stack-seksjonen øverst i CLAUDE.md.)
+
+### 2026-08-04 — Bransje-percentiler Helgeland (KI-fundament trinn 1)
+
+**Beregning — `src/lib/regnskap/percentiler.ts`**
+- `getPercentilerForBusiness(payload, orgnr, naceCategory, kategorinavn)` —
+  async funksjon, kalles fra bedriftssiden.
+- Steg 1: ett regnskap-oppslag for målbedriften (siste år).
+- Steg 2: `loadCategoryStats(payload, naceCategory)` — henter alle bedrifter i
+  kategorien (maks 3000), deretter alle regnskap for dem (maks 6000), beholder
+  siste tilgjengelige år per bedrift. Resultatet caches in-memory per naceCategory
+  med 24t TTL (modul-nivå Map) — endres kun ved månedlig synk, men reset ved restart.
+- Grupper med < 10 bedrifter med regnskap → `null` (for tynt).
+- Terskler (terskel-nedavrunding): Topp 5 % / 10 % / 25 % / 50 %. Under 50 % → null.
+- Returnerer `{ omsetningLabel, driftsmarginLabel, kategorinavn, groupSize }`.
+  `groupSize` brukes i tooltip på bedriftssiden.
+
+**Visning — `/bedrifter/[orgnr]/[slug]/page.tsx`**
+- Kalles parallelt (Promise.all) med regnskap-oppslag, underenheter og pressemeldinger.
+- Badges vises kun i Nøkkeltall-seksjonen (inne i Registerdata-boksen) og kun
+  når bedriften har regnskap i den aktuelle kategorien.
+- `title`-attributt på badge: «Sammenlignet med N bedrifter i [kategori] på Helgeland».
+  `cursor-help` signaliserer at tooltip finnes.
+- Under 50 %: ingenting vises (vi fremhever, vi henger ikke ut).
+- Ingen skjemaendringer. `npm run build` rent.
