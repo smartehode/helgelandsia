@@ -8,7 +8,6 @@ const NARINGSLIV_ITEMS = [
   { href: '/stillinger',      label: 'Stillinger' },
   { href: '/anbud',           label: 'Anbud' },
   { href: '/pressemeldinger', label: 'Pressemeldinger' },
-  { href: '/nyhetsbrev',      label: 'Nyhetsbrev' },
 ]
 
 const MAIN_ITEMS = [
@@ -50,8 +49,7 @@ export function MobileNav() {
     pathname.startsWith('/bedrifter') ||
     pathname.startsWith('/stillinger') ||
     pathname.startsWith('/anbud') ||
-    pathname.startsWith('/pressemeldinger') ||
-    pathname.startsWith('/nyhetsbrev')
+    pathname.startsWith('/pressemeldinger')
 
   return (
     <div className="md:hidden">

@@ -1406,6 +1406,22 @@ Herd med IF NOT EXISTS, commit samen med koden.
   «Statistikk (Cloudflare Web Analytics) ↗» → `dash.cloudflare.com` (target=_blank).
 - Ingen skjemaendringer. `npm run build` rent.
 
+### 2026-08-04 — Nyhetsbrev-inngang stengt (fase 1 utfasing)
+
+**Nyhetsbrev under utfasing — inngang stengt 2026-08-04, innhold består inntil videre.**
+- `src/components/SubmissionTabs.tsx` — «Nyhetsbrev»-fanen fjernet. 7 faner → 6 faner.
+  Ny layout: 3+3-grid (var 4+3). `NewsletterForm`-import fjernet.
+- `src/app/(frontend)/nyhetsbrev/page.tsx` — Bidra-knapper og CTAer fjernet.
+  Siden viser kun publisert innhold. Ingen nye innsendingslenker.
+- `src/components/NaeringslivDropdown.tsx` — «Nyhetsbrev»-lenke fjernet fra dropdown.
+- `src/components/MobileNav.tsx` — «Nyhetsbrev»-lenke og `/nyhetsbrev`-prefikssjekk fjernet.
+- `/om`-siden: nyhetsbrev var ikke nevnt i teksten — ingen endring.
+- BEHOLDT: `/nyhetsbrev`-siden, publisert innhold, collection i admin, sitemap-oppføringer.
+  Eksisterende lenker til `/nyhetsbrev/*` virker fortsatt.
+- **Fase 2 (senere beslutning):** innhold arkiveres/flyttes til pressemeldinger
+  med 301-redirect fra `/nyhetsbrev/*`.
+- Ingen skjemaendringer. `npm run build` rent.
+
 ### 2026-08-03 — ArrangementerWidget kortgrid, «Legg ut oppdrag»-FAB, rate limiting
 
 **ArrangementerWidget — kortgrid i brede soner**

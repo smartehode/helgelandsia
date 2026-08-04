@@ -9,7 +9,6 @@ const ITEMS = [
   { href: '/stillinger',      label: 'Stillinger' },
   { href: '/anbud',           label: 'Anbud' },
   { href: '/pressemeldinger', label: 'Pressemeldinger' },
-  { href: '/nyhetsbrev',      label: 'Nyhetsbrev' },
 ]
 
 const Chevron = ({ open }: { open: boolean }) => (
