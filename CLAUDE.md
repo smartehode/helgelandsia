@@ -1406,6 +1406,47 @@ Herd med IF NOT EXISTS, commit samen med koden.
   «Statistikk (Cloudflare Web Analytics) ↗» → `dash.cloudflare.com` (target=_blank).
 - Ingen skjemaendringer. `npm run build` rent.
 
+### 2026-08-04 — «Uka på Helgeland» — påmeldingsmodul (dobbel opt-in)
+
+**Collection Abonnenter (`abonnenter`)**
+- Felter: `epost` (unik, lowercase-normalisert via beforeChange-hook), `status`
+  ('venter_bekreftelse'|'aktiv'|'avmeldt'), `bekreftToken`/`avmeldToken` (unik tekst,
+  kryptografisk tilfeldig 64-tegns hex), `samtykkeTidspunkt` (settes KUN ved
+  bekreftelse, ikke ved påmelding), `paameldtFra`.
+- Access: read/delete = users; create/update = false (kun via overrideAccess:true i API).
+- Ingen kobling til members-collection.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create abonnenter`, leser
+  filen (sjekk ADD TABLE IF NOT EXISTS for `abonnenter`, ingen DROP), herder med
+  IF NOT EXISTS, committer med koden.
+
+**Påmeldingsflyt (dobbel opt-in)**
+- `POST /api/nyhetsbrev/paamelding` — rate limit 3/min per IP (LIMITS.NYHETSBREV).
+  Ny → opprett + send bekreftelse. Venter/avmeldt → reset tokens + send på nytt.
+  Allerede aktiv → nøytral respons (avslør ikke at adressen finnes — personvern).
+  Bekreftelses-e-post er transaksjonell — ingen env-brems, alltid sendt.
+- `/nyhetsbrev/bekreft?token=` — validerer token, setter status='aktiv' +
+  samtykkeTidspunkt (tidspunktet for brukerens aktive handling).
+- `/nyhetsbrev/avmeld?token=` — validerer avmeldToken, setter status='avmeldt'.
+  Ferdigbygd fra dag én selv om ingen brev sendes ennå.
+
+**Plassering**
+- `src/components/NyhetsbrevPaamelding.tsx` — klientkomponent, kompakt og full variant.
+  Kompakt (hvit tekst, bg-white/10): footer. Full (lys bg, fjord-knapp): /nyhetsbrev.
+  Nøytral suksessmelding: «Takk! Sjekk e-posten din og klikk bekreftelseslenken.»
+- `src/components/SiteFooter.tsx` — kompakt påmeldingsbånd øverst i footer
+  (over kolonne-grid), `fra="/footer"`.
+- `src/app/(frontend)/nyhetsbrev/page.tsx` — toppseksjon med full variant,
+  «Kommer snart — meld deg på nå!», arkiv under.
+
+**E-postmal**
+- `bekreftPaameldingHtml(token)` i `src/lib/email/templates.ts`.
+  Avsender: samme Resend-oppsett som resten. Enkel, norsk, lenke til /nyhetsbrev/bekreft.
+- Ingen avmeld-e-post (avmeldingssiden er bekreftelsen).
+
+**Ingen env-brems** — utsendelse (Fase 2) settes bak brems når den bygges.
+Påmelding og bekreftelses-e-post er alltid aktive.
+- Ingen skjemaendringer i eksisterende collections. `npm run build` rent.
+
 ### 2026-08-04 — Nyhetsbrev-inngang stengt (fase 1 utfasing)
 
 **Nyhetsbrev under utfasing — inngang stengt 2026-08-04, innhold består inntil videre.**

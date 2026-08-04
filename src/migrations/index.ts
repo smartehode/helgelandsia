@@ -37,6 +37,7 @@ import * as migration_20260724_160029 from './20260724_160029';
 import * as migration_20260802_192700 from './20260802_192700';
 import * as migration_20260802_195954_oppdrag_collection from './20260802_195954_oppdrag_collection';
 import * as migration_20260802_234722_kalender_oppdrag from './20260802_234722_kalender_oppdrag';
+import * as migration_20260804_122859_abonnenter from './20260804_122859_abonnenter';
 
 export const migrations = [
   {
@@ -232,6 +233,11 @@ export const migrations = [
   {
     up: migration_20260802_234722_kalender_oppdrag.up,
     down: migration_20260802_234722_kalender_oppdrag.down,
-    name: '20260802_234722_kalender_oppdrag'
+    name: '20260802_234722_kalender_oppdrag',
+  },
+  {
+    up: migration_20260804_122859_abonnenter.up,
+    down: migration_20260804_122859_abonnenter.down,
+    name: '20260804_122859_abonnenter'
   },
 ];

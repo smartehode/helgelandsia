@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getPayloadClient } from '@/lib/getPayload'
+import { NyhetsbrevPaamelding } from '@/components/NyhetsbrevPaamelding'
 
 export async function SiteFooter() {
   const payload = await getPayloadClient()
@@ -7,6 +8,20 @@ export async function SiteFooter() {
 
   return (
     <footer className="mt-20 bg-sea text-white">
+
+      {/* Ukebrev-påmelding */}
+      <div className="border-b border-white/10">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6">
+          <div className="shrink-0">
+            <p className="font-semibold text-white">Uka på Helgeland</p>
+            <p className="text-sm text-white/70">Ukentlig e-post med det viktigste som skjer.</p>
+          </div>
+          <div className="w-full sm:w-auto sm:min-w-[320px]">
+            <NyhetsbrevPaamelding kompakt fra="/footer" />
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
         {(footer?.columns ?? []).map((col: any) => (
           <div key={col.id}>

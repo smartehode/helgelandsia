@@ -152,6 +152,18 @@ ${kontaktLinjer ? `<ul style="padding-left:20px;margin:0 0 16px;">${kontaktLinje
   `)
 }
 
+export function bekreftPaameldingHtml(token: string): string {
+  const url = `${BASE_URL}/nyhetsbrev/bekreft?token=${token}`
+  return wrap(`
+<h1 style="${h1}">Bekreft påmeldingen din</h1>
+<p style="${p}">Du har meldt deg på <strong>Uka på Helgeland</strong> — det ukentlige nyhetsbrevet fra Helgelandsia med det viktigste som skjer i regionen.</p>
+<p style="${p}">Klikk nedenfor for å bekrefte e-postadressen din og aktivere abonnementet. Lenken er gyldig i 24 timer.</p>
+<a href="${url}" style="${btn}">Bekreft påmeldingen</a>
+<p style="${sm}">Eller kopier denne lenken i nettleseren:<br/>${url}</p>
+<p style="font-size:13px;color:${MUTED};margin-top:8px;">Hvis du ikke meldte deg på, kan du se bort fra denne e-posten.</p>
+  `)
+}
+
 export function submissionApprovedHtml(params: {
   name: string
   contentType: string

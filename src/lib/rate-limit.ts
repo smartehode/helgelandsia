@@ -94,4 +94,5 @@ export const LIMITS = {
   SUBMISSION:     { limit: 10, windowMs: 60_000 }, // alle innsendings-POST
   IMPORT:         { limit: 5,  windowMs: 60_000 }, // arrangement-import + ics-import
   KALENDER:       { limit: 60, windowMs: 60_000 }, // /api/kalender
+  NYHETSBREV:     { limit: 3,  windowMs: 60_000 }, // påmelding ukebrev per IP
 } satisfies Record<string, RateLimitConfig>
