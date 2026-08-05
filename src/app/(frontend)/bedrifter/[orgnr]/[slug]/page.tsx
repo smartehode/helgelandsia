@@ -10,6 +10,8 @@ import { SITE, abs } from '@/lib/og'
 import { getCategoryById } from '@/lib/businesses/categories'
 import { getPercentilerForBusiness } from '@/lib/regnskap/percentiler'
 import { nameToSlug } from '@/lib/slug'
+import { OkonomiGraf } from '@/components/OkonomiGraf'
+import { BransjeVis } from '@/components/BransjeVis'
 
 export const dynamic = 'force-dynamic'
 
@@ -119,8 +121,8 @@ export default async function BusinessPage({
       ? payload.find({
           collection: 'regnskap' as any,
           where: { orgnr: { equals: b.orgnr } },
-          sort: '-aar',
-          limit: 1,
+          sort: 'aar',   // stigende — gir kronologisk rekkefølge for grafen
+          limit: 10,
           overrideAccess: true,
         })
       : null,
@@ -142,7 +144,9 @@ export default async function BusinessPage({
   ])
 
   const subunits = subunitsResult?.docs ?? []
-  const regnskap: any = (regnskapResult as any)?.docs?.[0] ?? null
+  const alleRegnskap: any[] = (regnskapResult as any)?.docs ?? []
+  // Siste år brukes i nøkkeltall-tabellen; alle år sendes til grafen
+  const regnskap: any = alleRegnskap.length > 0 ? alleRegnskap[alleRegnskap.length - 1] : null
   const percentil = percentilResult
   const pressReleases: any[] = (pressReleasesResult as any)?.docs ?? []
   const isBrreg = b.source === 'brreg'
@@ -243,6 +247,21 @@ export default async function BusinessPage({
             </div>
           )}
 
+          {/* Økonomiutvikling — flerårsgraf (kun ved ≥2 regnskapsår) */}
+          {isBrreg && alleRegnskap.length >= 2 && (
+            <div className="rounded-2xl border border-ink/10 bg-white p-5">
+              <OkonomiGraf
+                data={alleRegnskap.map((r: any) => ({
+                  aar: r.aar,
+                  omsetning: r.omsetning ?? null,
+                  driftsresultat: r.driftsresultat ?? null,
+                  aarsresultat: r.aarsresultat ?? null,
+                  egenkapital: r.egenkapital ?? null,
+                }))}
+              />
+            </div>
+          )}
+
           {/* BRREG-fakta */}
           {isBrreg && (
             <div className="rounded-2xl bg-fog/60 p-5 ring-1 ring-ink/5">
@@ -310,7 +329,7 @@ export default async function BusinessPage({
                     {regnskap.driftsresultat != null && (
                       <>
                         <dt className="text-muted">Driftsresultat</dt>
-                        <dd className={`font-medium ${regnskap.driftsresultat < 0 ? 'text-red-600' : ''}`}>
+                        <dd className={`font-medium ${regnskap.driftsresultat < 0 ? 'text-ink/50' : ''}`}>
                           {fmtKr(regnskap.driftsresultat)}
                         </dd>
                       </>
@@ -318,7 +337,7 @@ export default async function BusinessPage({
                     {regnskap.aarsresultat != null && (
                       <>
                         <dt className="text-muted">Årsresultat</dt>
-                        <dd className={`font-medium ${regnskap.aarsresultat < 0 ? 'text-red-600' : ''}`}>
+                        <dd className={`font-medium ${regnskap.aarsresultat < 0 ? 'text-ink/50' : ''}`}>
                           {fmtKr(regnskap.aarsresultat)}
                         </dd>
                       </>
@@ -326,7 +345,7 @@ export default async function BusinessPage({
                     {regnskap.egenkapital != null && (
                       <>
                         <dt className="text-muted">Egenkapital</dt>
-                        <dd className={`font-medium ${regnskap.egenkapital < 0 ? 'text-red-600' : ''}`}>
+                        <dd className={`font-medium ${regnskap.egenkapital < 0 ? 'text-ink/50' : ''}`}>
                           {fmtKr(regnskap.egenkapital)}
                         </dd>
                       </>
@@ -352,6 +371,21 @@ export default async function BusinessPage({
                         </span>
                       )}
                     </div>
+                  )}
+
+                  {percentil && (percentil.omsetningPct != null || percentil.driftsmarginPct != null) && (
+                    <BransjeVis
+                      kategorinavn={percentil.kategorinavn}
+                      groupSize={percentil.groupSize}
+                      items={[
+                        ...(percentil.omsetningPct != null
+                          ? [{ label: 'Omsetning', pct: percentil.omsetningPct }]
+                          : []),
+                        ...(percentil.driftsmarginPct != null
+                          ? [{ label: 'Driftsmargin', pct: percentil.driftsmarginPct }]
+                          : []),
+                      ]}
+                    />
                   )}
                 </div>
               )}

@@ -30,6 +30,10 @@ function toLabel(pct: number): string | null {
 export interface PercentilResult {
   omsetningLabel: string | null
   driftsmarginLabel: string | null
+  // Raw percentil 1–100: lavere = bedre (færre bedrifter har høyere verdi).
+  // Sendes til BransjeVis for skala-visualisering uavhengig av badge-terskel.
+  omsetningPct: number | null
+  driftsmarginPct: number | null
   kategorinavn: string
   groupSize: number
 }
@@ -117,15 +121,18 @@ export async function getPercentilerForBusiness(
   const stats = await loadCategoryStats(payload, naceCategory)
   if (!stats) return null
 
+  let omsetningPct: number | null = null
   let omsetningLabel: string | null = null
   if (
     stats.omsetningValues.length >= MIN_GROUP_SIZE &&
     typeof myRegnskap.omsetning === 'number' &&
     myRegnskap.omsetning > 0
   ) {
-    omsetningLabel = toLabel(calcTopPercent(stats.omsetningValues, myRegnskap.omsetning))
+    omsetningPct = calcTopPercent(stats.omsetningValues, myRegnskap.omsetning)
+    omsetningLabel = toLabel(omsetningPct)
   }
 
+  let driftsmarginPct: number | null = null
   let driftsmarginLabel: string | null = null
   if (
     stats.driftsmarginValues.length >= MIN_GROUP_SIZE &&
@@ -134,9 +141,10 @@ export async function getPercentilerForBusiness(
     typeof myRegnskap.driftsresultat === 'number'
   ) {
     const myMargin = myRegnskap.driftsresultat / myRegnskap.omsetning
-    driftsmarginLabel = toLabel(calcTopPercent(stats.driftsmarginValues, myMargin))
+    driftsmarginPct = calcTopPercent(stats.driftsmarginValues, myMargin)
+    driftsmarginLabel = toLabel(driftsmarginPct)
   }
 
-  if (!omsetningLabel && !driftsmarginLabel) return null
-  return { omsetningLabel, driftsmarginLabel, kategorinavn, groupSize: stats.groupSize }
+  if (omsetningPct == null && driftsmarginPct == null) return null
+  return { omsetningLabel, driftsmarginLabel, omsetningPct, driftsmarginPct, kategorinavn, groupSize: stats.groupSize }
 }

@@ -1575,6 +1575,52 @@ Påmelding og bekreftelses-e-post er alltid aktive.
 - Under 50 %: ingenting vises (vi fremhever, vi henger ikke ut).
 - Ingen skjemaendringer. `npm run build` rent.
 
+### 2026-08-05 — Økonomivisualisering på bedriftssiden
+
+**Flerårsgraf (`src/components/OkonomiGraf.tsx`)**
+- Klientkomponent ('use client'), ren SVG — ingen recharts/chart.js.
+  Bundle-kostnad: 0 ekstra bytes (SVG er native HTML).
+- 4 serier: Omsetning (fjord #0C2733), Driftsresultat (brand-400 #3f93a6),
+  Årsresultat (sun #DDA13A), Egenkapital (grønn #16a34a).
+- `niceScale()` — adaptiv Y-akse med pene rundetall. Inkluderer alltid 0.
+  Håndterer negative verdier (graf under nullinja).
+- `fmtY()` — automatisk skala: mrd / m / t / kr etter størrelsesorden.
+- `buildPath()` — skipperliknende SVG-bane som hopper over null-punkter.
+- SVG viewBox 560×240, `width: 100%` → automatisk skalering på mobil.
+- Klikkbar forklaring under grafen — toggle-state per serie med `useState`.
+- Datapunkter: sirkler med hvit kant + tooltip via `<title>`.
+- Vises KUN når bedriften har ≥2 regnskapsår og isBrreg.
+
+**Bransjesammenligning (`src/components/BransjeVis.tsx`)**
+- Serverkomponent — ren presentasjon, ingen state.
+- Horisontale skalalinjer (én rad per måltall): prikk plassert etter percentil.
+  Posisjon fra venstre: `100 - pct` (lavere pct = bedre = lenger til høyre).
+- Medianmerke (vertikalt strek ved 50 %) gir kontekst uten tekst.
+- Etiketter: Topp 5/10/25 % · Over snittet · Under snittet.
+- «Under snittet» er nøytral fakta, ikke alarm — fargesatt grå (#8a9fa6).
+- Gode plasseringer (pct ≤ 25): fjord-farge. Middels (≤ 50): brand-400.
+- Overskrift: «[kategori] · N bedrifter på Helgeland».
+
+**`src/lib/regnskap/percentiler.ts` utvidet**
+- `PercentilResult` får to nye felt: `omsetningPct: number | null` og
+  `driftsmarginPct: number | null` (rå percentil 1–100, uavhengig av badge-terskel).
+- `getPercentilerForBusiness` returnerer nå resultat selv om bedriften er under
+  topp 50 % — betingelsen endret fra «begge labels null → null» til
+  «begge pct null → null».
+- Badge-logikken på siden er uendret (sjekker fortsatt labels).
+
+**Nøkkeltall-tabellen — nøytral negativ farge**
+- `text-red-600` erstattet med `text-ink/50` for driftsresultat, årsresultat
+  og egenkapital (replace_all). Rød = alarm; et underskuddsår er ikke alarm.
+
+**`src/app/(frontend)/bedrifter/[orgnr]/[slug]/page.tsx`**
+- Regnskap-fetch: `limit: 1, sort: '-aar'` → `limit: 10, sort: 'aar'`
+  (stigende, maks 10 år, for kronologisk graf-visning).
+- `alleRegnskap` = alle år; `regnskap` = siste (for nøkkeltall-tabellen).
+- OkonomiGraf plassert i eget hvitt kort over Registerdata-boksen.
+- BransjeVis plassert inne i Registerdata-boksen, etter de eksisterende badges.
+- Ingen skjemaendringer. `npm run build` rent (exit 0).
+
 ### 2026-08-04 — KI-sammendrag utvidet (aktivitet/formål/vekst)
 
 **`formaal`-felt på Businesses (BRREG vedtektsfestetFormaal)**
