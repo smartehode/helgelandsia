@@ -83,6 +83,7 @@ function toBrregUpdateFields(
     // gjerne mer nøyaktig enn på hovedenheten, som kan ha 0 eller null.
     antallAnsatte: enhet.antallAnsatte ?? null,
     aktivitet: hoved?.aktivitet?.join('; ') || null,
+    formaal: hoved?.vedtektsfestetFormaal?.join(' ') || null,
     brregHjemmeside: hoved?.hjemmeside ?? null,
     // Registermedlemskap (kun tilgjengelig for BrregEnhet, ikke underenhet)
     registrertIMvaregisteret: hoved?.registrertIMvaregisteret ?? false,

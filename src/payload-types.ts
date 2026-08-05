@@ -84,6 +84,7 @@ export interface Config {
     tenders: Tender;
     regnskap: Regnskap;
     oppdrag: Oppdrag;
+    abonnenter: Abonnenter;
     members: Member;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -108,6 +109,7 @@ export interface Config {
     tenders: TendersSelect<false> | TendersSelect<true>;
     regnskap: RegnskapSelect<false> | RegnskapSelect<true>;
     oppdrag: OppdragSelect<false> | OppdragSelect<true>;
+    abonnenter: AbonnenterSelect<false> | AbonnenterSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -481,6 +483,10 @@ export interface Business {
    */
   brregHjemmeside?: string | null;
   aktivitet?: string | null;
+  /**
+   * Fra vedtektene i Foretaksregisteret, tilgjengelig for AS og noen andre selskapsformer.
+   */
+  formaal?: string | null;
   forretningsadresse?: {
     gate?: string | null;
     postnummer?: string | null;
@@ -560,6 +566,15 @@ export interface Business {
    * Bedriften ønsker å motta varsler om lokale oppdrag i sin bransje.
    */
   mottarOppdrag?: boolean | null;
+  /**
+   * Generert av KI basert på regnskapstall. Kan redigeres eller slettes manuelt.
+   */
+  aiSammendrag?: string | null;
+  /**
+   * Regnskapsåret sammendraget er basert på.
+   */
+  aiSammendragAar?: number | null;
+  aiGenerertDato?: string | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1388,6 +1403,33 @@ export interface Oppdrag {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "abonnenter".
+ */
+export interface Abonnenter {
+  id: number;
+  epost: string;
+  status: 'venter_bekreftelse' | 'aktiv' | 'avmeldt';
+  /**
+   * Kryptografisk tilfeldig — brukes i bekreftelseslenken.
+   */
+  bekreftToken?: string | null;
+  /**
+   * Kryptografisk tilfeldig — brukes i avmeldingslenken i hvert brev.
+   */
+  avmeldToken?: string | null;
+  /**
+   * Settes KUN ved aktiv bekreftelse (dobbel opt-in) — ikke ved påmelding.
+   */
+  samtykkeTidspunkt?: string | null;
+  /**
+   * Hvilken side skjemaet sto på.
+   */
+  paameldtFra?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -1473,6 +1515,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'oppdrag';
         value: number | Oppdrag;
+      } | null)
+    | ({
+        relationTo: 'abonnenter';
+        value: number | Abonnenter;
       } | null)
     | ({
         relationTo: 'members';
@@ -1724,6 +1770,7 @@ export interface BusinessesSelect<T extends boolean = true> {
   stiftelsesdato?: T;
   brregHjemmeside?: T;
   aktivitet?: T;
+  formaal?: T;
   forretningsadresse?:
     | T
     | {
@@ -1764,6 +1811,9 @@ export interface BusinessesSelect<T extends boolean = true> {
   featured?: T;
   naceCategory?: T;
   mottarOppdrag?: T;
+  aiSammendrag?: T;
+  aiSammendragAar?: T;
+  aiGenerertDato?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2249,6 +2299,20 @@ export interface OppdragSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "abonnenter_select".
+ */
+export interface AbonnenterSelect<T extends boolean = true> {
+  epost?: T;
+  status?: T;
+  bekreftToken?: T;
+  avmeldToken?: T;
+  samtykkeTidspunkt?: T;
+  paameldtFra?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

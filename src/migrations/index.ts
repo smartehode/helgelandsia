@@ -38,6 +38,8 @@ import * as migration_20260802_192700 from './20260802_192700';
 import * as migration_20260802_195954_oppdrag_collection from './20260802_195954_oppdrag_collection';
 import * as migration_20260802_234722_kalender_oppdrag from './20260802_234722_kalender_oppdrag';
 import * as migration_20260804_122859_abonnenter from './20260804_122859_abonnenter';
+import * as migration_20260804_133010_ki_sammendrag from './20260804_133010_ki_sammendrag';
+import * as migration_20260804_185630_ki_sammendrag_formaal from './20260804_185630_ki_sammendrag_formaal';
 
 export const migrations = [
   {
@@ -238,6 +240,16 @@ export const migrations = [
   {
     up: migration_20260804_122859_abonnenter.up,
     down: migration_20260804_122859_abonnenter.down,
-    name: '20260804_122859_abonnenter'
+    name: '20260804_122859_abonnenter',
+  },
+  {
+    up: migration_20260804_133010_ki_sammendrag.up,
+    down: migration_20260804_133010_ki_sammendrag.down,
+    name: '20260804_133010_ki_sammendrag',
+  },
+  {
+    up: migration_20260804_185630_ki_sammendrag_formaal.up,
+    down: migration_20260804_185630_ki_sammendrag_formaal.down,
+    name: '20260804_185630_ki_sammendrag_formaal'
   },
 ];

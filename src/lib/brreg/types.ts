@@ -37,6 +37,7 @@ export interface BrregEnhet {
   underTvangsavviklingEllerTvangsopplosning?: boolean
   aktivitet?: string[]
   hjemmeside?: string
+  vedtektsfestetFormaal?: string[]
   registrertIMvaregisteret?: boolean
   registrertIForetaksregisteret?: boolean
   registrertIFrivillighetsregisteret?: boolean

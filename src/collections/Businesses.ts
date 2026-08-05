@@ -246,6 +246,7 @@ export const Businesses: CollectionConfig = {
               ],
             },
             { name: 'aktivitet', type: 'textarea', label: 'Virksomhetsbeskrivelse (BRREG)', admin: { readOnly: true } },
+            { name: 'formaal', type: 'textarea', label: 'Vedtektsfestet formål (BRREG)', admin: { readOnly: true, description: 'Fra vedtektene i Foretaksregisteret, tilgjengelig for AS og noen andre selskapsformer.' } },
             {
               name: 'forretningsadresse',
               type: 'group',
@@ -430,6 +431,33 @@ export const Businesses: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Bedriften ønsker å motta varsler om lokale oppdrag i sin bransje.',
+      },
+    },
+    {
+      name: 'aiSammendrag',
+      type: 'textarea',
+      label: 'KI-sammendrag',
+      admin: {
+        position: 'sidebar',
+        description: 'Generert av KI basert på regnskapstall. Kan redigeres eller slettes manuelt.',
+      },
+    },
+    {
+      name: 'aiSammendragAar',
+      type: 'number',
+      label: 'KI-sammendrag regnskapsår',
+      admin: {
+        position: 'sidebar',
+        description: 'Regnskapsåret sammendraget er basert på.',
+      },
+    },
+    {
+      name: 'aiGenerertDato',
+      type: 'date',
+      label: 'KI-sammendrag generert dato',
+      admin: {
+        position: 'sidebar',
+        date: { pickerAppearance: 'dayOnly', displayFormat: 'd. MMM yyyy' },
       },
     },
   ],

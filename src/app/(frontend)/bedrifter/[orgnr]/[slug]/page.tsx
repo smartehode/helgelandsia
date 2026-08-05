@@ -230,6 +230,19 @@ export default async function BusinessPage({
             </div>
           )}
 
+          {/* Om bedriften — aktivitet (foretrekkes) eller formål fra BRREG */}
+          {isBrreg && (b.aktivitet || b.formaal) && (
+            <div className="rounded-2xl border border-ink/10 bg-white p-5">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-eyebrow text-muted">Om bedriften</h2>
+              <p className="text-sm leading-relaxed text-ink/80">{b.aktivitet || b.formaal}</p>
+              {b.aktivitet && b.formaal && b.formaal !== b.aktivitet && (
+                <p className="mt-2 text-sm leading-relaxed text-ink/70">
+                  <span className="font-medium">Formål:</span> {b.formaal}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* BRREG-fakta */}
           {isBrreg && (
             <div className="rounded-2xl bg-fog/60 p-5 ring-1 ring-ink/5">
@@ -348,6 +361,18 @@ export default async function BusinessPage({
                   Sist oppdatert fra BRREG: {fmtDate(b.brregLastSynced)}
                 </p>
               )}
+
+              {/* KI-sammendrag */}
+              {b.aiSammendrag && (
+                <div className="mt-4 border-t border-ink/10 pt-4">
+                  <p className="text-sm text-ink/90 leading-relaxed">{b.aiSammendrag}</p>
+                  <p className="mt-2 text-[10px] text-muted italic">
+                    KI-generert sammendrag basert på offentlige regnskapstall
+                    {b.aiSammendragAar ? ` (${b.aiSammendragAar})` : ''}.
+                    Kan inneholde unøyaktigheter.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -419,6 +444,9 @@ export default async function BusinessPage({
           <KontaktReveal slug={b.slug} hasPhone={Boolean(b.phone)} hasEmail={Boolean(b.email)} />
           {b.website && (
             <p className="text-sm">🔗 <a className="text-sea hover:underline" href={b.website} target="_blank" rel="noopener">Nettside</a></p>
+          )}
+          {b.brregHjemmeside && b.brregHjemmeside !== b.website && (
+            <p className="text-sm">🔗 <a className="text-sea hover:underline" href={b.brregHjemmeside} target="_blank" rel="noopener">{b.brregHjemmeside.replace(/^https?:\/\//, '')}</a></p>
           )}
           {b.social?.facebook && (
             <p className="text-sm">📘 <a className="text-sea hover:underline" href={b.social.facebook} target="_blank" rel="noopener">Facebook</a></p>

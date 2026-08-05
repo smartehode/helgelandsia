@@ -1173,8 +1173,9 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
 - Oppdragsvarsling: bevisst test bak OPPDRAG_VARSLING_ENABLED=true (samme mønster som
   TENDER_DIGEST_ENABLED). Aktiver og test med én syntetisk innsending i prod.
 - Anbudsvarsling: bevisst test bak TENDER_DIGEST_ENABLED=true
-- KI-sammendrag per bedrift (Claude API, stram tallbasert prompt,
-  genereres ved månedlig synk, tydelig merket som KI + kildeår)
+- KI-sammendrag: script kjøres manuelt (ikke cron ennå) —
+  `npx tsx scripts/ai-sammendrag-sync.ts --limit 10` for røyktest,
+  deretter uten flagg for alle. Krever ANTHROPIC_API_KEY i .env.
 - Regnskap trinn 2: vis historikk (flere år) etter at månedlig synk har
   akkumulert data over tid
 - DB-passordbytte (ble eksponert i chat; lav risiko, port ikke publisert)
@@ -1190,7 +1191,13 @@ fane i SubmissionTabs etter innlogging (e-post og Google OAuth).
   `widget-layout-control` (dekker også politilogg-blokk),
   **`ferge-widget`**, **`ics-import`** (dekker sourceUrl + icsUid på events),
   **`kalender-aktivitet`** (showEvents/showTenders/showJobs på HolidaysBlock),
-  **`abonnenter`** (ny collection for ukebrev-påmelding)
+  **`abonnenter`** (ny collection for ukebrev-påmelding),
+  **`ki-sammendrag`** (aiSammendrag/aiSammendragAar/aiGenerertDato på businesses),
+  **`formaal`** (vedtektsfestetFormaal-felt på businesses — kan kombineres med ki-sammendrag)
+- KI-sammendrag: etter migrasjoner — kjør backfill først:
+  `npx tsx scripts/brreg-formaal-backfill.ts --only-missing` (~7–8 t for alle),
+  deretter `npx tsx scripts/ai-sammendrag-sync.ts --limit 10` for røyktest,
+  deretter uten flagg for alle. Krever ANTHROPIC_API_KEY i .env.
 - FergeWidget: etter deploy — sett ønsket variant på blokker i sidefelt/bunn
   (de bruker nå 'full' som defaultValue etter variant-bugfiksen)
 - ICS-import: titler fra Facebook-eventer inneholder Unicode fettskrift (𝗔𝗕𝗖)
@@ -1509,6 +1516,41 @@ Påmelding og bekreftelses-e-post er alltid aktive.
   instanser krever Redis-backing — bevisst fremtidsvalg, API uendret.
   (Dokumentert i Stack-seksjonen øverst i CLAUDE.md.)
 
+### 2026-08-04 — KI-sammendrag per bedrift (trinn 2)
+
+**Felter på Businesses (3 nye, sidebar, admin-redigerbare)**
+- `aiSammendrag` (textarea) — generert tekst, kan overstyres/slettes manuelt.
+- `aiSammendragAar` (number) — regnskapsåret sammendraget er basert på.
+  Brukes som sammenligning ved synk: hopp over hvis aar == siste regnskapsår.
+- `aiGenerertDato` (date) — generert dato.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create ki-sammendrag`,
+  leser filen (sjekk ADD COLUMN IF NOT EXISTS på alle tre, ingen DROP), herder,
+  committer med koden.
+
+**Generator — `src/lib/ai/sammendrag.ts`**
+- `genererSammendrag(input: SammendragInput): Promise<SammendragResult | null>`.
+- Modell: `claude-haiku-4-5-20251001`. max_tokens 300. temperature 0.3.
+- `ANTHROPIC_API_KEY` fra env — returnerer null hvis nøkkel mangler (trygg i alle miljøer).
+- Input: navn, kommune, kategori, org-form, ansatte, regnskapsår, nøkkeltall,
+  driftsmargin, antall år med regnskap, percentil-plassering.
+  (egenkapitalandel fjernet — var feil formel; se utvidelseslogg 2026-08-04.)
+- Prompt: stram, fakta-kun, nøytral tone, ingen spekulasjon/råd/fremtid,
+  nevner rangering kun hvis oppgitt. Svar = ren norsk bokmål-tekst.
+- Kall-feil → null (aldri lagre halvferdig).
+
+**Sync-script — `scripts/ai-sammendrag-sync.ts`**
+- `--orgnr NNNNNNNNN` (én bedrift), `--limit N` (begrenset antall), uten flagg: alle.
+- «Alle» = bedrifter med regnskap der aiSammendragAar < siste regnskapsår (eller ingen sammendrag).
+- Sekvensielt med 500 ms pause mellom kall. Gjenbruker `getPercentilerForBusiness` (med intern cache).
+- Sluttlinje: behandlet/generert/hoppet/feil + estimert tokenforbruk + USD-estimat.
+- KJØRES MANUELT — ikke koblet til cron (regel 17-ånden).
+
+**Visning på bedriftssiden (`/bedrifter/[orgnr]/[slug]/page.tsx`)**
+- Ny seksjon inne i Registerdata-boksen, under Nøkkeltall.
+- Vises kun hvis `b.aiSammendrag` finnes.
+- Obligatorisk merknad: «KI-generert sammendrag basert på offentlige regnskapstall (ÅÅÅÅ). Kan inneholde unøyaktigheter.»
+- `npm install @anthropic-ai/sdk` kjørt (^0.115.0). `npm run build` rent.
+
 ### 2026-08-04 — Bransje-percentiler Helgeland (KI-fundament trinn 1)
 
 **Beregning — `src/lib/regnskap/percentiler.ts`**
@@ -1532,3 +1574,62 @@ Påmelding og bekreftelses-e-post er alltid aktive.
   `cursor-help` signaliserer at tooltip finnes.
 - Under 50 %: ingenting vises (vi fremhever, vi henger ikke ut).
 - Ingen skjemaendringer. `npm run build` rent.
+
+### 2026-08-04 — KI-sammendrag utvidet (aktivitet/formål/vekst)
+
+**`formaal`-felt på Businesses (BRREG vedtektsfestetFormaal)**
+- `src/collections/Businesses.ts` — nytt felt `formaal` (textarea, readOnly) i
+  BRREG-data-fanen etter `aktivitet`. Label: «Vedtektsfestet formål (BRREG)».
+- `src/lib/brreg/types.ts` — `vedtektsfestetFormaal?: string[]` lagt til i `BrregEnhet`.
+- `src/lib/brreg/sync.ts` — `formaal: hoved?.vedtektsfestetFormaal?.join(' ') || null`
+  lagt til i `toBrregUpdateFields()`.
+- **SKJEMAENDRING** — eieren kjører `npx payload migrate:create formaal` (eller
+  kombinert `ki-sammendrag-formaal`), leser filen, herder med IF NOT EXISTS, committer.
+
+**Backfill-script — `scripts/brreg-formaal-backfill.ts`**
+- Engangsberikelse: henter `vedtektsfestetFormaal` + manglende `aktivitet` fra
+  BRREG Enhetsregisteret for eksisterende bedrifter.
+- Hopper over underenheter (kun Enhetsregisteret, ikke Underenhetsregisteret).
+- Flagg: `--limit N`, `--orgnr NNNNNNNNN`, `--only-missing` (anbefalt — hopper over
+  bedrifter som allerede har begge felt).
+- 1100 ms pause mellom kall (BRREG-bruksregler). ~7–8 t for alle 24 000 bedrifter.
+
+**Bedriftssiden (`/bedrifter/[orgnr]/[slug]/page.tsx`)**
+- «Om bedriften»-seksjon: vises når `aktivitet || formaal` finnes (og bedriften
+  har BRREG-data). Foretrekker `aktivitet`; viser begge hvis begge finnes og de
+  er ulike.
+- `brregHjemmeside`-lenke i kontakt-aside: vises kun når den er satt og avviker
+  fra berikelse-feltet `website`.
+
+**KI-sammendrag utvidet — `src/lib/ai/sammendrag.ts`**
+- `SammendragInput` utvidet med tre nye felt:
+  - `forrigeAarOmsetning?: number | null` — forrige regnskapsårs omsetning
+  - `aktivitet?: string | null` — fra BRREG
+  - `formaal?: string | null` — fra BRREG vedtektsfestetFormaal
+- `buildPrompt()` — oppdatert:
+  - «Registrert aktivitet: …»-linje (aktivitet, fallback formaal) i faktalisten.
+  - Omsetningsvekst i % beregnes og vises når forrigeAarOmsetning finnes.
+  - Ny promptregel: «Bruk 'Registrert aktivitet' til å beskrive hva bedriften
+    driver med — men aldri utover det som står der.»
+  - `KATEGORI_FRASE`-map for ferdigformulerte bransjeuttrykk (fra forrige økt).
+- `egenkapitalandel` fjernet fra input og prompt (var EK/omsetning — umulig verdi
+  for holdingselskaper; totalkapital finnes ikke i dataene).
+
+**Sync-script — `scripts/ai-sammendrag-sync.ts`**
+- Bygger `omsetningByOrgnrYear: Map<string, number|null>` under initial regnskap-henting.
+  Slår opp `${orgnr}:${latestAar - 1}` for `forrigeAarOmsetning` — ingen ekstra DB-kall.
+- Sender `aktivitet`, `formaal`, `forrigeAarOmsetning` til `genererSammendrag`.
+- `--force`-flagg tvinger regenerering selv om år allerede matcher (for prompt-justeringer).
+
+**Stikkprøve — TLAH HOLDING AS (999667015)**
+Generert tekst (2025-regnskap, kun ett år i DB → ingen vekstlinje):
+> «TLAH HOLDING AS er et aksjeselskap registrert i Vefsn som driver med bilberging.
+> I regnskapsåret 2025 hadde bedriften en omsetning på 7 901 325 kroner med et
+> driftsresultat på 2 811 059 kroner og et årsresultat på 3 408 603 kroner.
+> Bedriften oppnådde en driftsmargin på 35,6 prosent og ligger i topp 10 prosent
+> når det gjelder driftsmargin blant 158 bedrifter i transport- og logistikkbransjen
+> på Helgeland, samt i topp 50 prosent når det gjelder omsetning.»
+- Aktivitet («bilberging») riktig brukt ✓
+- Kategori korrekt formatert («transport- og logistikkbransjen») ✓
+- Vekst vises ikke (forventet — kun 2025 finnes) ✓
+- `npm run build` rent ✓
